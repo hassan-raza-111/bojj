@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  clerkId       String?  @unique // Clerk authentication ID
+  email         String   @unique
+  firstName     String
+  lastName      String
+  role          Role     @default(CUSTOMER)
+  bio           String?
+  avatar        String?
+  phone         String?
+  location      String?
+  portfolio     String[] // URLs to portfolio images
+  experience    Int? // Years of experience for vendors
+  rating        Float    @default(0)
+  totalReviews  Int      @default(0)
+  totalEarnings Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  postedJobs       Job[]     @relation("JobPoster")
+  bids             Bid[]
+  hiredJobs        Job[]     @relation("HiredVendor")
+  reviews          Review[]
+  customerPayments Payment[] @relation("PaymentCustomer")
+  vendorPayments   Payment[] @relation("PaymentVendor")
+  tickets          Ticket[]
+}
+
+model Job {
+  id                 String    @id @default(uuid())
+  title              String
+  description        String
+  budget             Float
+  location           String
+  images             String[]
+  category           String
+  subcategory        String?
+  street             String?
+  city               String?
+  state              String?
+  zipCode            String?
+  timeline           String?
+  date               DateTime?
+  time               String?
+  additionalRequests String?
+  contactPreference  String?
+  tags               String[]
+  status             JobStatus @default(OPEN)
+  customerId         String
+  customer           User      @relation("JobPoster", fields: [customerId], references: [id])
+  vendorId           String? // Only set when hired
+  vendor             User?     @relation("HiredVendor", fields: [vendorId], references: [id])
+  bids               Bid[]
+  payment            Payment?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  completedAt        DateTime?
+}
+
+model Bid {
+  id            String    @id @default(uuid())
+  amount        Float
+  message       String
+  estimatedDays Int
+  jobId         String
+  job           Job       @relation(fields: [jobId], references: [id])
+  vendorId      String
+  vendor        User      @relation(fields: [vendorId], references: [id])
+  status        BidStatus @default(PENDING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod
+  transactionId String? // Stripe/PayPal transaction ID
+  jobId         String        @unique
+  job           Job           @relation(fields: [jobId], references: [id])
+  customerId    String
+  customer      User          @relation("PaymentCustomer", fields: [customerId], references: [id])
+  vendorId      String
+  vendor        User          @relation("PaymentVendor", fields: [vendorId], references: [id])
+  releasedAt    DateTime? // When payment was released to vendor
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Ticket {
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  status        TicketStatus   @default(OPEN)
+  priority      TicketPriority @default(MEDIUM)
+  category      TicketCategory
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  adminResponse String?
+  resolvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Service {
+  id          String        @id @default(uuid())
+  title       String
+  code        String        @unique
+  description String
+  tags        String[]
+  images      String[]
+  status      ServiceStatus @default(ACTIVE)
+  parentId    String? // Self-referencing for nested services
+  parent      Service?      @relation("ServiceHierarchy", fields: [parentId], references: [id])
+  children    Service[]     @relation("ServiceHierarchy")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  serviceId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Enums
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+enum JobStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  IN_ESCROW
+  RELEASED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  TECHNICAL
+  BILLING
+  DISPUTE
+  GENERAL
+  FEEDBACK
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
