@@ -1,23 +1,28 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getCustomerDashboard,
   getVendorDashboard,
   getAdminDashboard,
-  getUserStats,
-} from "../controllers/dashboard.controller";
+} from '../controllers/dashboard.controller';
+import {
+  authenticateToken,
+  requireCustomer,
+  requireVendor,
+  requireAdmin,
+  requireAuthenticated,
+} from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Get customer dashboard data
-router.get("/customer", getCustomerDashboard);
+// All dashboard routes require authentication
+router.use(authenticateToken);
 
-// Get vendor dashboard data
-router.get("/vendor", getVendorDashboard);
+// Role-specific dashboards
+router.get('/customer', requireCustomer, getCustomerDashboard);
+router.get('/vendor', requireVendor, getVendorDashboard);
+router.get('/admin', requireAdmin, getAdminDashboard);
 
-// Get admin dashboard data
-router.get("/admin", getAdminDashboard);
+// User profile statistics (any authenticated user)
+// router.get("/profile", requireAuthenticated, getUserProfileStats);
 
-// Get user profile statistics
-router.get("/profile", getUserStats);
-
-export { router as dashboardRouter };
+export const dashboardRouter = router;

@@ -16,20 +16,18 @@ datasource db {
 
 model User {
   id            String   @id @default(uuid())
-  clerkId       String?  @unique // Clerk authentication ID
   email         String   @unique
+  password      String   // For traditional authentication
   firstName     String
   lastName      String
   role          Role     @default(CUSTOMER)
   bio           String?
-  avatar        String?
   phone         String?
   location      String?
-  portfolio     String[] // URLs to portfolio images
-  experience    Int? // Years of experience for vendors
   rating        Float    @default(0)
   totalReviews  Int      @default(0)
   totalEarnings Float    @default(0)
+  status        UserStatus @default(ACTIVE)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -41,6 +39,8 @@ model User {
   customerPayments Payment[] @relation("PaymentCustomer")
   vendorPayments   Payment[] @relation("PaymentVendor")
   tickets          Ticket[]
+  refreshTokens    RefreshToken[]
+  passwordResets   PasswordReset[]
 }
 
 model Job {
@@ -146,11 +146,43 @@ model Review {
   updatedAt DateTime @updatedAt
 }
 
+// Authentication related models
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
 // Enums
 enum Role {
   CUSTOMER
   VENDOR
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
 }
 
 enum JobStatus {

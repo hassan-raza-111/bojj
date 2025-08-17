@@ -1,39 +1,75 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   createTicket,
   getUserTickets,
-  getTicketDetails,
-  getAllTickets,
+  getTicketById,
   updateTicket,
+  deleteTicket,
+  getAllTickets,
   getTicketStats,
   getTicketCategories,
   getTicketPriorities,
-} from "../controllers/support.controller";
+} from '../controllers/support.controller';
+import {
+  authenticateToken,
+  requireAuthenticated,
+  requireOwnership,
+  requireAdmin,
+} from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import { createTicketSchema, updateTicketSchema } from '../utils/schemas';
 
 const router = Router();
 
-// Create a support ticket (Any authenticated user)
-router.post("/tickets", createTicket);
+// Public routes (no authentication required)
+router.get('/categories', getTicketCategories);
+router.get('/priorities', getTicketPriorities);
 
-// Get user's tickets
-router.get("/tickets", getUserTickets);
+// User routes (authenticated users)
+router.post(
+  '/tickets',
+  authenticateToken,
+  requireAuthenticated,
+  validateRequest(createTicketSchema),
+  createTicket
+);
 
-// Get ticket details
-router.get("/tickets/:ticketId", getTicketDetails);
+router.get('/tickets', authenticateToken, requireAuthenticated, getUserTickets);
+router.get(
+  '/tickets/:id',
+  authenticateToken,
+  requireOwnership('ticket'),
+  getTicketById
+);
 
-// Admin: Get all tickets
-router.get("/admin/tickets", getAllTickets);
+router.patch(
+  '/tickets/:id',
+  authenticateToken,
+  requireOwnership('ticket'),
+  validateRequest(updateTicketSchema),
+  updateTicket
+);
 
-// Admin: Update ticket status and respond
-router.patch("/admin/tickets/:ticketId", updateTicket);
+router.delete(
+  '/tickets/:id',
+  authenticateToken,
+  requireOwnership('ticket'),
+  deleteTicket
+);
 
-// Admin: Get ticket statistics
-router.get("/admin/tickets/stats", getTicketStats);
+// Admin routes
+router.get('/admin/tickets', authenticateToken, requireAdmin, getAllTickets);
+router.patch(
+  '/admin/tickets/:id',
+  authenticateToken,
+  requireAdmin,
+  updateTicket
+);
+router.get(
+  '/admin/tickets/stats',
+  authenticateToken,
+  requireAdmin,
+  getTicketStats
+);
 
-// Get available ticket categories
-router.get("/categories", getTicketCategories);
-
-// Get available ticket priorities
-router.get("/priorities", getTicketPriorities);
-
-export { router as supportRouter };
+export const supportRouter = router;

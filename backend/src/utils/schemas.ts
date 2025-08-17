@@ -1,25 +1,50 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Base schemas for common patterns
 const idSchema = z.string().uuid();
 const emailSchema = z.string().email();
 
-// User schemas - Clerk handles authentication
+// User schemas - Traditional email/password authentication
 export const createUserSchema = z.object({
-  clerkId: z.string().min(1),
   email: emailSchema,
+  password: z.string().min(6),
   firstName: z.string().min(2),
   lastName: z.string().min(2),
-  role: z.enum(["CUSTOMER", "VENDOR", "ADMIN"]).default("CUSTOMER"),
+  role: z.enum(['CUSTOMER', 'VENDOR', 'ADMIN']).default('CUSTOMER'),
   bio: z.string().optional(),
-  avatar: z.string().url().optional(),
   phone: z.string().optional(),
   location: z.string().optional(),
-  portfolio: z.array(z.string().url()).optional(),
-  experience: z.number().int().positive().optional(),
 });
 
-export const updateUserSchema = createUserSchema.partial();
+export const updateUserSchema = createUserSchema.partial().omit({ password: true });
+
+// Authentication schemas
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(6),
+});
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export const logoutSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(6),
+  newPassword: z.string().min(6),
+});
+
+export const requestPasswordResetSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(6),
+});
 
 // Service schemas - focus on API validation
 export const createServiceSchema = z.object({
@@ -57,7 +82,7 @@ export const createJobSchema = z.object({
 
 export const updateJobSchema = createJobSchema.partial().extend({
   status: z
-    .enum(["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED", "DISPUTED"])
+    .enum(['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'DISPUTED'])
     .optional(),
 });
 
@@ -73,7 +98,7 @@ export const createBidSchema = z.object({
 // Payment schemas
 export const processPaymentSchema = z.object({
   amount: z.number().positive(),
-  paymentMethod: z.enum(["STRIPE", "PAYPAL"]),
+  paymentMethod: z.enum(['STRIPE', 'PAYPAL']),
   jobId: idSchema,
   customerId: idSchema,
   vendorId: idSchema,
@@ -90,16 +115,16 @@ export const createReviewSchema = z.object({
 export const createTicketSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
-  category: z.enum(["TECHNICAL", "BILLING", "DISPUTE", "GENERAL", "FEEDBACK"]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
+  category: z.enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL', 'FEEDBACK']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   userId: idSchema,
 });
 
 export const updateTicketSchema = z.object({
-  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   category: z
-    .enum(["TECHNICAL", "BILLING", "DISPUTE", "GENERAL", "FEEDBACK"])
+    .enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL', 'FEEDBACK'])
     .optional(),
   adminResponse: z.string().optional(),
 });
@@ -126,7 +151,7 @@ export const serviceFilterSchema = z.object({
 
 export const jobFilterSchema = z.object({
   status: z
-    .enum(["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED", "DISPUTED"])
+    .enum(['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'DISPUTED'])
     .optional(),
   category: z.string().optional(),
   location: z.string().optional(),

@@ -1,31 +1,72 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   processPayment,
   releasePayment,
   refundPayment,
   getPaymentDetails,
-  getCustomerPayments,
-  getVendorPayments,
-} from "../controllers/payment.controller";
+  getCustomerPaymentHistory,
+  getVendorPaymentHistory,
+  getAllPayments,
+} from '../controllers/payment.controller';
+import {
+  authenticateToken,
+  requireCustomer,
+  requireVendor,
+  requireCustomerOrVendor,
+  requireOwnership,
+  requireAdmin,
+} from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import { processPaymentSchema } from '../utils/schemas';
 
 const router = Router();
 
-// Process payment and put in escrow (Customer only)
-router.post("/:paymentId/process", processPayment);
+// Admin routes
+router.get('/', authenticateToken, requireAdmin, getAllPayments);
 
-// Release payment to vendor (Admin only)
-router.post("/:paymentId/release", releasePayment);
+// Payment processing (Customer only)
+router.post(
+  '/:paymentId/process',
+  authenticateToken,
+  requireCustomer,
+  validateRequest(processPaymentSchema),
+  processPayment
+);
 
-// Refund payment to customer (Admin only)
-router.post("/:paymentId/refund", refundPayment);
+// Payment management (Admin only)
+router.post(
+  '/:paymentId/release',
+  authenticateToken,
+  requireAdmin,
+  releasePayment
+);
+router.post(
+  '/:paymentId/refund',
+  authenticateToken,
+  requireAdmin,
+  refundPayment
+);
 
-// Get payment details
-router.get("/:paymentId", getPaymentDetails);
+// Payment viewing (owner or admin)
+router.get(
+  '/:paymentId',
+  authenticateToken,
+  requireOwnership('payment'),
+  getPaymentDetails
+);
 
-// Get customer's payment history
-router.get("/customer/history", getCustomerPayments);
+// Payment history (authenticated users)
+router.get(
+  '/customer/history',
+  authenticateToken,
+  requireCustomer,
+  getCustomerPaymentHistory
+);
+router.get(
+  '/vendor/history',
+  authenticateToken,
+  requireVendor,
+  getVendorPaymentHistory
+);
 
-// Get vendor's payment history
-router.get("/vendor/history", getVendorPayments);
-
-export { router as paymentRouter };
+export const paymentRouter = router;

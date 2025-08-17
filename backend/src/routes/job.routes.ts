@@ -1,47 +1,82 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   createJob,
   getOpenJobs,
-  getJobDetails,
+  getJobById,
+  updateJob,
+  deleteJob,
   submitBid,
-  hireVendor,
+  getJobBids,
+  acceptBid,
   completeJob,
   getCustomerJobs,
   getVendorJobs,
-  updateJob,
-  deleteJob,
-} from "../controllers/job.controller";
+  getAllJobs,
+} from '../controllers/job.controller';
+import {
+  authenticateToken,
+  requireCustomer,
+  requireVendor,
+  requireCustomerOrVendor,
+  requireOwnership,
+  requireAdmin,
+} from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import {
+  createJobSchema,
+  createBidSchema,
+  updateJobSchema,
+} from '../utils/schemas';
 
 const router = Router();
 
-// Job posting (Customer only)
-router.post("/", createJob);
+// Public routes (no authentication required)
+router.get('/open', getOpenJobs); // Anyone can see open jobs
 
-// Get open jobs (Public - vendors can see available jobs)
-router.get("/open", getOpenJobs);
+// Protected routes
+router.get('/', authenticateToken, requireAdmin, getAllJobs); // Admin only
 
-// Get job details with bids (Public - but should be after specific routes)
-router.get("/:jobId", getJobDetails);
+// Job management (Customer only)
+router.post(
+  '/',
+  authenticateToken,
+  requireCustomer,
+  validateRequest(createJobSchema),
+  createJob
+);
 
-// Submit bid (Vendor only)
-router.post("/:jobId/bids", submitBid);
+router.get('/customer', authenticateToken, requireCustomer, getCustomerJobs);
+router.get('/vendor', authenticateToken, requireVendor, getVendorJobs);
 
-// Hire vendor (Customer only)
-router.post("/:jobId/hire", hireVendor);
+// Job operations (owner or admin)
+router.get('/:id', authenticateToken, requireCustomerOrVendor, getJobById);
+router.patch(
+  '/:id',
+  authenticateToken,
+  requireOwnership('job'),
+  validateRequest(updateJobSchema),
+  updateJob
+);
+router.delete('/:id', authenticateToken, requireOwnership('job'), deleteJob);
 
-// Complete job (Vendor only)
-router.patch("/:jobId/complete", completeJob);
+// Bidding (Vendor only)
+router.post(
+  '/:id/bids',
+  authenticateToken,
+  requireVendor,
+  validateRequest(createBidSchema),
+  submitBid
+);
 
-// Get customer's jobs
-router.get("/customer/all", getCustomerJobs);
+router.get('/:id/bids', authenticateToken, requireCustomerOrVendor, getJobBids);
 
-// Get vendor's jobs
-router.get("/vendor/all", getVendorJobs);
+// Job workflow (Customer and Vendor)
+router.post(
+  '/:id/accept-bid/:bidId',
+  authenticateToken,
+  requireCustomer,
+  acceptBid
+);
+router.post('/:id/complete', authenticateToken, requireVendor, completeJob);
 
-// Update job (Customer only)
-router.patch("/:jobId", updateJob);
-
-// Delete job (Customer only)
-router.delete("/:jobId", deleteJob);
-
-export { router as jobRouter };
+export const jobRouter = router;

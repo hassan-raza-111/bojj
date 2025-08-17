@@ -1,39 +1,58 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   createUserProfile,
   getUserProfile,
-  getUserByClerkId,
   updateProfile,
   deleteUserProfile,
   getAllUsers,
   getReviews,
   getUserStats,
-} from "../controllers/user.controller";
+} from '../controllers/user.controller';
+import {
+  authenticateToken,
+  requireAdmin,
+  requireOwnership,
+  requireAuthenticated,
+} from '../middleware/auth.middleware';
+import { validateRequest } from '../middleware/validation.middleware';
+import { createUserSchema, updateUserSchema } from '../utils/schemas';
 
 const router = Router();
 
-// Create user profile
-router.post("/", createUserProfile);
+// Create user profile (public - for registration)
+router.post('/', createUserProfile);
 
-// Get all users (with pagination and filtering)
-router.get("/", getAllUsers);
+// Get all users (Admin only)
+router.get('/', authenticateToken, requireAdmin, getAllUsers);
 
-// Get user profile by Clerk ID
-router.get("/clerk/:clerkId", getUserByClerkId);
+// Get user profile by ID (authenticated users can view profiles)
+router.get('/:id', authenticateToken, requireAuthenticated, getUserProfile);
 
-// Get user profile by ID
-router.get("/:id", getUserProfile);
+// Update user profile (only owner or admin)
+router.patch(
+  '/:id',
+  authenticateToken,
+  requireOwnership('user'),
+  updateProfile
+);
 
-// Update user profile by ID
-router.patch("/:id", updateProfile);
+// Delete user profile (only owner or admin)
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireOwnership('user'),
+  deleteUserProfile
+);
 
-// Delete user profile by ID
-router.delete("/:id", deleteUserProfile);
+// Get user reviews by ID (authenticated users)
+router.get('/:id/reviews', authenticateToken, requireAuthenticated, getReviews);
 
-// Get user reviews by ID
-router.get("/:id/reviews", getReviews);
-
-// Get user statistics by ID
-router.get("/:id/stats", getUserStats);
+// Get user statistics by ID (only owner or admin)
+router.get(
+  '/:id/stats',
+  authenticateToken,
+  requireOwnership('user'),
+  getUserStats
+);
 
 export const userRouter = router;
