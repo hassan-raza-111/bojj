@@ -44,7 +44,6 @@ export const authenticateToken = async (
       where: { id: decoded.userId },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
@@ -98,7 +97,6 @@ export const optionalAuth = async (
           where: { id: decoded.userId },
           select: {
             id: true,
-            clerkId: true,
             email: true,
             firstName: true,
             lastName: true,

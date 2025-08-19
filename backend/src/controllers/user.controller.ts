@@ -1,76 +1,83 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
-import { z } from "zod";
-import { prisma } from "../config/database";
-import { AppError } from "../middleware/error.middleware";
-import { createUserSchema, updateUserSchema } from "../utils/schemas";
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { prisma } from '../config/database';
+import { AppError } from '../middleware/error.middleware';
+import { logger } from '../utils/logger';
 
-// Create user profile
+// Create user profile (for admin use)
 export const createUserProfile: RequestHandler = async (req, res, next) => {
   try {
-    const userData = createUserSchema.parse(req.body);
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role = 'CUSTOMER',
+      bio,
+      phone,
+      location,
+    } = req.body;
 
-    // Check if user already exists with this clerkId or email
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ clerkId: userData.clerkId }, { email: userData.email }],
-      },
+    // Validate required fields
+    if (!email || !firstName || !lastName) {
+      throw new AppError(400, 'Email, firstName, and lastName are required');
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
 
     if (existingUser) {
-      throw new AppError(
-        409,
-        "User already exists with this Clerk ID or email"
-      );
+      throw new AppError(409, 'User already exists with this email');
+    }
+
+    // Create user data
+    const userData: any = {
+      email,
+      firstName,
+      lastName,
+      role,
+      bio: bio || null,
+      phone: phone || null,
+      location: location || null,
+      status: 'ACTIVE',
+    };
+
+    // Add password if provided
+    if (password) {
+      const bcrypt = require('bcrypt');
+      userData.password = await bcrypt.hash(password, 12);
     }
 
     const user = await prisma.user.create({
-      data: {
-        clerkId: userData.clerkId,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: userData.role,
-        bio: userData.bio,
-        avatar: userData.avatar,
-        phone: userData.phone,
-        location: userData.location,
-        portfolio: userData.portfolio || [],
-        experience: userData.experience,
-      },
+      data: userData,
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
-        bio: true,
-        avatar: true,
         role: true,
+        bio: true,
         phone: true,
         location: true,
-        portfolio: true,
-        experience: true,
         rating: true,
         totalReviews: true,
         totalEarnings: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
+    logger.info(`User profile created: ${user.id} (${user.email})`);
+
     res.status(201).json({
       success: true,
       data: { user },
-      message: "User profile created successfully",
+      message: 'User profile created successfully',
     });
-    return;
   } catch (error) {
     next(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create user profile",
-    });
-    return;
   }
 };
 
@@ -82,314 +89,413 @@ export const getUserProfile: RequestHandler = async (req, res, next) => {
       where: { id },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
         bio: true,
-        avatar: true,
         role: true,
         phone: true,
         location: true,
-        portfolio: true,
-        experience: true,
         rating: true,
         totalReviews: true,
         totalEarnings: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
       },
     });
-    if (!user) throw new AppError(404, "User not found");
-    res.json({ success: true, data: { user } });
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    res.json({
+      success: true,
+      data: { user },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// Update user profile by ID
+// Update user profile
 export const updateProfile: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updates = updateUserSchema.parse(req.body);
+    const updateData = req.body;
+
+    // Remove sensitive fields
+    delete updateData.id;
+    delete updateData.email;
+    delete updateData.role;
+    delete updateData.status;
+    delete updateData.password;
+
     const user = await prisma.user.update({
       where: { id },
-      data: updates,
+      data: updateData,
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
         bio: true,
-        avatar: true,
         role: true,
         phone: true,
         location: true,
-        portfolio: true,
-        experience: true,
         rating: true,
         totalReviews: true,
         totalEarnings: true,
+        status: true,
         updatedAt: true,
       },
     });
+
+    logger.info(`User profile updated: ${user.id}`);
+
     res.json({
       success: true,
-      data: user,
-      message: "Profile updated successfully",
+      data: { user },
+      message: 'Profile updated successfully',
     });
-    return;
   } catch (error) {
     next(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update profile",
-    });
-    return;
   }
 };
 
-// Delete user profile by ID
+// Delete user profile
 export const deleteUserProfile: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const user = await prisma.user.findUnique({ where: { id } });
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true },
+    });
+
     if (!user) {
-      throw new AppError(404, "User not found");
+      throw new AppError(404, 'User not found');
     }
-    // Check if user has any active jobs, bids, or payments
-    const [activeJobs, activeBids, activePayments] = await Promise.all([
-      prisma.job.count({
-        where: {
-          OR: [
-            { customerId: user.id, status: { in: ["OPEN", "IN_PROGRESS"] } },
-            { vendorId: user.id, status: { in: ["IN_PROGRESS"] } },
-          ],
-        },
-      }),
-      prisma.bid.count({ where: { vendorId: user.id, status: "PENDING" } }),
-      prisma.payment.count({
-        where: {
-          OR: [
-            { customerId: user.id, status: { in: ["PENDING", "IN_ESCROW"] } },
-            { vendorId: user.id, status: { in: ["IN_ESCROW"] } },
-          ],
-        },
-      }),
-    ]);
-    if (activeJobs > 0 || activeBids > 0 || activePayments > 0) {
-      throw new AppError(
-        400,
-        "Cannot delete user with active jobs, bids, or payments"
-      );
-    }
-    await prisma.user.delete({ where: { id } });
+
+    // Soft delete - update status to DELETED
+    await prisma.user.update({
+      where: { id },
+      data: { status: 'DELETED' },
+    });
+
+    logger.info(`User profile deleted: ${user.id} (${user.email})`);
+
     res.json({
       success: true,
-      message: "User profile deleted successfully",
+      message: 'User profile deleted successfully',
     });
-    return;
   } catch (error) {
     next(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete user profile",
-    });
-    return;
   }
 };
 
-// Get all users (with pagination and filtering)
+// Get all users (Admin only)
 export const getAllUsers: RequestHandler = async (req, res, next) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      role,
-      search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = req.query;
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const { page = 1, limit = 10, role, status, search } = req.query;
+
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build where clause
     const where: any = {};
+
     if (role) where.role = role;
+    if (status) where.status = status;
     if (search) {
       where.OR = [
-        { firstName: { contains: search as string, mode: "insensitive" } },
-        { lastName: { contains: search as string, mode: "insensitive" } },
-        { email: { contains: search as string, mode: "insensitive" } },
+        { firstName: { contains: search as string, mode: 'insensitive' } },
+        { lastName: { contains: search as string, mode: 'insensitive' } },
+        { email: { contains: search as string, mode: 'insensitive' } },
       ];
     }
-    const orderBy: any = {};
-    orderBy[sortBy as string] = sortOrder;
+
+    // Get users with pagination
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
         select: {
           id: true,
-          clerkId: true,
           email: true,
           firstName: true,
           lastName: true,
-          bio: true,
-          avatar: true,
           role: true,
-          phone: true,
-          location: true,
-          portfolio: true,
-          experience: true,
+          status: true,
           rating: true,
           totalReviews: true,
           totalEarnings: true,
           createdAt: true,
-          updatedAt: true,
         },
         skip,
-        take: parseInt(limit as string),
-        orderBy,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.user.count({ where }),
     ]);
-    res.json({
-      success: true,
-      data: users,
-      pagination: {
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
-        total,
-        pages: Math.ceil(total / parseInt(limit as string)),
-      },
-    });
-    return;
-  } catch (error) {
-    next(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch users",
-    });
-    return;
-  }
-};
 
-// Get user reviews by ID
-export const getReviews: RequestHandler = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) throw new AppError(404, "User not found");
-    const reviews = await prisma.review.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    });
-    res.json({ success: true, data: { reviews } });
-  } catch (error) {
-    next(error);
-  }
-};
+    const totalPages = Math.ceil(total / limitNum);
 
-// Get user statistics by ID
-export const getUserStats: RequestHandler = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) throw new AppError(404, "User not found");
-    const [
-      totalJobs,
-      completedJobs,
-      totalBids,
-      acceptedBids,
-      totalEarnings,
-      totalReviews,
-      averageRating,
-    ] = await Promise.all([
-      prisma.job.count({
-        where:
-          user.role === "CUSTOMER"
-            ? { customerId: user.id }
-            : { vendorId: user.id },
-      }),
-      prisma.job.count({
-        where: {
-          ...(user.role === "CUSTOMER"
-            ? { customerId: user.id }
-            : { vendorId: user.id }),
-          status: "COMPLETED",
-        },
-      }),
-      prisma.bid.count({ where: { vendorId: user.id } }),
-      prisma.bid.count({
-        where: {
-          vendorId: user.id,
-          status: "ACCEPTED",
-        },
-      }),
-      prisma.payment.aggregate({
-        where: {
-          ...(user.role === "CUSTOMER"
-            ? { customerId: user.id }
-            : { vendorId: user.id }),
-          status: "RELEASED",
-        },
-        _sum: { amount: true },
-      }),
-      prisma.review.count({ where: { userId: user.id } }),
-      prisma.review.aggregate({
-        where: { userId: user.id },
-        _avg: { rating: true },
-      }),
-    ]);
     res.json({
       success: true,
       data: {
-        totalJobs,
-        completedJobs,
-        totalBids,
-        acceptedBids,
-        totalEarnings: totalEarnings._sum.amount || 0,
-        totalReviews,
-        averageRating: averageRating._avg.rating || 0,
+        users,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages,
+        },
       },
     });
-    return;
   } catch (error) {
     next(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch user statistics",
-    });
-    return;
   }
 };
 
-// Get user profile by Clerk ID
-export const getUserByClerkId: RequestHandler = async (req, res, next) => {
+// Get user reviews
+export const getReviews: RequestHandler = async (req, res, next) => {
   try {
-    const { clerkId } = req.params;
+    const { id } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Check if user exists
     const user = await prisma.user.findUnique({
-      where: { clerkId },
+      where: { id },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    // Get reviews with pagination
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { userId: id },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          service: {
+            select: {
+              id: true,
+              title: true,
+              code: true,
+            },
+          },
+        },
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count({ where: { userId: id } }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      data: {
+        reviews,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get user statistics
+export const getUserStats: RequestHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    // Get user statistics based on role
+    let stats: any = {};
+
+    if (user.role === 'CUSTOMER') {
+      // Customer stats
+      const [postedJobs, completedJobs, totalSpent] = await Promise.all([
+        prisma.job.count({ where: { customerId: id } }),
+        prisma.job.count({ where: { customerId: id, status: 'COMPLETED' } }),
+        prisma.payment.aggregate({
+          where: { customerId: id, status: 'RELEASED' },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      stats = {
+        postedJobs,
+        completedJobs,
+        totalSpent: totalSpent._sum.amount || 0,
+      };
+    } else if (user.role === 'VENDOR') {
+      // Vendor stats
+      const [totalBids, acceptedBids, completedJobs, totalEarnings] =
+        await Promise.all([
+          prisma.bid.count({ where: { vendorId: id } }),
+          prisma.bid.count({ where: { vendorId: id, status: 'ACCEPTED' } }),
+          prisma.job.count({ where: { vendorId: id, status: 'COMPLETED' } }),
+          prisma.payment.aggregate({
+            where: { vendorId: id, status: 'RELEASED' },
+            _sum: { amount: true },
+          }),
+        ]);
+
+      stats = {
+        totalBids,
+        acceptedBids,
+        completedJobs,
+        totalEarnings: totalEarnings._sum.amount || 0,
+      };
+    }
+
+    // Common stats for all users
+    const [totalReviews, avgRating, totalTickets] = await Promise.all([
+      prisma.review.count({ where: { userId: id } }),
+      prisma.review.aggregate({
+        where: { userId: id },
+        _avg: { rating: true },
+      }),
+      prisma.ticket.count({ where: { userId: id } }),
+    ]);
+
+    stats = {
+      ...stats,
+      totalReviews,
+      averageRating: avgRating._avg.rating || 0,
+      totalTickets,
+    };
+
+    res.json({
+      success: true,
+      data: { stats },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Search users
+export const searchUsers: RequestHandler = async (req, res, next) => {
+  try {
+    const { q, role, location, page = 1, limit = 10 } = req.query;
+
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build search query
+    const where: any = {
+      status: 'ACTIVE',
+    };
+
+    if (q) {
+      where.OR = [
+        { firstName: { contains: q as string, mode: 'insensitive' } },
+        { lastName: { contains: q as string, mode: 'insensitive' } },
+        { email: { contains: q as string, mode: 'insensitive' } },
+        { bio: { contains: q as string, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role) where.role = role;
+    if (location)
+      where.location = { contains: location as string, mode: 'insensitive' };
+
+    // Get users with pagination
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          bio: true,
+          location: true,
+          rating: true,
+          totalReviews: true,
+          totalEarnings: true,
+        },
+        skip,
+        take: limitNum,
+        orderBy: { rating: 'desc' },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get user by email (for password reset)
+export const getUserByEmail: RequestHandler = async (req, res, next) => {
+  try {
+    const { email } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { email },
       select: {
         id: true,
-        clerkId: true,
         email: true,
         firstName: true,
         lastName: true,
-        bio: true,
-        avatar: true,
         role: true,
-        phone: true,
-        location: true,
-        portfolio: true,
-        experience: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
-        createdAt: true,
-        updatedAt: true,
+        status: true,
       },
     });
-    if (!user) throw new AppError(404, "User not found");
-    res.json({ success: true, data: { user } });
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    res.json({
+      success: true,
+      data: { user },
+    });
   } catch (error) {
     next(error);
   }
