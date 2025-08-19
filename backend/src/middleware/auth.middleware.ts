@@ -181,7 +181,7 @@ export const requireOwnership = (
         case 'service':
           resource = await prisma.service.findUnique({
             where: { id: resourceId },
-            select: { id: true, userId: true },
+            select: { id: true, vendorId: true },
           });
           break;
         case 'payment':
@@ -211,17 +211,23 @@ export const requireOwnership = (
           hasAccess = resource.id === req.user.id;
           break;
         case 'job':
-          hasAccess =
-            resource.customerId === req.user.id ||
-            resource.vendorId === req.user.id;
+          if ('customerId' in resource && 'assignedVendorId' in resource) {
+            hasAccess =
+              resource.customerId === req.user.id ||
+              resource.assignedVendorId === req.user.id;
+          }
           break;
         case 'service':
-          hasAccess = resource.userId === req.user.id;
+          if ('vendorId' in resource) {
+            hasAccess = resource.vendorId === req.user.id;
+          }
           break;
         case 'payment':
-          hasAccess =
-            resource.customerId === req.user.id ||
-            resource.vendorId === req.user.id;
+          if ('customerId' in resource && 'vendorId' in resource) {
+            hasAccess =
+              resource.customerId === req.user.id ||
+              resource.vendorId === req.user.id;
+          }
           break;
       }
 
