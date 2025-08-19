@@ -60,15 +60,15 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRouter);
-app.use('/api/users', userRouter);
-app.use('/api/services', serviceRouter);
-app.use('/api/jobs', jobRouter);
-app.use('/api/payments', paymentRouter);
-app.use('/api/support', supportRouter);
-app.use('/api/dashboard', dashboardRouter);
+// app.use('/api/users', userRouter);
+// app.use('/api/services', serviceRouter);
+// app.use('/api/jobs', jobRouter);
+// app.use('/api/payments', paymentRouter);
+// app.use('/api/support', supportRouter);
+// app.use('/api/dashboard', dashboardRouter);
 
 // 404 handler for undefined routes
-app.use('*', (req, res) => {
+app.use('/*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
