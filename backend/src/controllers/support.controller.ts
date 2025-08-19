@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import {
   PrismaClient,
   TicketStatus,
   TicketPriority,
   TicketCategory,
-} from "../generated/prisma";
-import { logger } from "../utils/logger";
+} from '@prisma/client';
+import { logger } from '../utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -16,13 +16,13 @@ export const createTicket: RequestHandler = async (req, res, next) => {
       title,
       description,
       category,
-      priority = "MEDIUM",
+      priority = 'MEDIUM',
       userId,
     } = req.body;
     if (!userId) {
       res.status(400).json({
         success: false,
-        message: "userId is required",
+        message: 'userId is required',
       });
       return;
     }
@@ -52,15 +52,15 @@ export const createTicket: RequestHandler = async (req, res, next) => {
     res.status(201).json({
       success: true,
       data: ticket,
-      message: "Support ticket created successfully. Ticket ID: " + ticket.id,
+      message: 'Support ticket created successfully. Ticket ID: ' + ticket.id,
     });
     return;
   } catch (error) {
-    logger.error("Error creating support ticket:", error);
+    logger.error('Error creating support ticket:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to create support ticket",
+      message: 'Failed to create support ticket',
     });
     return;
   }
@@ -73,7 +73,7 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
     if (!userId) {
       res.status(400).json({
         success: false,
-        message: "userId is required",
+        message: 'userId is required',
       });
       return;
     }
@@ -99,7 +99,7 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
       skip,
       take: parseInt(limit as string),
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
 
@@ -117,11 +117,11 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching user tickets:", error);
+    logger.error('Error fetching user tickets:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch tickets",
+      message: 'Failed to fetch tickets',
     });
     return;
   }
@@ -135,7 +135,7 @@ export const getTicketDetails: RequestHandler = async (req, res, next) => {
     if (!userId) {
       res.status(400).json({
         success: false,
-        message: "userId is required",
+        message: 'userId is required',
       });
       return;
     }
@@ -158,7 +158,7 @@ export const getTicketDetails: RequestHandler = async (req, res, next) => {
     if (!ticket) {
       res.status(404).json({
         success: false,
-        message: "Ticket not found",
+        message: 'Ticket not found',
       });
       return;
     }
@@ -167,7 +167,7 @@ export const getTicketDetails: RequestHandler = async (req, res, next) => {
     if (ticket.userId !== userId) {
       res.status(403).json({
         success: false,
-        message: "You can only view your own tickets",
+        message: 'You can only view your own tickets',
       });
       return;
     }
@@ -178,11 +178,11 @@ export const getTicketDetails: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching ticket details:", error);
+    logger.error('Error fetching ticket details:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch ticket details",
+      message: 'Failed to fetch ticket details',
     });
     return;
   }
@@ -215,7 +215,7 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
       skip,
       take: parseInt(limit as string),
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
 
@@ -233,11 +233,11 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching all tickets:", error);
+    logger.error('Error fetching all tickets:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch tickets",
+      message: 'Failed to fetch tickets',
     });
     return;
   }
@@ -256,7 +256,7 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
     if (!ticket) {
       res.status(404).json({
         success: false,
-        message: "Ticket not found",
+        message: 'Ticket not found',
       });
       return;
     }
@@ -267,7 +267,7 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
         status: status as TicketStatus,
         priority: priority as TicketPriority,
         adminResponse,
-        resolvedAt: status === "RESOLVED" ? new Date() : null,
+        resolvedAt: status === 'RESOLVED' ? new Date() : null,
       },
       include: {
         user: {
@@ -286,15 +286,15 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
     res.json({
       success: true,
       data: updatedTicket,
-      message: "Ticket updated successfully",
+      message: 'Ticket updated successfully',
     });
     return;
   } catch (error) {
-    logger.error("Error updating ticket:", error);
+    logger.error('Error updating ticket:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to update ticket",
+      message: 'Failed to update ticket',
     });
     return;
   }
@@ -311,10 +311,10 @@ export const getTicketStats: RequestHandler = async (req, res, next) => {
       closedTickets,
     ] = await Promise.all([
       prisma.ticket.count(),
-      prisma.ticket.count({ where: { status: "OPEN" } }),
-      prisma.ticket.count({ where: { status: "IN_PROGRESS" } }),
-      prisma.ticket.count({ where: { status: "RESOLVED" } }),
-      prisma.ticket.count({ where: { status: "CLOSED" } }),
+      prisma.ticket.count({ where: { status: 'OPEN' } }),
+      prisma.ticket.count({ where: { status: 'IN_PROGRESS' } }),
+      prisma.ticket.count({ where: { status: 'RESOLVED' } }),
+      prisma.ticket.count({ where: { status: 'CLOSED' } }),
     ]);
 
     res.json({
@@ -329,11 +329,11 @@ export const getTicketStats: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching ticket stats:", error);
+    logger.error('Error fetching ticket stats:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch ticket statistics",
+      message: 'Failed to fetch ticket statistics',
     });
     return;
   }
@@ -349,11 +349,11 @@ export const getTicketCategories: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching ticket categories:", error);
+    logger.error('Error fetching ticket categories:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch ticket categories",
+      message: 'Failed to fetch ticket categories',
     });
     return;
   }
@@ -369,11 +369,11 @@ export const getTicketPriorities: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching ticket priorities:", error);
+    logger.error('Error fetching ticket priorities:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch ticket priorities",
+      message: 'Failed to fetch ticket priorities',
     });
     return;
   }

@@ -25,11 +25,23 @@ const generateRefreshToken = (userId: string) => {
 // User registration with email and password
 export const register: RequestHandler = async (req, res, next) => {
   try {
-    const { email, password, firstName, lastName, role = 'CUSTOMER', bio, phone, location } = req.body;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      role = 'CUSTOMER',
+      bio,
+      phone,
+      location,
+    } = req.body;
 
     // Validate required fields
     if (!email || !password || !firstName || !lastName) {
-      throw new AppError(400, 'Email, password, firstName, and lastName are required');
+      throw new AppError(
+        400,
+        'Email, password, firstName, and lastName are required'
+      );
     }
 
     if (password.length < 6) {
@@ -70,9 +82,7 @@ export const register: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -133,9 +143,6 @@ export const login: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
       },
     });
 
@@ -273,9 +280,7 @@ export const getCurrentUser: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -318,9 +323,7 @@ export const updateCurrentUser: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
+        status: true,
         updatedAt: true,
       },
     });
@@ -351,7 +354,10 @@ export const changePassword: RequestHandler = async (req, res, next) => {
     }
 
     if (newPassword.length < 6) {
-      throw new AppError(400, 'New password must be at least 6 characters long');
+      throw new AppError(
+        400,
+        'New password must be at least 6 characters long'
+      );
     }
 
     // Get user with password
@@ -365,7 +371,10 @@ export const changePassword: RequestHandler = async (req, res, next) => {
     }
 
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
     if (!isValidPassword) {
       throw new AppError(400, 'Current password is incorrect');
     }
@@ -446,7 +455,10 @@ export const resetPassword: RequestHandler = async (req, res, next) => {
     }
 
     if (newPassword.length < 6) {
-      throw new AppError(400, 'New password must be at least 6 characters long');
+      throw new AppError(
+        400,
+        'New password must be at least 6 characters long'
+      );
     }
 
     // Verify reset token

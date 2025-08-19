@@ -4,7 +4,7 @@ import {
   JobStatus,
   BidStatus,
   PaymentStatus,
-} from "../generated/prisma";
+} from "@prisma/client";
 import { logger } from "../utils/logger";
 import {
   createJobSchema,

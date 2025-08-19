@@ -175,7 +175,7 @@ export const requireOwnership = (
         case 'job':
           resource = await prisma.job.findUnique({
             where: { id: resourceId },
-            select: { id: true, customerId: true, vendorId: true },
+            select: { id: true, customerId: true, assignedVendorId: true },
           });
           break;
         case 'service':

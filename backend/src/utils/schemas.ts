@@ -49,11 +49,16 @@ export const resetPasswordSchema = z.object({
 // Service schemas - focus on API validation
 export const createServiceSchema = z.object({
   title: z.string().min(3),
-  code: z.string().min(2),
   description: z.string().min(10),
+  code: z.string().min(2),
+  category: z.string(),
+  subcategory: z.string().optional(),
   tags: z.array(z.string()),
   images: z.array(z.string().url()),
+  basePrice: z.number().positive(),
+  priceType: z.enum(['FIXED', 'HOURLY', 'PER_UNIT']),
   parentId: idSchema.optional(),
+  vendorId: idSchema,
 });
 
 export const updateServiceSchema = createServiceSchema.partial();
@@ -62,21 +67,16 @@ export const updateServiceSchema = createServiceSchema.partial();
 export const createJobSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
-  budget: z.number().positive(),
-  location: z.string(),
-  images: z.array(z.string().url()).optional(),
+  requirements: z.array(z.string()),
   category: z.string(),
   subcategory: z.string().optional(),
-  street: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
-  timeline: z.string().optional(),
-  date: z.string().datetime().optional(),
-  time: z.string().optional(),
-  additionalRequests: z.string().optional(),
-  contactPreference: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  budget: z.number().positive().optional(),
+  budgetType: z.enum(['FIXED', 'HOURLY', 'NEGOTIABLE']),
+  location: z.string().optional(),
+  isRemote: z.boolean().default(false),
+  deadline: z.string().datetime().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   customerId: idSchema,
 });
 
@@ -89,8 +89,9 @@ export const updateJobSchema = createJobSchema.partial().extend({
 // Bid schemas
 export const createBidSchema = z.object({
   amount: z.number().positive(),
-  message: z.string().min(10),
-  estimatedDays: z.number().int().positive(),
+  description: z.string().min(10),
+  timeline: z.string(),
+  milestones: z.record(z.string(), z.string()).optional(),
   jobId: idSchema,
   vendorId: idSchema,
 });

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { PrismaClient, PaymentStatus } from "../generated/prisma";
+import { PrismaClient, PaymentStatus } from "@prisma/client";
 import { logger } from "../utils/logger";
 
 const prisma = new PrismaClient();
