@@ -5,10 +5,11 @@ import { prisma } from '../config/database';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../utils/logger';
 
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
+// JWT configuration - Use centralized config
+import { config } from '../config';
+const JWT_SECRET = config.jwt.secret;
+const JWT_EXPIRES_IN = config.jwt.expiresIn;
+const REFRESH_TOKEN_EXPIRES_IN = config.jwt.refreshExpiresIn;
 
 // Generate JWT token
 const generateToken = (userId: string, expiresIn: string = JWT_EXPIRES_IN) => {

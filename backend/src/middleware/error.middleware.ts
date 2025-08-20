@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { logger } from '../utils/logger';
+import { config } from '../config';
 
 export class AppError extends Error {
   constructor(
@@ -85,7 +86,7 @@ export const errorHandler = (
   }
 
   // Default error
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = config.env === 'production';
 
   return res.status(500).json({
     success: false,

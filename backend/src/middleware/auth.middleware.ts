@@ -14,8 +14,9 @@ declare global {
   }
 }
 
-// JWT Secret from environment
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key';
+// JWT Secret from centralized config
+import { config } from '../config';
+const JWT_SECRET = config.jwt.secret;
 
 // Verify JWT token
 export const authenticateToken = async (

@@ -2,7 +2,15 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 
 // Load environment variables
-dotenv.config();
+import path from 'path';
+const envPath = path.resolve(process.cwd(), '.env');
+dotenv.config({ path: envPath });
+
+// Debug: Log environment variables
+console.log('DEBUG: Current working directory:', process.cwd());
+console.log('DEBUG: .env file path:', envPath);
+console.log('DEBUG: DATABASE_URL from process.env:', process.env.DATABASE_URL);
+console.log('DEBUG: NODE_ENV from process.env:', process.env.NODE_ENV);
 
 // Environment variables schema
 const envSchema = z.object({
