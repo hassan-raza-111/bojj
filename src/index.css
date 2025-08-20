@@ -3,103 +3,69 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
 
-    --primary: 262 98% 57%; /* BOJJ Purple */
-    --primary-foreground: 0 0% 100%;
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+/* Focus styles */
+*:focus {
+  outline: none;
+}
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+/* Custom focus ring for form elements */
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
 
-    --destructive: 0 84.2% 60.2%; /* BOJJ Red */
-    --destructive-foreground: 210 40% 98%;
+/* Button hover effects */
+button {
+  transition: all 0.2s ease;
+}
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262 98% 57%;
+button:hover {
+  transform: translateY(-1px);
+}
 
-    --radius: 0.5rem;
-  }
+button:active {
+  transform: translateY(0);
+}
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    
-    --primary: 262 98% 57%; /* Keep BOJJ Purple */
-    --primary-foreground: 0 0% 98%;
-    
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+/* Form input animations */
+input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground transition-colors duration-200;
-  }
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-/* Custom animation classes */
-.hover-scale {
-  @apply transition-transform duration-200 hover:scale-105;
-}
-
-.bounce {
-  animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-/* Animation Classes */
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
+/* Fade in animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -111,197 +77,20 @@
   }
 }
 
-.pulse-button {
-  animation: pulseButton 2s infinite;
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
-@keyframes pulseButton {
-  0% {
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-  }
-}
-
-.slide-in-right {
-  animation: slideInRight 0.5s ease-out;
-}
-
-@keyframes slideInRight {
+/* Slide in animation */
+@keyframes slideIn {
   from {
-    transform: translateX(50px);
-    opacity: 0;
+    transform: translateX(-100%);
   }
   to {
     transform: translateX(0);
-    opacity: 1;
   }
 }
 
-/* New carousel animations */
-.slide-left {
-  animation: slideLeft 0.5s ease-out;
-}
-
-@keyframes slideLeft {
-  from {
-    transform: translateX(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.slide-right {
-  animation: slideRight 0.5s ease-out;
-}
-
-@keyframes slideRight {
-  from {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Button hover animations */
-button.animated-button {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-button.animated-button:after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%);
-  transform-origin: 50% 50%;
-}
-
-button.animated-button:focus:not(:active)::after {
-  animation: ripple 1s ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  20% {
-    transform: scale(25, 25);
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(40, 40);
-  }
-}
-
-/* Newly added animations */
-.float {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.shimmer {
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 100% 0;
-  }
-}
-
-.pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-/* Theme transition animation */
-.theme-transition {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-/* Dark mode specific animations */
-.dark .card {
-  @apply shadow-lg shadow-gray-900/20;
-}
-
-.dark .theme-toggle-icon {
-  animation: spin-toggle 0.5s ease-in-out;
-}
-
-@keyframes spin-toggle {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 300ms, transform 300ms;
-}
-
-.page-transition-exit {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.page-transition-exit-active {
-  opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 300ms, transform 300ms;
+.slide-in {
+  animation: slideIn 0.3s ease-out;
 }
