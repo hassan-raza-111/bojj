@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Upload } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 import {
   Select,
   SelectContent,
@@ -74,7 +75,7 @@ const SignUpPage = () => {
       };
 
       // Backend API Registration
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

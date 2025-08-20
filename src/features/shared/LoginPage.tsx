@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { API_CONFIG } from '@/config/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const userType = searchParams.get('type') || 'customer';
+  const redirectTo = searchParams.get('redirect');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -22,7 +24,7 @@ const LoginPage = () => {
 
     try {
       // 🔐 Backend API Login
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,8 +50,11 @@ const LoginPage = () => {
         description: `Welcome back, ${data.data.user.firstName}!`,
       });
 
-      // Redirect based on user role
-      if (data.data.user.role === 'VENDOR') {
+      // Redirect based on user role and redirect parameter
+      if (redirectTo && data.data.user.role === 'CUSTOMER') {
+        // If there's a redirect parameter and user is customer, go there
+        navigate(redirectTo);
+      } else if (data.data.user.role === 'VENDOR') {
         navigate('/vendor-dashboard');
       } else if (data.data.user.role === 'CUSTOMER') {
         navigate('/customer');

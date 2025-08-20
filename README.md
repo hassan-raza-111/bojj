@@ -5,6 +5,7 @@ Welcome to the **BOJJ WebApp**! This project is a modern, responsive web applica
 ---
 
 ## Table of Contents
+
 1. [Features](#features)
 2. [Technologies Used](#technologies-used)
 3. [Getting Started](#getting-started)
@@ -18,6 +19,7 @@ Welcome to the **BOJJ WebApp**! This project is a modern, responsive web applica
 ---
 
 ## Features
+
 - **User Authentication**: Secure login and registration system.
 - **Responsive Design**: Works seamlessly on all devices.
 - **Support System**: Submit and track support tickets.
@@ -27,10 +29,11 @@ Welcome to the **BOJJ WebApp**! This project is a modern, responsive web applica
 ---
 
 ## Technologies Used
+
 - **Frontend**: React, Tailwind CSS, TypeScript
 - **Backend**: Node.js, Express (if applicable)
 - **Database**: MongoDB (if applicable)
-- **Authentication**: Clerk (or your authentication provider)
+- **Authentication**: Custom JWT-based authentication system
 - **Routing**: React Router
 - **Form Handling**: React Hook Form, Zod
 
@@ -39,11 +42,14 @@ Welcome to the **BOJJ WebApp**! This project is a modern, responsive web applica
 ## Getting Started
 
 ### Prerequisites
+
 Before you begin, ensure you have the following installed:
+
 - [Node.js](https://nodejs.org/) (v16 or higher)
 - [npm](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com/)
 
 ### Installation
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/bojj-webapp.git
@@ -64,6 +70,7 @@ Before you begin, ensure you have the following installed:
 ---
 
 ## Running the Project
+
 1. Start the development server:
    ```bash
    npm start
@@ -77,7 +84,9 @@ Before you begin, ensure you have the following installed:
 ---
 
 ## Contributing
+
 We welcome contributions! Here's how you can help:
+
 1. Fork the repository.
 2. Create a new branch:
    ```bash
@@ -96,12 +105,15 @@ We welcome contributions! Here's how you can help:
 ---
 
 ## License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Contact
+
 For questions or feedback, feel free to reach out:
+
 - **Email**: support@bojj.com
 - **Website**: [https://bojj.com](https://bojj.com)
 

@@ -15,7 +15,6 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.30.0",
     "@cometchat/calls-sdk-javascript": "^4.1.0",
     "@cometchat/chat-uikit-react": "^6.0.7",
     "@hookform/resolvers": "^3.9.0",
