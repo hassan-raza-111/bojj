@@ -8,6 +8,10 @@ import { Toaster } from '@/components/ui/toaster';
 import MainLayout from './components/layouts/MainLayout';
 import DashboardLayout from './components/layouts/DashboardLayout';
 
+// Protected Route Components
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
+
 // Pages
 import HomePage from './features/shared/HomePage';
 import LoginPage from './features/shared/LoginPage';
@@ -45,8 +49,10 @@ const App = () => {
         <Toaster />
         <Router>
           <Routes>
-            {/* Admin route OUTSIDE MainLayout so it has no Navbar/Footer */}
-            <Route path='/admin' element={<AdminDashboard />} />
+            {/* Protected Admin routes - Only ADMIN users can access */}
+            <Route element={<AdminProtectedRoute />}>
+              <Route path='/admin' element={<AdminDashboard />} />
+            </Route>
 
             {/* Public routes */}
             <Route element={<MainLayout />}>
@@ -60,50 +66,54 @@ const App = () => {
               <Route path='/vendor/:id' element={<VendorProfilePage />} />
             </Route>
 
-            {/* Protected customer routes */}
-            <Route
-              path='/customer/*'
-              element={
-                <DashboardLayout userType='customer'>
-                  <Routes>
-                    <Route path='/' element={<CustomerDashboard />} />
-                    <Route path='/jobs' element={<JobCRUD />} />
-                    <Route path='/messages' element={<MessagesPage />} />
-                    <Route path='/payments' element={<CustomerPaymentPage />} />
-                    <Route path='/support' element={<SupportPage />} />
-                    <Route path='/jobs/new' element={<JobPostingPage />} />
-                    <Route path='/jobs/:id/edit' element={<JobPostingPage />} />
-                    <Route path='/jobs/:id' element={<JobDetailPage />} />
-                    <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                    <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
-                  </Routes>
-                </DashboardLayout>
-              }
-            />
+            {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
+            <Route element={<ProtectedRoute />}>
+              <Route
+                path='/customer/*'
+                element={
+                  <DashboardLayout userType='customer'>
+                    <Routes>
+                      <Route path='/' element={<CustomerDashboard />} />
+                      <Route path='/jobs' element={<JobCRUD />} />
+                      <Route path='/messages' element={<MessagesPage />} />
+                      <Route path='/payments' element={<CustomerPaymentPage />} />
+                      <Route path='/support' element={<SupportPage />} />
+                      <Route path='/jobs/new' element={<JobPostingPage />} />
+                      <Route path='/jobs/:id/edit' element={<JobPostingPage />} />
+                      <Route path='/jobs/:id' element={<JobDetailPage />} />
+                      <Route path='/jobs/:id/bids' element={<BidsPage />} />
+                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
+                    </Routes>
+                  </DashboardLayout>
+                }
+              />
+            </Route>
 
-            {/* Protected vendor routes */}
-            <Route
-              path='/vendor-dashboard/*'
-              element={
-                <DashboardLayout userType='vendor'>
-                  <Routes>
-                    <Route path='/' element={<VendorDashboard />} />
-                    <Route path='/jobs' element={<VendorDashboard />} />
-                    <Route path='/messages' element={<MessagesPage />} />
-                    <Route path='/earnings' element={<PaymentsPage />} />
-                    <Route path='/support' element={<SupportPage />} />
-                    <Route path='/jobs/:id/view' element={<JobDetailPage />} />
-                    <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
-                    <Route
-                      path='/bids/:id/view'
-                      element={<VendorJobDetailPage />}
-                    />
-                  </Routes>
-                </DashboardLayout>
-              }
-            />
+            {/* Protected vendor routes - Only authenticated VENDOR users can access */}
+            <Route element={<ProtectedRoute />}>
+              <Route
+                path='/vendor-dashboard/*'
+                element={
+                  <DashboardLayout userType='vendor'>
+                    <Routes>
+                      <Route path='/' element={<VendorDashboard />} />
+                      <Route path='/jobs' element={<VendorDashboard />} />
+                      <Route path='/messages' element={<MessagesPage />} />
+                      <Route path='/earnings' element={<PaymentsPage />} />
+                      <Route path='/support' element={<SupportPage />} />
+                      <Route path='/jobs/:id/view' element={<JobDetailPage />} />
+                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
+                      <Route
+                        path='/bids/:id/view'
+                        element={<VendorJobDetailPage />}
+                      />
+                    </Routes>
+                  </DashboardLayout>
+                }
+              />
+            </Route>
 
-            {/* Catch all route */}
+            {/* 404 - Catch all unmatched routes */}
             <Route path='*' element={<NotFound />} />
           </Routes>
         </Router>

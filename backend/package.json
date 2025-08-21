@@ -10,7 +10,8 @@
     "db:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate dev",
     "db:reset": "npx prisma migrate reset",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node prisma/seed.ts",
+    "db:setup": "ts-node src/scripts/setup-database.ts"
   },
   "keywords": [],
   "author": "",

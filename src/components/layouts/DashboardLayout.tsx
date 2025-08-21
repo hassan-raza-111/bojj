@@ -12,7 +12,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar-components';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, Menu, X, LogOut } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -158,8 +159,32 @@ const Sidebar = ({ userType, isOpen, onClose, setSidebarOpen }) => {
 };
 
 const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Show loading while checking auth status
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to='/login' replace />;
+  }
+
+  // Role-based access control
+  if (userType === 'customer' && user?.role !== 'CUSTOMER') {
+    return <Navigate to='/' replace />;
+  }
+
+  if (userType === 'vendor' && user?.role !== 'VENDOR') {
+    return <Navigate to='/' replace />;
+  }
+
   const firstName = user?.firstName || 'User';
   const lastName = user?.lastName || '';
   const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
@@ -192,15 +217,35 @@ const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
                 {userType === 'vendor' ? 'BOJJ Vendor' : 'BOJJ Customer'}
               </span>
             </div>
-            <Link to='/' tabIndex={-1} className='ml-auto'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm text-muted-foreground hidden md:block'>
+                Welcome, {fullName}
+              </span>
               <Button
                 variant='ghost'
-                className='gap-2 px-4 py-2 rounded-lg backdrop-blur bg-white/60 dark:bg-gray-900/60 border border-border shadow hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors'
+                size='sm'
+                onClick={() => {
+                  localStorage.removeItem('accessToken');
+                  localStorage.removeItem('refreshToken');
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('isAuthenticated');
+                  window.location.href = '/login';
+                }}
+                className='gap-2 px-3 py-1 text-sm'
               >
-                <Globe className='w-5 h-5' />
-                <span>Explore Site</span>
+                <LogOut className='w-4 h-4' />
+                <span className='hidden md:inline'>Logout</span>
               </Button>
-            </Link>
+              <Link to='/' tabIndex={-1}>
+                <Button
+                  variant='ghost'
+                  className='gap-2 px-4 py-2 rounded-lg backdrop-blur bg-white/60 dark:bg-gray-900/60 border border-border shadow hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors'
+                >
+                  <Globe className='w-5 h-5' />
+                  <span>Explore Site</span>
+                </Button>
+              </Link>
+            </div>
           </div>
           {/* Main Page */}
           <main className='flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 w-full bg-background'>

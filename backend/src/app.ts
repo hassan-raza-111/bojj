@@ -6,6 +6,7 @@ import { config } from './config';
 import { swaggerDocument, swaggerUi } from './config/swagger';
 import { errorHandler } from './middleware/error.middleware';
 import { authRouter } from './routes/auth.routes';
+import adminRouter from './routes/admin.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
 import { paymentRouter } from './routes/payment.routes';
@@ -62,6 +63,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);
 // app.use('/api/jobs', jobRouter);

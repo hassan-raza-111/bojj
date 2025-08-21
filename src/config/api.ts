@@ -101,19 +101,31 @@ export const apiCall = async (
     },
   };
 
+  console.log('🚀 API Call Details:');
+  console.log('🚀 URL:', url);
+  console.log('🚀 Method:', options.method || 'GET');
+  console.log('🚀 Headers:', headers);
+  console.log('🚀 Include Auth:', includeAuth);
+  console.log('🚀 Options:', options);
+
   try {
     const response = await fetch(url, config);
+    console.log('📡 Response Status:', response.status);
+    console.log('📡 Response Headers:', response.headers);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('❌ API Error:', errorData);
       throw new Error(
         errorData.message || `HTTP error! status: ${response.status}`
       );
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('✅ API Success:', data);
+    return data;
   } catch (error) {
-    console.error('API call failed:', error);
+    console.error('❌ API call failed:', error);
     throw error;
   }
 };
