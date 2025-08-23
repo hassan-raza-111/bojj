@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import {
-  // Sidebar,
   SidebarProvider,
   SidebarHeader,
   SidebarContent,
@@ -12,60 +11,66 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar-components';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, Menu, X, LogOut } from 'lucide-react';
+import { Bell, Menu, X, LogOut, Home, Briefcase, Users, DollarSign, MessageSquare, LifeBuoy, Globe, Settings, User, Shield } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import {
-  Home,
-  Briefcase,
-  Users,
-  DollarSign,
-  MessageSquare,
-  LifeBuoy,
-  Globe,
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardLayoutProps {
   children: ReactNode;
   userType: 'customer' | 'vendor';
 }
 
-const dashboardNav = (userType) => [
+const dashboardNav = (userType: 'customer' | 'vendor') => [
   {
     label: 'Dashboard',
-    icon: <Home />,
+    icon: <Home className="w-5 h-5" />,
     path: `/${userType === 'vendor' ? 'vendor-dashboard' : 'customer'}`,
+    description: 'Overview and analytics',
   },
   {
     label: 'Jobs',
-    icon: <Briefcase />,
+    icon: <Briefcase className="w-5 h-5" />,
     path: `/${userType === 'vendor' ? 'vendor-dashboard' : 'customer'}/jobs`,
+    description: 'Manage your jobs',
   },
   {
     label: 'Messages',
-    icon: <MessageSquare />,
-    path: `/${
-      userType === 'vendor' ? 'vendor-dashboard' : 'customer'
-    }/messages`,
+    icon: <MessageSquare className="w-5 h-5" />,
+    path: `/${userType === 'vendor' ? 'vendor-dashboard' : 'customer'}/messages`,
+    description: 'Communication hub',
   },
   {
     label: userType === 'vendor' ? 'Earnings' : 'Payments',
-    icon: <DollarSign />,
-    path: `/${
-      userType === 'vendor' ? 'vendor-dashboard/earnings' : 'customer/payments'
-    }`,
+    icon: <DollarSign className="w-5 h-5" />,
+    path: `/${userType === 'vendor' ? 'vendor-dashboard/earnings' : 'customer/payments'}`,
+    description: userType === 'vendor' ? 'Track your income' : 'Payment history',
   },
   {
     label: 'Support',
-    icon: <LifeBuoy />,
+    icon: <LifeBuoy className="w-5 h-5" />,
     path: `/${userType === 'vendor' ? 'vendor-dashboard' : 'customer'}/support`,
+    description: 'Get help and support',
+  },
+  {
+    label: 'Profile',
+    icon: <User className="w-5 h-5" />,
+    path: `/${userType === 'vendor' ? 'vendor-dashboard' : 'customer'}/profile`,
+    description: 'Manage your profile',
   },
 ];
 
-const Sidebar = ({ userType, isOpen, onClose, setSidebarOpen }) => {
+const Sidebar = ({ userType, isOpen, onClose, setSidebarOpen }: { 
+  userType: 'customer' | 'vendor'; 
+  isOpen: boolean; 
+  onClose: () => void; 
+  setSidebarOpen: (open: boolean) => void;
+}) => {
   const location = useLocation();
+  const { user } = useAuth();
+
   return (
     <>
       {/* Overlay for mobile drawer */}
@@ -77,82 +82,122 @@ const Sidebar = ({ userType, isOpen, onClose, setSidebarOpen }) => {
         }`}
         onClick={onClose}
       />
+      
+      {/* Sidebar */}
       <aside
         className={`
-          fixed z-50 top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-border flex flex-col shadow-md
-          transition-transform duration-200 md:static md:translate-x-0
+          fixed z-50 top-0 left-0 h-full w-72 bg-gradient-to-b from-background to-muted/20 border-r border-border/40 flex flex-col shadow-2xl
+          transition-transform duration-300 ease-in-out md:static md:translate-x-0
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <div className='flex items-center justify-center h-16 border-b border-border'>
-          <span className='text-2xl font-bold text-primary'>
-            BOJJ {userType === 'vendor' ? 'Vendor' : 'Customer'}
-          </span>
+        {/* Sidebar Header */}
+        <div className='flex items-center justify-between h-20 px-6 border-b border-border/40 bg-gradient-to-r from-bojj-primary/5 to-bojj-secondary/5'>
+          <div className='flex items-center space-x-3'>
+            <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-bojj-primary to-bojj-secondary text-white font-bold text-xl shadow-lg'>
+              B
+            </div>
+            <div className='flex flex-col'>
+              <span className='text-lg font-bold bg-gradient-to-r from-bojj-primary to-bojj-secondary bg-clip-text text-transparent'>
+                BOJJ
+              </span>
+              <span className='text-xs text-muted-foreground capitalize'>
+                {userType} Portal
+              </span>
+            </div>
+          </div>
+          
           <button
             type='button'
-            onClick={() => window.history.back()}
-            className='ml-3 hidden md:inline-flex items-center justify-center w-8 h-8 rounded-full bg-muted hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary transition-all border border-border'
-            aria-label='Back'
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 24 24'
-              strokeWidth={2}
-              stroke='currentColor'
-              className='w-5 h-5 text-primary'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M15.75 19.5L8.25 12l7.5-7.5'
-              />
-            </svg>
-          </button>
-          <button
-            type='button'
-            onClick={() => setSidebarOpen && setSidebarOpen(false)}
-            className='ml-auto md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-muted hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary transition-all border border-border'
+            onClick={() => setSidebarOpen(false)}
+            className='md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-muted/50 hover:bg-muted transition-colors'
             aria-label='Close sidebar'
-            style={{ marginRight: 8 }}
           >
-            <X className='w-5 h-5 text-primary' />
+            <X className='w-4 h-4' />
           </button>
         </div>
-        <nav className='flex-1 py-4'>
-          <ul className='space-y-1'>
+
+        {/* User Info */}
+        <div className='px-6 py-4 border-b border-border/40 bg-gradient-to-r from-bojj-primary/5 to-bojj-secondary/5'>
+          <div className='flex items-center space-x-3'>
+            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-bojj-primary to-bojj-secondary text-white font-medium'>
+              {user?.firstName?.charAt(0) || 'U'}
+            </div>
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-medium text-foreground truncate'>
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className='text-xs text-muted-foreground capitalize'>
+                {user?.role?.toLowerCase()}
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              <Shield className="w-3 h-3 mr-1" />
+              Verified
+            </Badge>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className='flex-1 py-6 px-4'>
+          <ul className='space-y-2'>
             {dashboardNav(userType).map((item) => {
-              let isActive = false;
-              if (item.label === 'Dashboard') {
-                isActive = location.pathname === item.path;
-              } else {
-                isActive = location.pathname.startsWith(item.path);
-              }
+              const isActive = item.label === 'Dashboard' 
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path);
+              
               return (
                 <li key={item.label}>
-                  <Button
-                    asChild
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={`w-full justify-start gap-3 px-4 py-2 rounded-none transition group ${
-                      isActive ? '!bg-secondary text-secondary-foreground' : ''
-                    }`}
+                  <Link
+                    to={item.path}
+                    onClick={onClose}
+                    className={`
+                      group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-bojj-primary/10 to-bojj-secondary/10 text-bojj-primary border border-bojj-primary/20 shadow-lg' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:shadow-md'
+                      }
+                    `}
                   >
-                    <Link
-                      to={item.path}
-                      onClick={onClose}
-                      className='flex items-center gap-2 w-full'
-                    >
+                    <div className={`
+                      flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
+                      ${isActive 
+                        ? 'bg-gradient-to-br from-bojj-primary to-bojj-secondary text-white shadow-lg' 
+                        : 'bg-muted group-hover:bg-bojj-primary/10 group-hover:text-bojj-primary'
+                      }
+                    `}>
                       {item.icon}
-                      <span className='flex-1 text-left group-hover:text-primary transition-colors'>
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <p className={`font-medium transition-colors ${isActive ? 'text-bojj-primary' : ''}`}>
                         {item.label}
-                      </span>
-                    </Link>
-                  </Button>
+                      </p>
+                      <p className='text-xs text-muted-foreground truncate'>
+                        {item.description}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <div className='w-2 h-2 rounded-full bg-gradient-to-r from-bojj-primary to-bojj-secondary animate-pulse' />
+                    )}
+                  </Link>
                 </li>
               );
             })}
           </ul>
         </nav>
+
+        {/* Sidebar Footer */}
+        <div className='p-4 border-t border-border/40'>
+          <Link to='/' className='w-full'>
+            <Button
+              variant='outline'
+              className='w-full border-bojj-primary/20 text-bojj-primary hover:bg-bojj-primary/10 hover:border-bojj-primary/30 transition-all duration-200'
+            >
+              <Globe className='w-4 h-4 mr-2' />
+              Explore Site
+            </Button>
+          </Link>
+        </div>
       </aside>
     </>
   );
@@ -165,8 +210,11 @@ const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
   // Show loading while checking auth status
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+      <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-16 w-16 border-4 border-bojj-primary border-t-transparent mx-auto mb-4'></div>
+          <p className='text-muted-foreground'>Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -188,69 +236,84 @@ const DashboardLayout = ({ children, userType }: DashboardLayoutProps) => {
   const firstName = user?.firstName || 'User';
   const lastName = user?.lastName || '';
   const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
-  const businessName =
-    userType === 'vendor' ? `${firstName}'s Construction!` : '';
 
   return (
     <SidebarProvider>
-      <div className='flex min-h-screen bg-background text-foreground'>
-        {/* Sidebar: drawer on mobile, sticky on desktop */}
+      <div className='flex min-h-screen bg-gradient-to-br from-background via-background to-muted/20'>
+        {/* Sidebar */}
         <Sidebar
           userType={userType}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           setSidebarOpen={setSidebarOpen}
         />
+        
         {/* Main Content */}
         <div className='flex flex-col flex-1 w-full overflow-x-hidden'>
-          {/* Mobile Hamburger Only */}
-          <div className='sticky top-0 z-30 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-border flex items-center justify-between px-4 py-2'>
-            <div className='flex items-center gap-2'>
-              <button
-                onClick={() => setSidebarOpen((v) => !v)}
-                className='p-2 rounded-lg bg-muted hover:bg-muted/70 focus:outline-none focus:ring-2 focus:ring-primary transition md:hidden'
-                aria-label='Open sidebar'
-              >
-                <Menu className='h-6 w-6 text-primary' />
-              </button>
-              <span className='text-base font-semibold text-primary'>
-                {userType === 'vendor' ? 'BOJJ Vendor' : 'BOJJ Customer'}
-              </span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm text-muted-foreground hidden md:block'>
-                Welcome, {fullName}
-              </span>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  localStorage.removeItem('isAuthenticated');
-                  window.location.href = '/login';
-                }}
-                className='gap-2 px-3 py-1 text-sm'
-              >
-                <LogOut className='w-4 h-4' />
-                <span className='hidden md:inline'>Logout</span>
-              </Button>
-              <Link to='/' tabIndex={-1}>
+          {/* Top Header */}
+          <div className='sticky top-0 z-30 w-full bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40'>
+            <div className='flex items-center justify-between px-4 py-3 md:px-6 md:py-4'>
+              <div className='flex items-center gap-3'>
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className='p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors md:hidden'
+                  aria-label='Open sidebar'
+                >
+                  <Menu className='h-5 w-5' />
+                </button>
+                
+                <div className='hidden md:block'>
+                  <h1 className='text-lg font-semibold text-foreground'>
+                    {userType === 'vendor' ? 'Vendor Dashboard' : 'Customer Dashboard'}
+                  </h1>
+                  <p className='text-sm text-muted-foreground'>
+                    Welcome back, {fullName}
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex items-center gap-3'>
+                {/* Notifications */}
                 <Button
                   variant='ghost'
-                  className='gap-2 px-4 py-2 rounded-lg backdrop-blur bg-white/60 dark:bg-gray-900/60 border border-border shadow hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors'
+                  size='sm'
+                  className='relative p-2 hover:bg-muted/50'
                 >
-                  <Globe className='w-5 h-5' />
-                  <span>Explore Site</span>
+                  <Bell className='h-5 w-5' />
+                  <Badge className='absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs'>
+                    3
+                  </Badge>
                 </Button>
-              </Link>
+
+                {/* User Menu */}
+                <div className='flex items-center gap-2'>
+                  <span className='hidden sm:block text-sm text-muted-foreground'>
+                    {fullName}
+                  </span>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => {
+                      localStorage.removeItem('accessToken');
+                      localStorage.removeItem('refreshToken');
+                      localStorage.removeItem('user');
+                      localStorage.removeItem('isAuthenticated');
+                      window.location.href = '/login';
+                    }}
+                    className='gap-2 px-3 py-2 text-sm hover:bg-muted/50'
+                  >
+                    <LogOut className='w-4 h-4' />
+                    <span className='hidden md:inline'>Logout</span>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          {/* Main Page */}
-          <main className='flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 w-full bg-background'>
+
+          {/* Main Page Content */}
+          <main className='flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 w-full'>
             <div className='max-w-7xl mx-auto w-full'>
-              <div className='w-full'>{children}</div>
+              <div className='w-full animate-fade-in'>{children}</div>
             </div>
           </main>
         </div>
