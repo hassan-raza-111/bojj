@@ -34,6 +34,12 @@ export const API_CONFIG = {
       DELETE: (id: string) => `/api/jobs/${id}`,
       BID: (id: string) => `/api/jobs/${id}/bid`,
       GET_BIDS: (id: string) => `/api/jobs/${id}/bids`,
+      GET_CUSTOMER_JOBS: '/api/jobs/customer',
+      GET_VENDOR_JOBS: '/api/jobs/vendor',
+      ACCEPT_BID: (jobId: string, bidId: string) =>
+        `/api/jobs/${jobId}/accept-bid/${bidId}`,
+      REJECT_BID: (jobId: string, bidId: string) =>
+        `/api/jobs/${jobId}/reject-bid/${bidId}`,
     },
     SERVICES: {
       GET_ALL: '/api/services',

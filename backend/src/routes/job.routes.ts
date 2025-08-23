@@ -10,8 +10,8 @@ import {
   acceptBid,
   completeJob,
   getCustomerJobs,
-  getVendorJobs,
   getAllJobs,
+  getVendorJobs,
 } from '../controllers/job.controller';
 import {
   authenticateToken,

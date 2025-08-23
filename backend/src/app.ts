@@ -9,10 +9,11 @@ import { authRouter } from './routes/auth.routes';
 import adminRouter from './routes/admin.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
-import { paymentRouter } from './routes/payment.routes';
-import { serviceRouter } from './routes/service.routes';
-import { supportRouter } from './routes/support.routes';
-import { userRouter } from './routes/user.routes';
+// Temporarily commented out due to TypeScript compilation issues
+// import { paymentRouter } from './routes/payment.routes';
+// import { serviceRouter } from './routes/service.routes';
+// import { supportRouter } from './routes/support.routes';
+// import { userRouter } from './routes/user.routes';
 
 const app: Express = express();
 
@@ -64,12 +65,13 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/jobs', jobRouter); // Customer side needs this
+app.use('/api/dashboard', dashboardRouter); // Customer side needs this
+// Temporarily commented out due to TypeScript compilation issues
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);
-// app.use('/api/jobs', jobRouter);
 // app.use('/api/payments', paymentRouter);
 // app.use('/api/support', supportRouter);
-// app.use('/api/dashboard', dashboardRouter);
 
 // 404 handler for undefined routes
 app.use('/*', (req, res) => {

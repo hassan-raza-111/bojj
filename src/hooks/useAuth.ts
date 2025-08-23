@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { API_CONFIG } from '@/config/api';
+import { useState, useEffect, useCallback } from 'react';
+import { API_CONFIG, apiCall } from '@/config/api';
 
 interface User {
   id: string;
@@ -43,22 +43,10 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const data = await apiCall(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
 
       // Store tokens and user data
       localStorage.setItem('accessToken', data.data.tokens.accessToken);
@@ -77,22 +65,10 @@ export const useAuth = () => {
 
   const register = async (userData: any) => {
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(userData),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const data = await apiCall(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
 
       return data.data.user;
     } catch (error) {
@@ -113,26 +89,14 @@ export const useAuth = () => {
 
   const updateUser = async (userData: Partial<User>) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) throw new Error('No access token');
-
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.ME}`,
+      const data = await apiCall(
+        API_CONFIG.ENDPOINTS.AUTH.ME,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify(userData),
-        }
+        },
+        true
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Profile update failed');
-      }
 
       // Update local storage and state
       localStorage.setItem('user', JSON.stringify(data.data.user));
@@ -149,26 +113,14 @@ export const useAuth = () => {
     newPassword: string
   ) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) throw new Error('No access token');
-
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD}`,
+      const data = await apiCall(
+        API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD,
         {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({ currentPassword, newPassword }),
-        }
+        },
+        true
       );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Password change failed');
-      }
 
       return data.message;
     } catch (error) {

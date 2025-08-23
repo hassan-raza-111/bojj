@@ -16,7 +16,9 @@ export const createUserSchema = z.object({
   location: z.string().optional(),
 });
 
-export const updateUserSchema = createUserSchema.partial().omit({ password: true });
+export const updateUserSchema = createUserSchema
+  .partial()
+  .omit({ password: true });
 
 // Authentication schemas
 export const loginSchema = z.object({
@@ -67,16 +69,26 @@ export const updateServiceSchema = createServiceSchema.partial();
 export const createJobSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
-  requirements: z.array(z.string()),
+  requirements: z.array(z.string()).optional(),
   category: z.string(),
   subcategory: z.string().optional(),
   tags: z.array(z.string()).optional(),
   budget: z.number().positive().optional(),
-  budgetType: z.enum(['FIXED', 'HOURLY', 'NEGOTIABLE']),
+  budgetType: z.enum(['FIXED', 'HOURLY', 'NEGOTIABLE']).default('FIXED'),
   location: z.string().optional(),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
   isRemote: z.boolean().default(false),
   deadline: z.string().datetime().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
+  timeline: z.string().optional(),
+  date: z.string().datetime().optional(),
+  time: z.string().optional(),
+  additionalRequests: z.string().optional(),
+  contactPreference: z.string().optional(),
+  images: z.array(z.string()).optional(),
   customerId: idSchema,
 });
 

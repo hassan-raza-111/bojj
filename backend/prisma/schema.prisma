@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,104 +7,72 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========================================
-// USER MANAGEMENT
-// ========================================
-
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String
-  firstName String
-  lastName  String
-  phone     String?
-  bio       String?
-  location  String?
-  avatar    String?
-  
-  // Role-based access
-  role      Role       @default(CUSTOMER)
-  status    UserStatus @default(ACTIVE)
-  
-  // Profile verification
-  emailVerified Boolean @default(false)
-  phoneVerified Boolean @default(false)
-  
-  // Timestamps
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  
-  // Relations
-  refreshTokens    RefreshToken[]
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  firstName        String
+  lastName         String
+  phone            String?
+  bio              String?
+  location         String?
+  avatar           String?
+  role             Role             @default(CUSTOMER)
+  status           UserStatus       @default(ACTIVE)
+  emailVerified    Boolean          @default(false)
+  phoneVerified    Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  bids             Bid[]
+  customerProfile  CustomerProfile?
+  assignedJobs     Job[]            @relation("AssignedJobs")
+  jobs             Job[]
   passwordResets   PasswordReset[]
-  jobs            Job[]           // Customer posts jobs
-  assignedJobs    Job[]           @relation("AssignedJobs") // Jobs assigned to vendor
-  bids            Bid[]           // Vendor submits bids
-  services        Service[]       // Vendor offers services
-  customerPayments Payment[]      @relation("CustomerPayments") // User as customer
-  vendorPayments   Payment[]      @relation("VendorPayments")   // User as vendor
-  reviews         Review[]        @relation("UserReviews") // User's reviews
-  supportTickets  SupportTicket[] // User's support tickets
-  assignedTickets SupportTicket[] @relation("AssignedTickets") // Admin assigned tickets
-  
-  // Vendor-specific fields
-  vendorProfile   VendorProfile?
-  
-  // Customer-specific fields  
-  customerProfile CustomerProfile?
-  
+  customerPayments Payment[]        @relation("CustomerPayments")
+  vendorPayments   Payment[]        @relation("VendorPayments")
+  refreshTokens    RefreshToken[]
+  reviews          Review[]         @relation("UserReviews")
+  services         Service[]
+  assignedTickets  SupportTicket[]  @relation("AssignedTickets")
+  supportTickets   SupportTicket[]
+  vendorProfile    VendorProfile?
+
   @@map("users")
 }
 
 model VendorProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Business details
-  companyName     String?
-  businessType   String?
-  experience     Int?     // Years of experience
-  skills         String[] // Technical skills
-  portfolio      String[] // Portfolio links/images
-  
-  // Verification
-  verified       Boolean  @default(false)
-  documents      String[] // Business documents
-  
-  // Business metrics
-  rating         Float    @default(0)
-  totalReviews   Int      @default(0)
-  completedJobs  Int      @default(0)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  companyName   String?
+  businessType  String?
+  experience    Int?
+  skills        String[]
+  portfolio     String[]
+  verified      Boolean  @default(false)
+  documents     String[]
+  rating        Float    @default(0)
+  totalReviews  Int      @default(0)
+  completedJobs Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("vendor_profiles")
 }
 
 model CustomerProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Customer preferences
+  id                  String   @id @default(uuid())
+  userId              String   @unique
   preferredCategories String[]
-  budgetRange        String?
-  
-  // Customer metrics
-  totalJobsPosted   Int     @default(0)
-  totalSpent        Float   @default(0)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  budgetRange         String?
+  totalJobsPosted     Int      @default(0)
+  totalSpent          Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("customer_profiles")
 }
-
-// ========================================
-// JOB MARKETPLACE
-// ========================================
 
 model Job {
   id          String    @id @default(uuid())
@@ -124,6 +89,10 @@ model Job {
   
   // Location & timing
   location    String?
+  street      String?
+  city        String?
+  state       String?
+  zipCode     String?
   isRemote    Boolean   @default(false)
   deadline    DateTime?
   
@@ -139,6 +108,14 @@ model Job {
   assignedVendorId String?
   assignedVendor   User?    @relation("AssignedJobs", fields: [assignedVendorId], references: [id])
   
+  // Additional fields for customer module
+  timeline    String?
+  date        DateTime?
+  time        String?
+  additionalRequests String?
+  contactPreference String?
+  images      String[]
+  
   // Relations
   bids        Bid[]
   payments    Payment[]
@@ -153,181 +130,111 @@ model Job {
 
 model Bid {
   id          String    @id @default(uuid())
-  
-  // Bid details
   amount      Float
   description String
-  timeline    String    // Estimated completion time
-  milestones  Json?     // Payment milestones
-  
-  // Bid status
+  timeline    String
+  milestones  Json?
   status      BidStatus @default(PENDING)
-  
-  // Relations
   jobId       String
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  
   vendorId    String
-  vendor      User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  vendor      User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
   @@map("bids")
 }
-
-// ========================================
-// SERVICE CATALOG
-// ========================================
 
 model Service {
   id          String        @id @default(uuid())
   title       String
   description String
   code        String        @unique
-  
-  // Service details
   category    String
   subcategory String?
   tags        String[]
   images      String[]
-  
-  // Pricing
   basePrice   Float
-  priceType   PriceType     // FIXED, HOURLY, PER_UNIT
-  
-  // Service status
+  priceType   PriceType
   status      ServiceStatus @default(ACTIVE)
-  
-  // Vendor info
   vendorId    String
-  vendor      User          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  
-  // Nested services (for complex services)
   parentId    String?
-  parent      Service?      @relation("ServiceHierarchy", fields: [parentId], references: [id])
-  children    Service[]     @relation("ServiceHierarchy")
-  
-  // Timestamps
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  
-  // Relations
   reviews     Review[]
-  
+  parent      Service?      @relation("ServiceHierarchy", fields: [parentId], references: [id])
+  children    Service[]     @relation("ServiceHierarchy")
+  vendor      User          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
   @@map("services")
 }
 
-// ========================================
-// PAYMENT & ESCROW SYSTEM
-// ========================================
-
 model Payment {
   id          String        @id @default(uuid())
-  
-  // Payment details
   amount      Float
   currency    String        @default("USD")
   description String
-  
-  // Payment flow
   status      PaymentStatus @default(PENDING)
   method      PaymentMethod
-  
-  // Escrow system
   isEscrow    Boolean       @default(true)
   escrowFee   Float         @default(0)
-  
-  // Relations
   jobId       String?
-  job         Job?          @relation(fields: [jobId], references: [id])
-  
   customerId  String
-  customer    User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
-  
   vendorId    String
-  vendor      User          @relation("VendorPayments", fields: [vendorId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   paidAt      DateTime?
   releasedAt  DateTime?
-  
+  customer    User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
+  job         Job?          @relation(fields: [jobId], references: [id])
+  vendor      User          @relation("VendorPayments", fields: [vendorId], references: [id], onDelete: Cascade)
+
   @@map("payments")
 }
 
-// ========================================
-// REVIEW & RATING SYSTEM
-// ========================================
-
 model Review {
-  id          String   @id @default(uuid())
-  
-  // Review details
-  rating      Int      // 1-5 stars
-  comment     String
-  isPublic    Boolean  @default(true)
-  
-  // Relations
-  reviewerId  String
-  reviewer    User     @relation("UserReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
-  
-  serviceId   String?
-  service     Service? @relation(fields: [serviceId], references: [id])
-  
-  jobId       String?
-  job         Job?     @relation(fields: [jobId], references: [id])
-  
-  // Timestamps
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String
+  isPublic   Boolean  @default(true)
+  reviewerId String
+  serviceId  String?
+  jobId      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  job        Job?     @relation(fields: [jobId], references: [id])
+  reviewer   User     @relation("UserReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  service    Service? @relation(fields: [serviceId], references: [id])
+
   @@map("reviews")
 }
 
-// ========================================
-// SUPPORT SYSTEM
-// ========================================
-
 model SupportTicket {
-  id          String           @id @default(uuid())
-  
-  // Ticket details
-  title       String
-  description String
-  category    TicketCategory
-  priority    TicketPriority  @default(MEDIUM)
-  status      TicketStatus    @default(OPEN)
-  
-  // Relations
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id           String         @id @default(uuid())
+  title        String
+  description  String
+  category     TicketCategory
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  userId       String
   assignedToId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  resolvedAt   DateTime?
   assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  
-  // Timestamps
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  resolvedAt  DateTime?
-  
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("support_tickets")
 }
-
-// ========================================
-// AUTHENTICATION & SECURITY
-// ========================================
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
@@ -338,18 +245,14 @@ model PasswordReset {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
   @@map("password_resets")
 }
-
-// ========================================
-// ENUMS
-// ========================================
 
 enum Role {
   CUSTOMER

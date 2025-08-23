@@ -21,19 +21,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, ChevronRight, Calendar, Clock, X, ChevronDown } from "lucide-react";
-// import { motion } from "framer-motion";
+import { Upload, ChevronRight, Calendar, Clock, X, ChevronDown, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useCustomer } from "@/contexts/CustomerContext";
 
 const JobPostingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createJob, updateJob, getJobById, loading } = useCustomer();
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { id } = useParams();
+  const isEditing = Boolean(id);
 
   const serviceCategories: Record<string, string[]> = {
     "Home Maintenance and Repairs": [
@@ -67,10 +69,6 @@ const JobPostingPage = () => {
   };
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
     title: "",
     serviceCategory: "",
     serviceType: "",
@@ -151,12 +149,50 @@ const JobPostingPage = () => {
     }
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Job posted successfully!",
-      description: "Vendors in your area will be notified about your job",
-    });
-    navigate("/customer");
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.budget) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const jobData = {
+        ...formData,
+        budget: parseFloat(formData.budget),
+        category: formData.serviceCategory,
+        subcategory: formData.serviceType,
+        location: `${formData.street}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        images: imageUrls,
+        tags: [formData.serviceCategory, formData.serviceType],
+      };
+
+      let result;
+      if (isEditing && id) {
+        result = await updateJob(id, jobData);
+      } else {
+        result = await createJob(jobData);
+      }
+
+      if (result) {
+        toast({
+          title: isEditing ? "Job Updated Successfully!" : "Job Posted Successfully!",
+          description: isEditing 
+            ? "Your job has been updated."
+            : "Your job has been posted and is now visible to vendors.",
+        });
+        navigate("/customer");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to post job. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -173,25 +209,20 @@ const JobPostingPage = () => {
   }, [isDropdownOpen]);
 
   useEffect(() => {
-    if (id) {
-      const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
-      const jobToEdit = jobs.find((j: any) => j.id === id);
+    if (id && isEditing) {
+      const jobToEdit = getJobById(id);
       if (jobToEdit) {
         setFormData({
-          firstName: jobToEdit.firstName || "",
-          lastName: jobToEdit.lastName || "",
-          email: jobToEdit.email || "",
-          phoneNumber: jobToEdit.phoneNumber || "",
           title: jobToEdit.title || "",
-          serviceCategory: jobToEdit.serviceCategory || "",
-          serviceType: jobToEdit.serviceType || "",
+          serviceCategory: jobToEdit.category || "",
+          serviceType: jobToEdit.subcategory || "",
           subcategory: jobToEdit.subcategory || "",
           description: jobToEdit.description || "",
           street: jobToEdit.street || "",
           city: jobToEdit.city || "",
           state: jobToEdit.state || "Illinois",
           zipCode: jobToEdit.zipCode || "",
-          budget: jobToEdit.budget || "",
+          budget: jobToEdit.budget?.toString() || "",
           timeline: jobToEdit.timeline || "Specific Date",
           date: jobToEdit.date || "",
           time: jobToEdit.time || "",
@@ -200,8 +231,7 @@ const JobPostingPage = () => {
         });
       }
     }
-    // eslint-disable-next-line
-  }, [id]);
+  }, [id, isEditing, getJobById]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -591,23 +621,29 @@ const JobPostingPage = () => {
         <CardFooter className="flex justify-between bg-gray-50 dark:bg-gray-900 border-t dark:border-gray-800 p-4 sm:p-6">
           <Button 
             variant="outline" 
-            onClick={handlePreviousStep} 
+            onClick={() => setCurrentStep(Math.max(1, currentStep - 1))} 
             disabled={currentStep === 1}
             className="flex items-center gap-2"
           >
             Back
           </Button>
           <Button 
-            onClick={handleNextStep} 
+            onClick={currentStep < 3 ? () => setCurrentStep(currentStep + 1) : handleSubmit} 
             className="bg-bojj-primary hover:bg-bojj-primary/90 text-white flex items-center gap-2"
+            disabled={loading}
           >
-            {currentStep < 3 ? (
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditing ? 'Updating...' : 'Posting...'}
+              </>
+            ) : currentStep < 3 ? (
               <>
                 Continue
                 <ChevronRight className="h-4 w-4" />
               </>
             ) : (
-              "Submit & Get Bids"
+              isEditing ? 'Update Job' : 'Submit & Get Bids'
             )}
           </Button>
         </CardFooter>

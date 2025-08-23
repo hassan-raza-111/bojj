@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
+import CustomerProvider from '@/contexts/CustomerContext';
 
 // Layout Components
 import MainLayout from './components/layouts/MainLayout';
@@ -71,20 +72,31 @@ const App = () => {
               <Route
                 path='/customer/*'
                 element={
-                  <DashboardLayout userType='customer'>
-                    <Routes>
-                      <Route path='/' element={<CustomerDashboard />} />
-                      <Route path='/jobs' element={<JobCRUD />} />
-                      <Route path='/messages' element={<MessagesPage />} />
-                      <Route path='/payments' element={<CustomerPaymentPage />} />
-                      <Route path='/support' element={<SupportPage />} />
-                      <Route path='/jobs/new' element={<JobPostingPage />} />
-                      <Route path='/jobs/:id/edit' element={<JobPostingPage />} />
-                      <Route path='/jobs/:id' element={<JobDetailPage />} />
-                      <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
-                    </Routes>
-                  </DashboardLayout>
+                  <CustomerProvider>
+                    <DashboardLayout userType='customer'>
+                      <Routes>
+                        <Route path='/' element={<CustomerDashboard />} />
+                        <Route path='/jobs' element={<JobCRUD />} />
+                        <Route path='/messages' element={<MessagesPage />} />
+                        <Route
+                          path='/payments'
+                          element={<CustomerPaymentPage />}
+                        />
+                        <Route path='/support' element={<SupportPage />} />
+                        <Route path='/jobs/new' element={<JobPostingPage />} />
+                        <Route
+                          path='/jobs/:id/edit'
+                          element={<JobPostingPage />}
+                        />
+                        <Route path='/jobs/:id' element={<JobDetailPage />} />
+                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
+                        <Route
+                          path='/jobs/:id/bid'
+                          element={<SubmitBidPage />}
+                        />
+                      </Routes>
+                    </DashboardLayout>
+                  </CustomerProvider>
                 }
               />
             </Route>
@@ -101,7 +113,10 @@ const App = () => {
                       <Route path='/messages' element={<MessagesPage />} />
                       <Route path='/earnings' element={<PaymentsPage />} />
                       <Route path='/support' element={<SupportPage />} />
-                      <Route path='/jobs/:id/view' element={<JobDetailPage />} />
+                      <Route
+                        path='/jobs/:id/view'
+                        element={<JobDetailPage />}
+                      />
                       <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
                       <Route
                         path='/bids/:id/view'

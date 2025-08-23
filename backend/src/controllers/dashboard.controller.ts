@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
-import { PrismaClient, JobStatus, PaymentStatus } from "@prisma/client";
-import { logger } from "../utils/logger";
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { PrismaClient, JobStatus, PaymentStatus } from '@prisma/client';
+import { logger } from '../utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,7 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
     if (!customerId) {
       res.status(400).json({
         success: false,
-        message: "customerId is required",
+        message: 'customerId is required',
       });
       return;
     }
@@ -29,13 +29,13 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
       prisma.job.count({
         where: {
           customerId,
-          status: { in: ["IN_PROGRESS", "COMPLETED"] },
+          status: { in: ['OPEN', 'IN_PROGRESS'] },
         },
       }),
       prisma.job.count({
         where: {
           customerId,
-          status: "COMPLETED",
+          status: 'COMPLETED',
         },
       }),
       prisma.bid.count({
@@ -46,14 +46,14 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
       prisma.payment.aggregate({
         where: {
           customerId,
-          status: { in: ["RELEASED", "IN_ESCROW"] },
+          status: { in: ['RELEASED', 'IN_ESCROW'] },
         },
         _sum: { amount: true },
       }),
       prisma.payment.count({
         where: {
           customerId,
-          status: "PENDING",
+          status: 'PENDING',
         },
       }),
     ]);
@@ -62,18 +62,22 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
     const recentJobs = await prisma.job.findMany({
       where: { customerId },
       include: {
-        vendor: {
+        assignedVendor: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            rating: true,
+            vendorProfile: {
+              select: {
+                rating: true,
+              },
+            },
           },
         },
         bids: {
           select: { id: true },
         },
-        payment: {
+        payments: {
           select: {
             id: true,
             status: true,
@@ -85,7 +89,7 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 5,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     res.json({
@@ -104,11 +108,11 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching customer dashboard:", error);
+    logger.error('Error fetching customer dashboard:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard data",
+      message: 'Failed to fetch dashboard data',
     });
     return;
   }
@@ -121,7 +125,7 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
     if (!vendorId) {
       res.status(400).json({
         success: false,
-        message: "vendorId is required",
+        message: 'vendorId is required',
       });
       return;
     }
@@ -136,30 +140,30 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
       totalBids,
       acceptedBids,
     ] = await Promise.all([
-      prisma.job.count({ where: { vendorId } }),
+      prisma.job.count({ where: { assignedVendorId: vendorId } }),
       prisma.job.count({
         where: {
-          vendorId,
-          status: "IN_PROGRESS",
+          assignedVendorId: vendorId,
+          status: 'IN_PROGRESS',
         },
       }),
       prisma.job.count({
         where: {
-          vendorId,
-          status: "COMPLETED",
+          assignedVendorId: vendorId,
+          status: 'COMPLETED',
         },
       }),
       prisma.payment.aggregate({
         where: {
           vendorId,
-          status: "RELEASED",
+          status: 'RELEASED',
         },
         _sum: { amount: true },
       }),
       prisma.payment.aggregate({
         where: {
           vendorId,
-          status: "IN_ESCROW",
+          status: 'IN_ESCROW',
         },
         _sum: { amount: true },
       }),
@@ -167,24 +171,29 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
       prisma.bid.count({
         where: {
           vendorId,
-          status: "ACCEPTED",
+          status: 'ACCEPTED',
         },
       }),
     ]);
 
     // Get recent jobs
     const recentJobs = await prisma.job.findMany({
-      where: { vendorId },
+      where: { assignedVendorId: vendorId },
       include: {
         customer: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
-            rating: true,
+            customerProfile: {
+              select: {
+                totalJobsPosted: true,
+                totalSpent: true,
+              },
+            },
           },
         },
-        payment: {
+        payments: {
           select: {
             id: true,
             status: true,
@@ -193,13 +202,13 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 5,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     // Get available jobs for bidding
     const availableJobs = await prisma.job.findMany({
       where: {
-        status: "OPEN",
+        status: 'OPEN',
         customerId: { not: vendorId }, // Don't show own jobs
       },
       include: {
@@ -208,7 +217,12 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
             id: true,
             firstName: true,
             lastName: true,
-            rating: true,
+            customerProfile: {
+              select: {
+                totalJobsPosted: true,
+                totalSpent: true,
+              },
+            },
           },
         },
         _count: {
@@ -216,7 +230,7 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 5,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     res.json({
@@ -238,11 +252,11 @@ export const getVendorDashboard: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching vendor dashboard:", error);
+    logger.error('Error fetching vendor dashboard:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard data",
+      message: 'Failed to fetch dashboard data',
     });
     return;
   }
@@ -265,21 +279,21 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
       openTickets,
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.user.count({ where: { role: "CUSTOMER" } }),
-      prisma.user.count({ where: { role: "VENDOR" } }),
+      prisma.user.count({ where: { role: 'CUSTOMER' } }),
+      prisma.user.count({ where: { role: 'VENDOR' } }),
       prisma.job.count(),
-      prisma.job.count({ where: { status: "IN_PROGRESS" } }),
-      prisma.job.count({ where: { status: "COMPLETED" } }),
+      prisma.job.count({ where: { status: 'IN_PROGRESS' } }),
+      prisma.job.count({ where: { status: 'COMPLETED' } }),
       prisma.payment.aggregate({
-        where: { status: "RELEASED" },
+        where: { status: 'RELEASED' },
         _sum: { amount: true },
       }),
       prisma.payment.aggregate({
-        where: { status: "IN_ESCROW" },
+        where: { status: 'IN_ESCROW' },
         _sum: { amount: true },
       }),
-      prisma.ticket.count(),
-      prisma.ticket.count({ where: { status: "OPEN" } }),
+      prisma.supportTicket.count(),
+      prisma.supportTicket.count({ where: { status: 'OPEN' } }),
     ]);
 
     // Get recent activities
@@ -292,7 +306,7 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
             lastName: true,
           },
         },
-        vendor: {
+        assignedVendor: {
           select: {
             id: true,
             firstName: true,
@@ -301,7 +315,7 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 10,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     const recentPayments = await prisma.payment.findMany({
@@ -328,10 +342,10 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 10,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
-    const recentTickets = await prisma.ticket.findMany({
+    const recentTickets = await prisma.supportTicket.findMany({
       include: {
         user: {
           select: {
@@ -343,20 +357,20 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
         },
       },
       take: 10,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     // Get monthly revenue data (last 6 months)
     const monthlyRevenue = await prisma.payment.groupBy({
-      by: ["createdAt"],
+      by: ['createdAt'],
       where: {
-        status: "RELEASED",
+        status: 'RELEASED',
         createdAt: {
           gte: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000), // 6 months ago
         },
       },
       _sum: { amount: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
 
     res.json({
@@ -383,11 +397,11 @@ export const getAdminDashboard: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching admin dashboard:", error);
+    logger.error('Error fetching admin dashboard:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard data",
+      message: 'Failed to fetch dashboard data',
     });
     return;
   }
@@ -400,7 +414,7 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
     if (!userId) {
       res.status(400).json({
         success: false,
-        message: "userId is required",
+        message: 'userId is required',
       });
       return;
     }
@@ -413,11 +427,20 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
         lastName: true,
         email: true,
         role: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
-        experience: true,
-        portfolio: true,
+        vendorProfile: {
+          select: {
+            rating: true,
+            totalReviews: true,
+            experience: true,
+            portfolio: true,
+          },
+        },
+        customerProfile: {
+          select: {
+            totalJobsPosted: true,
+            totalSpent: true,
+          },
+        },
         createdAt: true,
       },
     });
@@ -425,26 +448,26 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
     if (!user) {
       res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
       return;
     }
 
     let additionalStats = {};
 
-    if (user.role === "CUSTOMER") {
+    if (user.role === 'CUSTOMER') {
       const [totalJobs, completedJobs, totalSpent] = await Promise.all([
         prisma.job.count({ where: { customerId: userId } }),
         prisma.job.count({
           where: {
             customerId: userId,
-            status: "COMPLETED",
+            status: 'COMPLETED',
           },
         }),
         prisma.payment.aggregate({
           where: {
             customerId: userId,
-            status: { in: ["RELEASED", "IN_ESCROW"] },
+            status: { in: ['RELEASED', 'IN_ESCROW'] },
           },
           _sum: { amount: true },
         }),
@@ -455,21 +478,21 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
         completedJobs,
         totalSpent: totalSpent._sum.amount || 0,
       };
-    } else if (user.role === "VENDOR") {
+    } else if (user.role === 'VENDOR') {
       const [totalJobs, completedJobs, totalBids, acceptedBids] =
         await Promise.all([
-          prisma.job.count({ where: { vendorId: userId } }),
+          prisma.job.count({ where: { assignedVendorId: userId } }),
           prisma.job.count({
             where: {
-              vendorId: userId,
-              status: "COMPLETED",
+              assignedVendorId: userId,
+              status: 'COMPLETED',
             },
           }),
           prisma.bid.count({ where: { vendorId: userId } }),
           prisma.bid.count({
             where: {
               vendorId: userId,
-              status: "ACCEPTED",
+              status: 'ACCEPTED',
             },
           }),
         ]);
@@ -492,11 +515,11 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
     });
     return;
   } catch (error) {
-    logger.error("Error fetching user stats:", error);
+    logger.error('Error fetching user stats:', error);
     next(error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch user statistics",
+      message: 'Failed to fetch user statistics',
     });
     return;
   }

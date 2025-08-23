@@ -124,9 +124,9 @@ export interface PaginatedResponse<T> {
 export const testBackendConnection = async (): Promise<boolean> => {
   try {
     console.log('🧪 Testing backend connection...');
-    const response = await fetch(`${API_CONFIG.BASE_URL}/health`);
-    console.log('🧪 Health check response:', response.status);
-    return response.ok;
+    const response = await apiCall('/health', { method: 'GET' });
+    console.log('🧪 Health check response:', response);
+    return true;
   } catch (error) {
     console.error('🧪 Backend connection failed:', error);
     return false;
