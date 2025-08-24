@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,26 +14,23 @@ import {
   PlusCircle,
   MessageSquare,
   Clock,
-  Loader2,
   DollarSign,
   Users,
   Briefcase,
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  XCircle,
   ArrowRight,
   Calendar,
-  MapPin,
   Star,
 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useAuth } from '@/hooks/useAuth';
+import CustomerLayout from '@/layouts/CustomerLayout';
 
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { jobs, stats, loading, error, fetchDashboard, fetchJobs } =
-    useCustomer();
+  const { jobs, stats, loading, error, fetchDashboard } = useCustomer();
   const { user } = useAuth();
 
   // Get jobs by status
@@ -98,167 +95,179 @@ const CustomerDashboard = () => {
     }
   };
 
-  // Data is automatically fetched in CustomerContext when component mounts
-  // No need for additional useEffect hooks here
-
-  return (
-    <div className='min-h-screen w-full bg-gradient-to-br from-background via-background to-muted/20'>
-      {/* Header */}
-      <div className='py-6 sm:py-8 px-4 sm:px-6 lg:px-8'>
-        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-          <div className='flex-1'>
-            <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent leading-tight'>
-              Welcome back, {user?.firstName || 'Customer'}! 👋
-            </h1>
-            <p className='text-base sm:text-lg text-muted-foreground mt-2 sm:mt-3'>
-              Here's what's happening with your jobs today
-            </p>
+  const dashboardContent = (
+    <div className='space-y-8'>
+      {/* Welcome Banner */}
+      <Card className='border-0 shadow-lg bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50'>
+        <CardContent className='p-8'>
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-6 items-center'>
+            <div className='md:col-span-2'>
+              <h2 className='text-2xl font-bold text-gray-900 mb-3'>
+                🚀 Ready to get started?
+              </h2>
+              <p className='text-gray-600 text-base mb-6'>
+                Post your first job and connect with qualified vendors in your
+                area. Our platform makes it easy to find the right person for
+                any task.
+              </p>
+              <div className='flex flex-col sm:flex-row gap-3'>
+                <Link to='/customer/jobs/new'>
+                  <Button className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200'>
+                    <PlusCircle className='mr-2 h-4 w-4' />
+                    Post Your First Job
+                  </Button>
+                </Link>
+                <Link to='/customer/support'>
+                  <Button
+                    variant='outline'
+                    className='hover:border-purple-300 hover:text-purple-600 transition-colors'
+                  >
+                    <AlertCircle className='mr-2 h-4 w-4' />
+                    Get Help
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className='flex justify-center md:justify-end'>
+              <div className='relative'>
+                <div className='w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-purple-200 to-blue-200 flex items-center justify-center'>
+                  <Briefcase className='w-12 h-12 sm:w-16 sm:h-16 text-purple-600' />
+                </div>
+                <div className='absolute -top-2 -right-2 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center'>
+                  <CheckCircle className='w-5 h-5 text-white' />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className='flex-shrink-0'>
-            <Link to='/customer/jobs/new'>
-              <Button className='w-full sm:w-auto bg-gradient-to-r from-bojj-primary to-bojj-secondary hover:from-bojj-primary/90 hover:to-bojj-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3'>
-                <PlusCircle className='mr-2 h-4 w-4 sm:h-5 sm:w-5' />
-                Post New Job
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Loading State */}
       {loading && (
-        <div className='flex items-center justify-center py-16 sm:py-20 lg:py-24'>
+        <div className='flex items-center justify-center py-16'>
           <div className='text-center'>
-            <div className='animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-bojj-primary border-t-transparent mx-auto mb-4'></div>
-            <p className='text-muted-foreground text-base sm:text-lg'>
-              Loading your dashboard...
-            </p>
+            <div className='animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4'></div>
+            <p className='text-gray-600 text-lg'>Loading your dashboard...</p>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className='px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8'>
-          <Card className='border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10'>
-            <CardContent className='pt-4 sm:pt-6'>
-              <div className='flex flex-col sm:flex-row sm:items-center gap-3'>
-                <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20 flex-shrink-0'>
-                  <AlertCircle className='h-5 w-5 text-red-600 dark:text-red-400' />
-                </div>
-                <div className='flex-1 min-w-0'>
-                  <p className='font-medium text-red-800 dark:text-red-200 text-sm sm:text-base'>
-                    {error}
-                  </p>
-                  <p className='text-xs sm:text-sm text-red-600 dark:text-red-400 mt-1'>
-                    There was an issue loading your dashboard data
-                  </p>
-                </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={fetchDashboard}
-                  className='border-red-200 text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20 w-full sm:w-auto'
-                >
-                  Retry
-                </Button>
+        <Card className='border-red-200 bg-red-50'>
+          <CardContent className='pt-6'>
+            <div className='flex items-center gap-3'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-100'>
+                <AlertCircle className='h-5 w-5 text-red-600' />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className='flex-1'>
+                <p className='font-medium text-red-800 text-base'>{error}</p>
+                <p className='text-sm text-red-600 mt-1'>
+                  There was an issue loading your dashboard data
+                </p>
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={fetchDashboard}
+                className='border-red-200 text-red-700 hover:bg-red-100'
+              >
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Summary Cards */}
-      <div className='px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8'>
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
-          <Card className='card-hover border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20'>
-            <CardHeader className='pb-3 px-4 sm:px-6'>
-              <div className='flex items-center justify-between'>
-                <div className='flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg'>
-                  <Briefcase className='h-5 w-5 sm:h-6 sm:w-6' />
-                </div>
-                <TrendingUp className='h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400' />
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+        <Card className='border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100'>
+          <CardHeader className='pb-3'>
+            <div className='flex items-center justify-between'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg'>
+                <Briefcase className='h-6 w-6' />
               </div>
-              <CardTitle className='text-base sm:text-lg font-semibold text-blue-900 dark:text-blue-100'>
-                Total Jobs
-              </CardTitle>
-              <CardDescription className='text-sm text-blue-700 dark:text-blue-300'>
-                All your posted jobs
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-              <p className='text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100'>
-                {stats?.totalJobs || jobs.length}
-              </p>
-            </CardContent>
-          </Card>
+              <TrendingUp className='h-5 w-5 text-blue-600' />
+            </div>
+            <CardTitle className='text-lg font-semibold text-blue-900'>
+              Total Jobs
+            </CardTitle>
+            <CardDescription className='text-blue-700'>
+              All your posted jobs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className='text-3xl font-bold text-blue-900'>
+              {stats?.totalJobs || jobs.length}
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className='card-hover border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20'>
-            <CardHeader className='pb-3 px-4 sm:px-6'>
-              <div className='flex items-center justify-between'>
-                <div className='flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg'>
-                  <TrendingUp className='h-5 w-5 sm:h-6 sm:w-6' />
-                </div>
-                <Clock className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 dark:text-emerald-400' />
+        <Card className='border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100'>
+          <CardHeader className='pb-3'>
+            <div className='flex items-center justify-between'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg'>
+                <TrendingUp className='h-6 w-6' />
               </div>
-              <CardTitle className='text-base sm:text-lg font-semibold text-emerald-900 dark:text-emerald-100'>
-                Active Jobs
-              </CardTitle>
-              <CardDescription className='text-sm text-emerald-700 dark:text-emerald-300'>
-                Currently open for bids
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-              <p className='text-2xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-100'>
-                {stats?.activeJobs || activeJobs.length}
-              </p>
-            </CardContent>
-          </Card>
+              <Clock className='h-5 w-5 text-emerald-600' />
+            </div>
+            <CardTitle className='text-lg font-semibold text-emerald-900'>
+              Active Jobs
+            </CardTitle>
+            <CardDescription className='text-emerald-700'>
+              Currently open for bids
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className='text-3xl font-bold text-emerald-900'>
+              {stats?.activeJobs || activeJobs.length}
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className='card-hover border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20'>
-            <CardHeader className='pb-3 px-4 sm:px-6'>
-              <div className='flex items-center justify-between'>
-                <div className='flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg'>
-                  <Users className='h-5 w-5 sm:h-6 sm:w-6' />
-                </div>
-                <MessageSquare className='h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400' />
+        <Card className='border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100'>
+          <CardHeader className='pb-3'>
+            <div className='flex items-center justify-between'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600 text-white shadow-lg'>
+                <Users className='h-6 w-6' />
               </div>
-              <CardTitle className='text-base sm:text-lg font-semibold text-purple-900 dark:text-purple-100'>
-                Total Bids
-              </CardTitle>
-              <CardDescription className='text-sm text-purple-700 dark:text-purple-300'>
-                Across all your jobs
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-              <p className='text-2xl sm:text-3xl font-bold text-purple-900 dark:text-purple-100'>
-                {stats?.totalBids || 0}
-              </p>
-            </CardContent>
-          </Card>
+              <MessageSquare className='h-5 w-5 text-purple-600' />
+            </div>
+            <CardTitle className='text-lg font-semibold text-purple-900'>
+              Total Bids
+            </CardTitle>
+            <CardDescription className='text-purple-700'>
+              Across all your jobs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className='text-3xl font-bold text-purple-900'>
+              {stats?.totalBids || 0}
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card className='card-hover border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-900/20 dark:to-indigo-800/20'>
-            <CardHeader className='pb-3 px-4 sm:px-6'>
-              <div className='flex items-center justify-between'>
-                <div className='flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg'>
-                  <CheckCircle className='h-5 w-5 sm:h-6 sm:w-6' />
-                </div>
-                <Star className='h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400' />
+        <Card className='border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100'>
+          <CardHeader className='pb-3'>
+            <div className='flex items-center justify-between'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg'>
+                <CheckCircle className='h-6 w-6' />
               </div>
-              <CardTitle className='text-base sm:text-lg font-semibold text-indigo-900 dark:text-indigo-100'>
-                Completed Jobs
-              </CardTitle>
-              <CardDescription className='text-sm text-indigo-700 dark:text-indigo-300'>
-                Successfully finished
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-              <p className='text-2xl sm:text-3xl font-bold text-indigo-900 dark:text-indigo-100'>
-                {stats?.completedJobs || completedJobs.length}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+              <Star className='h-5 w-5 text-indigo-600' />
+            </div>
+            <CardTitle className='text-lg font-semibold text-indigo-900'>
+              Completed Jobs
+            </CardTitle>
+            <CardDescription className='text-indigo-700'>
+              Successfully finished
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className='text-3xl font-bold text-indigo-900'>
+              {stats?.completedJobs || completedJobs.length}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Jobs List with Tabs */}
@@ -267,185 +276,306 @@ const CustomerDashboard = () => {
         onValueChange={setActiveTab}
         className='w-full'
       >
-        <TabsList className='grid w-full grid-cols-2 sm:grid-cols-4 bg-muted/50 p-1 rounded-xl mb-6 sm:mb-8'>
+        <TabsList className='grid w-full grid-cols-2 sm:grid-cols-4 bg-gray-100 p-1 rounded-xl'>
           <TabsTrigger
             value='overview'
-            className='data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all duration-200 text-xs sm:text-sm px-2 sm:px-4 py-2'
+            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value='active'
-            className='data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all duration-200 text-xs sm:text-sm px-2 sm:px-4 py-2'
+            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
           >
             Active Jobs
           </TabsTrigger>
           <TabsTrigger
             value='completed'
-            className='data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all duration-200 text-xs sm:text-sm px-2 sm:px-4 py-2'
+            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
           >
             Completed Jobs
           </TabsTrigger>
           <TabsTrigger
             value='all'
-            className='data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all duration-200 text-xs sm:text-sm px-2 sm:px-4 py-2'
+            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
           >
             All Jobs
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value='overview' className='mt-0'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8'>
-            {/* Recent Active Jobs */}
-            <Card className='card-hover border-0 shadow-lg'>
-              <CardHeader className='pb-4 px-4 sm:px-6'>
-                <div className='flex items-center gap-3'>
-                  <div className='flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'>
-                    <Clock className='h-4 w-4 sm:h-5 sm:w-5' />
-                  </div>
-                  <div>
-                    <CardTitle className='text-lg sm:text-xl'>
-                      Recent Active Jobs
-                    </CardTitle>
-                    <CardDescription className='text-sm'>
-                      Your latest job postings
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-                {activeJobs.length === 0 ? (
-                  <div className='text-center py-8'>
-                    <div className='flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4'>
-                      <Briefcase className='h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground' />
+        <TabsContent value='overview' className='mt-6'>
+          <div className='grid grid-cols-1 xl:grid-cols-3 gap-6'>
+            {/* Left Column - Recent Active Jobs */}
+            <div className='xl:col-span-2'>
+              <Card className='border-0 shadow-lg h-full'>
+                <CardHeader>
+                  <div className='flex items-center gap-3'>
+                    <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white'>
+                      <Clock className='h-5 w-5' />
                     </div>
-                    <p className='text-muted-foreground text-sm sm:text-base'>
-                      No active jobs found
-                    </p>
+                    <div>
+                      <CardTitle className='text-xl'>
+                        Recent Active Jobs
+                      </CardTitle>
+                      <CardDescription>
+                        Your latest job postings
+                      </CardDescription>
+                    </div>
                   </div>
-                ) : (
-                  <div className='space-y-3 sm:space-y-4'>
-                    {activeJobs.slice(0, 3).map((job) => (
-                      <div
-                        key={job.id}
-                        className='group p-3 sm:p-4 rounded-xl border border-border/50 hover:border-bojj-primary/30 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-muted/30 to-muted/10'
-                      >
-                        <div className='flex justify-between items-start mb-2 sm:mb-3'>
-                          <h4 className='font-semibold text-foreground group-hover:text-bojj-primary transition-colors text-sm sm:text-base line-clamp-1'>
-                            {job.title}
-                          </h4>
-                          <Badge
-                            variant='outline'
-                            className={`${getStatusBadge(job.status)} text-xs`}
-                          >
-                            {getStatusText(job.status)}
-                          </Badge>
-                        </div>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2'>
-                          {job.description}
-                        </p>
-                        <div className='flex justify-between items-center text-xs sm:text-sm'>
-                          <span className='text-foreground font-medium'>
-                            {formatBudget(job.budget)}
-                          </span>
-                          <span className='text-muted-foreground flex items-center gap-1'>
-                            <MessageSquare className='h-3 w-3 sm:h-4 sm:w-4' />
-                            {job._count?.bids || 0} bids
-                          </span>
-                        </div>
+                </CardHeader>
+                <CardContent>
+                  {activeJobs.length === 0 ? (
+                    <div className='text-center py-8'>
+                      <div className='flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 mx-auto mb-4'>
+                        <Briefcase className='h-8 w-8 text-gray-400' />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Completed Jobs */}
-            <Card className='card-hover border-0 shadow-lg'>
-              <CardHeader className='pb-4 px-4 sm:px-6'>
-                <div className='flex items-center gap-3'>
-                  <div className='flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white'>
-                    <CheckCircle className='h-4 w-4 sm:h-5 sm:w-5' />
-                  </div>
-                  <div>
-                    <CardTitle className='text-lg sm:text-xl'>
-                      Recent Completed Jobs
-                    </CardTitle>
-                    <CardDescription className='text-sm'>
-                      Successfully finished projects
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-                {completedJobs.length === 0 ? (
-                  <div className='text-center py-8'>
-                    <div className='flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4'>
-                      <CheckCircle className='h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground' />
+                      <p className='text-gray-500 text-base mb-4'>
+                        No active jobs found
+                      </p>
+                      <Link to='/customer/jobs/new'>
+                        <Button
+                          size='sm'
+                          className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                        >
+                          <PlusCircle className='mr-2 h-4 w-4' />
+                          Post First Job
+                        </Button>
+                      </Link>
                     </div>
-                    <p className='text-muted-foreground text-sm sm:text-base'>
-                      No completed jobs found
-                    </p>
-                  </div>
-                ) : (
-                  <div className='space-y-3 sm:space-y-4'>
-                    {completedJobs.slice(0, 3).map((job) => (
-                      <div
-                        key={job.id}
-                        className='group p-3 sm:p-4 rounded-xl border border-border/50 hover:border-bojj-primary/30 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-muted/30 to-muted/10'
-                      >
-                        <div className='flex justify-between items-start mb-2 sm:mb-3'>
-                          <h4 className='font-semibold text-foreground group-hover:text-bojj-primary transition-colors text-sm sm:text-base line-clamp-1'>
-                            {job.title}
-                          </h4>
-                          <Badge
-                            variant='outline'
-                            className={`${getStatusBadge(job.status)} text-xs`}
-                          >
-                            {getStatusText(job.status)}
-                          </Badge>
-                        </div>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2'>
-                          {job.description}
-                        </p>
-                        <div className='flex justify-between items-center text-xs sm:text-sm'>
-                          <span className='text-foreground font-medium'>
-                            {formatBudget(job.budget)}
-                          </span>
-                          {job.assignedVendor && (
-                            <span className='text-muted-foreground flex items-center gap-1'>
-                              <Users className='h-3 w-3 sm:h-4 sm:w-4' />
-                              {job.assignedVendor.firstName}{' '}
-                              {job.assignedVendor.lastName}
+                  ) : (
+                    <div className='space-y-4'>
+                      {activeJobs.slice(0, 4).map((job) => (
+                        <div
+                          key={job.id}
+                          className='group p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-200 bg-gray-50'
+                        >
+                          <div className='flex justify-between items-start mb-3'>
+                            <h4 className='font-semibold text-gray-900 group-hover:text-purple-600 transition-colors text-base line-clamp-1'>
+                              {job.title}
+                            </h4>
+                            <Badge
+                              variant='outline'
+                              className={`${getStatusBadge(
+                                job.status
+                              )} text-xs`}
+                            >
+                              {getStatusText(job.status)}
+                            </Badge>
+                          </div>
+                          <p className='text-sm text-gray-600 mb-3 line-clamp-2'>
+                            {job.description}
+                          </p>
+                          <div className='flex justify-between items-center text-sm'>
+                            <span className='text-gray-900 font-medium'>
+                              {formatBudget(job.budget)}
                             </span>
-                          )}
+                            <span className='text-gray-500 flex items-center gap-1'>
+                              <MessageSquare className='h-4 w-4' />
+                              {job._count?.bids || 0} bids
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Quick Actions & Stats */}
+            <div className='space-y-6'>
+              {/* Quick Actions */}
+              <Card className='border-0 shadow-lg'>
+                <CardHeader>
+                  <div className='flex items-center gap-3'>
+                    <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                      <PlusCircle className='h-5 w-5' />
+                    </div>
+                    <div>
+                      <CardTitle className='text-xl'>Quick Actions</CardTitle>
+                      <CardDescription>Get things done faster</CardDescription>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className='space-y-3'>
+                    <Link to='/customer/jobs/new'>
+                      <Button className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200'>
+                        <PlusCircle className='mr-2 h-4 w-4' />
+                        Post New Job
+                      </Button>
+                    </Link>
+                    <Link to='/customer/messages'>
+                      <Button
+                        variant='outline'
+                        className='w-full hover:border-purple-300 hover:text-purple-600 transition-colors'
+                      >
+                        <MessageSquare className='mr-2 h-4 w-4' />
+                        View Messages
+                      </Button>
+                    </Link>
+                    <Link to='/customer/payments'>
+                      <Button
+                        variant='outline'
+                        className='w-full hover:border-purple-300 hover:text-purple-600 transition-colors'
+                      >
+                        <DollarSign className='mr-2 h-4 w-4' />
+                        Payment History
+                      </Button>
+                    </Link>
+                    <Link to='/customer/support'>
+                      <Button
+                        variant='outline'
+                        className='w-full hover:border-purple-300 hover:text-purple-600 transition-colors'
+                      >
+                        <AlertCircle className='mr-2 h-4 w-4' />
+                        Get Support
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance Overview */}
+              <Card className='border-0 shadow-lg'>
+                <CardHeader>
+                  <div className='flex items-center gap-3'>
+                    <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-white'>
+                      <TrendingUp className='h-5 w-5' />
+                    </div>
+                    <div>
+                      <CardTitle className='text-xl'>Performance</CardTitle>
+                      <CardDescription>Your platform activity</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className='space-y-4'>
+                    <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                      <div className='flex items-center gap-2'>
+                        <div className='w-3 h-3 rounded-full bg-blue-500'></div>
+                        <span className='text-sm font-medium'>
+                          Job Success Rate
+                        </span>
+                      </div>
+                      <span className='text-lg font-bold text-blue-600'>
+                        {completedJobs.length > 0
+                          ? Math.round(
+                              (completedJobs.length / allJobs.length) * 100
+                            )
+                          : 0}
+                        %
+                      </span>
+                    </div>
+                    <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                      <div className='flex items-center gap-2'>
+                        <div className='w-3 h-3 rounded-full bg-emerald-500'></div>
+                        <span className='text-sm font-medium'>
+                          Avg. Response Time
+                        </span>
+                      </div>
+                      <span className='text-lg font-bold text-emerald-600'>
+                        {activeJobs.length > 0 ? '2.4h' : 'N/A'}
+                      </span>
+                    </div>
+                    <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                      <div className='flex items-center gap-2'>
+                        <div className='w-3 h-3 rounded-full bg-purple-500'></div>
+                        <span className='text-sm font-medium'>Total Spent</span>
+                      </div>
+                      <span className='text-lg font-bold text-purple-600'>
+                        {formatBudget(
+                          completedJobs.reduce(
+                            (sum, job) => sum + job.budget,
+                            0
+                          )
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent Completed Jobs */}
+              <Card className='border-0 shadow-lg'>
+                <CardHeader>
+                  <div className='flex items-center gap-3'>
+                    <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white'>
+                      <CheckCircle className='h-5 w-5' />
+                    </div>
+                    <div>
+                      <CardTitle className='text-xl'>
+                        Recent Completed
+                      </CardTitle>
+                      <CardDescription>
+                        Successfully finished projects
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {completedJobs.length === 0 ? (
+                    <div className='text-center py-6'>
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 mx-auto mb-3'>
+                        <CheckCircle className='h-5 w-5 text-gray-400' />
+                      </div>
+                      <p className='text-gray-500 text-sm'>
+                        No completed jobs yet
+                      </p>
+                    </div>
+                  ) : (
+                    <div className='space-y-3'>
+                      {completedJobs.slice(0, 2).map((job) => (
+                        <div
+                          key={job.id}
+                          className='group p-3 rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-200 bg-indigo-50'
+                        >
+                          <div className='flex justify-between items-start mb-2'>
+                            <h4 className='font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors text-sm line-clamp-1'>
+                              {job.title}
+                            </h4>
+                            <Badge
+                              variant='outline'
+                              className='bg-indigo-50 text-indigo-700 border-indigo-200 text-xs'
+                            >
+                              Completed
+                            </Badge>
+                          </div>
+                          <div className='flex justify-between items-center text-xs'>
+                            <span className='text-gray-900 font-medium'>
+                              {formatBudget(job.budget)}
+                            </span>
+                            <span className='text-gray-500'>
+                              {formatDate(job.updatedAt)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value='active' className='mt-0'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+        <TabsContent value='active' className='mt-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             {activeJobs.length === 0 ? (
-              <div className='col-span-1 md:col-span-2 text-center py-12 sm:py-16'>
-                <div className='flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-muted mx-auto mb-4 sm:mb-6'>
-                  <Briefcase className='h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground' />
+              <div className='col-span-1 md:col-span-2 text-center py-16'>
+                <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 mx-auto mb-6'>
+                  <Briefcase className='h-10 w-10 text-gray-400' />
                 </div>
-                <h3 className='text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-3'>
+                <h3 className='text-xl font-semibold text-gray-900 mb-3'>
                   No Active Jobs
                 </h3>
-                <p className='text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base'>
+                <p className='text-gray-600 mb-6 max-w-md mx-auto'>
                   You haven't posted any jobs yet. Start by creating your first
                   job posting to get bids from qualified vendors.
                 </p>
                 <Link to='/customer/jobs/new'>
-                  <Button className='bg-gradient-to-r from-bojj-primary to-bojj-secondary hover:from-bojj-primary/90 hover:to-bojj-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5'>
-                    <PlusCircle className='mr-2 h-4 w-4 sm:h-5 sm:w-5' />
+                  <Button className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200'>
+                    <PlusCircle className='mr-2 h-5 w-5' />
                     Post Your First Job
                   </Button>
                 </Link>
@@ -454,17 +584,17 @@ const CustomerDashboard = () => {
               activeJobs.map((job) => (
                 <Card
                   key={job.id}
-                  className='card-hover border-0 shadow-lg group'
+                  className='border-0 shadow-lg group hover:shadow-xl transition-all duration-200'
                 >
-                  <CardHeader className='pb-4 px-4 sm:px-6'>
+                  <CardHeader>
                     <div className='flex justify-between items-start'>
                       <div className='flex-1 min-w-0'>
-                        <CardTitle className='text-lg sm:text-xl group-hover:text-bojj-primary transition-colors line-clamp-2'>
+                        <CardTitle className='text-xl group-hover:text-purple-600 transition-colors line-clamp-2'>
                           {job.title}
                         </CardTitle>
-                        <div className='flex items-center gap-2 mt-2 text-muted-foreground'>
-                          <Calendar className='h-3 w-3 sm:h-4 sm:w-4' />
-                          <span className='text-xs sm:text-sm'>
+                        <div className='flex items-center gap-2 mt-2 text-gray-500'>
+                          <Calendar className='h-4 w-4' />
+                          <span className='text-sm'>
                             Posted {formatDate(job.createdAt)}
                           </span>
                         </div>
@@ -478,35 +608,33 @@ const CustomerDashboard = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-                    <p className='text-muted-foreground mb-4 sm:mb-6 line-clamp-3 text-sm sm:text-base'>
+                  <CardContent>
+                    <p className='text-gray-600 mb-6 line-clamp-3'>
                       {job.description}
                     </p>
 
-                    <div className='grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6'>
-                      <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
-                          Budget
-                        </p>
-                        <p className='font-semibold text-emerald-600 dark:text-emerald-400 text-sm sm:text-base'>
+                    <div className='grid grid-cols-2 gap-4 mb-6'>
+                      <div className='p-3 rounded-lg bg-gray-50'>
+                        <p className='text-sm text-gray-500 mb-1'>Budget</p>
+                        <p className='font-semibold text-emerald-600 text-base'>
                           {formatBudget(job.budget)}
                         </p>
                       </div>
-                      <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
+                      <div className='p-3 rounded-lg bg-gray-50'>
+                        <p className='text-sm text-gray-500 mb-1'>
                           Bids Received
                         </p>
-                        <p className='font-semibold text-blue-600 dark:text-blue-400 text-sm sm:text-base'>
+                        <p className='font-semibold text-blue-600 text-base'>
                           {job._count?.bids || 0}
                         </p>
                       </div>
                     </div>
 
-                    <div className='flex flex-col sm:flex-row gap-2 sm:gap-3'>
+                    <div className='flex flex-col sm:flex-row gap-3'>
                       <Link to={`/customer/jobs/${job.id}`} className='flex-1'>
                         <Button
                           variant='outline'
-                          className='w-full group-hover:border-bojj-primary/30 group-hover:text-bojj-primary transition-colors text-sm'
+                          className='w-full group-hover:border-purple-300 group-hover:text-purple-600 transition-colors'
                         >
                           View Details
                         </Button>
@@ -516,9 +644,9 @@ const CustomerDashboard = () => {
                         to={`/customer/jobs/${job.id}/bids`}
                         className='flex-1'
                       >
-                        <Button className='w-full bg-gradient-to-r from-bojj-primary to-bojj-secondary hover:from-bojj-primary/90 hover:to-bojj-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 text-sm'>
+                        <Button className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200'>
                           Review Bids ({job._count?.bids || 0})
-                          <ArrowRight className='ml-2 h-3 w-3 sm:h-4 sm:w-4' />
+                          <ArrowRight className='ml-2 h-4 w-4' />
                         </Button>
                       </Link>
                     </div>
@@ -529,17 +657,17 @@ const CustomerDashboard = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value='completed' className='mt-0'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+        <TabsContent value='completed' className='mt-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             {completedJobs.length === 0 ? (
-              <div className='col-span-1 md:col-span-2 text-center py-12 sm:py-16'>
-                <div className='flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-muted mx-auto mb-4 sm:mb-6'>
-                  <CheckCircle className='h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground' />
+              <div className='col-span-1 md:col-span-2 text-center py-16'>
+                <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 mx-auto mb-6'>
+                  <CheckCircle className='h-10 w-10 text-gray-400' />
                 </div>
-                <h3 className='text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-3'>
+                <h3 className='text-xl font-semibold text-gray-900 mb-3'>
                   No Completed Jobs
                 </h3>
-                <p className='text-muted-foreground max-w-md mx-auto text-sm sm:text-base'>
+                <p className='text-gray-600 max-w-md mx-auto'>
                   Your completed jobs will appear here once you finish working
                   with vendors.
                 </p>
@@ -548,17 +676,17 @@ const CustomerDashboard = () => {
               completedJobs.map((job) => (
                 <Card
                   key={job.id}
-                  className='card-hover border-0 shadow-lg group'
+                  className='border-0 shadow-lg group hover:shadow-xl transition-all duration-200'
                 >
-                  <CardHeader className='pb-4 px-4 sm:px-6'>
+                  <CardHeader>
                     <div className='flex justify-between items-start'>
                       <div className='flex-1 min-w-0'>
-                        <CardTitle className='text-lg sm:text-xl group-hover:text-bojj-primary transition-colors line-clamp-2'>
+                        <CardTitle className='text-xl group-hover:text-purple-600 transition-colors line-clamp-2'>
                           {job.title}
                         </CardTitle>
-                        <div className='flex items-center gap-2 mt-2 text-muted-foreground'>
-                          <Calendar className='h-3 w-3 sm:h-4 sm:w-4' />
-                          <span className='text-xs sm:text-sm'>
+                        <div className='flex items-center gap-2 mt-2 text-gray-500'>
+                          <Calendar className='h-4 w-4' />
+                          <span className='text-sm'>
                             Completed {formatDate(job.updatedAt)}
                           </span>
                         </div>
@@ -572,26 +700,22 @@ const CustomerDashboard = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-                    <p className='text-muted-foreground mb-4 sm:mb-6 line-clamp-3 text-sm sm:text-base'>
+                  <CardContent>
+                    <p className='text-gray-600 mb-6 line-clamp-3'>
                       {job.description}
                     </p>
 
-                    <div className='grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6'>
-                      <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
-                          Budget
-                        </p>
-                        <p className='font-semibold text-emerald-600 dark:text-emerald-400 text-sm sm:text-base'>
+                    <div className='grid grid-cols-2 gap-4 mb-6'>
+                      <div className='p-3 rounded-lg bg-gray-50'>
+                        <p className='text-sm text-gray-500 mb-1'>Budget</p>
+                        <p className='font-semibold text-emerald-600 text-base'>
                           {formatBudget(job.budget)}
                         </p>
                       </div>
                       {job.assignedVendor && (
-                        <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                          <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
-                            Vendor
-                          </p>
-                          <p className='font-semibold text-blue-600 dark:text-blue-400 text-sm sm:text-base'>
+                        <div className='p-3 rounded-lg bg-gray-50'>
+                          <p className='text-sm text-gray-500 mb-1'>Vendor</p>
+                          <p className='font-semibold text-blue-600 text-base'>
                             {job.assignedVendor.firstName}{' '}
                             {job.assignedVendor.lastName}
                           </p>
@@ -602,10 +726,10 @@ const CustomerDashboard = () => {
                     <Link to={`/customer/jobs/${job.id}`}>
                       <Button
                         variant='outline'
-                        className='w-full group-hover:border-bojj-primary/30 group-hover:text-bojj-primary transition-colors text-sm'
+                        className='w-full group-hover:border-purple-300 group-hover:text-purple-600 transition-colors'
                       >
                         View Details
-                        <ArrowRight className='ml-2 h-3 w-3 sm:h-4 sm:w-4' />
+                        <ArrowRight className='ml-2 h-4 w-4' />
                       </Button>
                     </Link>
                   </CardContent>
@@ -615,23 +739,23 @@ const CustomerDashboard = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value='all' className='mt-0'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6'>
+        <TabsContent value='all' className='mt-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             {allJobs.length === 0 ? (
-              <div className='col-span-1 md:col-span-2 text-center py-12 sm:py-16'>
-                <div className='flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-muted mx-auto mb-4 sm:mb-6'>
-                  <Briefcase className='h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground' />
+              <div className='col-span-1 md:col-span-2 text-center py-16'>
+                <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 mx-auto mb-6'>
+                  <Briefcase className='h-10 w-10 text-gray-400' />
                 </div>
-                <h3 className='text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-3'>
+                <h3 className='text-xl font-semibold text-gray-900 mb-3'>
                   No Jobs Found
                 </h3>
-                <p className='text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base'>
+                <p className='text-gray-600 mb-6 max-w-md mx-auto'>
                   Start by posting your first job to connect with qualified
                   vendors in your area.
                 </p>
                 <Link to='/customer/jobs/new'>
-                  <Button className='bg-gradient-to-r from-bojj-primary to-bojj-secondary hover:from-bojj-primary/90 hover:to-bojj-secondary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5'>
-                    <PlusCircle className='mr-2 h-4 w-4 sm:h-5 sm:w-5' />
+                  <Button className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200'>
+                    <PlusCircle className='mr-2 h-5 w-5' />
                     Post New Job
                   </Button>
                 </Link>
@@ -640,17 +764,17 @@ const CustomerDashboard = () => {
               allJobs.map((job) => (
                 <Card
                   key={job.id}
-                  className='card-hover border-0 shadow-lg group'
+                  className='border-0 shadow-lg group hover:shadow-xl transition-all duration-200'
                 >
-                  <CardHeader className='pb-4 px-4 sm:px-6'>
+                  <CardHeader>
                     <div className='flex justify-between items-start'>
                       <div className='flex-1 min-w-0'>
-                        <CardTitle className='text-lg sm:text-xl group-hover:text-bojj-primary transition-colors line-clamp-2'>
+                        <CardTitle className='text-xl group-hover:text-purple-600 transition-colors line-clamp-2'>
                           {job.title}
                         </CardTitle>
-                        <div className='flex items-center gap-2 mt-2 text-muted-foreground'>
-                          <Calendar className='h-3 w-3 sm:h-4 sm:w-4' />
-                          <span className='text-xs sm:text-sm'>
+                        <div className='flex items-center gap-2 mt-2 text-gray-500'>
+                          <Calendar className='h-4 w-4' />
+                          <span className='text-sm'>
                             {job.status === 'COMPLETED'
                               ? `Completed ${formatDate(job.updatedAt)}`
                               : `Posted ${formatDate(job.createdAt)}`}
@@ -666,25 +790,21 @@ const CustomerDashboard = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-                    <p className='text-muted-foreground mb-4 sm:mb-6 line-clamp-3 text-sm sm:text-base'>
+                  <CardContent>
+                    <p className='text-gray-600 mb-6 line-clamp-3'>
                       {job.description}
                     </p>
 
-                    <div className='grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6'>
-                      <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
-                          Budget
-                        </p>
-                        <p className='font-semibold text-emerald-600 dark:text-emerald-400 text-sm sm:text-base'>
+                    <div className='grid grid-cols-2 gap-4 mb-6'>
+                      <div className='p-3 rounded-lg bg-gray-50'>
+                        <p className='text-sm text-gray-500 mb-1'>Budget</p>
+                        <p className='font-semibold text-emerald-600 text-base'>
                           {formatBudget(job.budget)}
                         </p>
                       </div>
-                      <div className='p-2 sm:p-3 rounded-lg bg-muted/50'>
-                        <p className='text-xs sm:text-sm text-muted-foreground mb-1'>
-                          Bids
-                        </p>
-                        <p className='font-semibold text-blue-600 dark:text-blue-400 text-sm sm:text-base'>
+                      <div className='p-3 rounded-lg bg-gray-50'>
+                        <p className='text-sm text-gray-500 mb-1'>Bids</p>
+                        <p className='font-semibold text-blue-600 text-base'>
                           {job._count?.bids || 0}
                         </p>
                       </div>
@@ -693,10 +813,10 @@ const CustomerDashboard = () => {
                     <Link to={`/customer/jobs/${job.id}`}>
                       <Button
                         variant='outline'
-                        className='w-full group-hover:border-bojj-primary/30 group-hover:text-bojj-primary transition-colors text-sm'
+                        className='w-full group-hover:border-purple-300 group-hover:text-purple-600 transition-colors'
                       >
                         View Details
-                        <ArrowRight className='ml-2 h-3 w-3 sm:h-4 sm:w-4' />
+                        <ArrowRight className='ml-2 h-4 w-4' />
                       </Button>
                     </Link>
                   </CardContent>
@@ -707,77 +827,138 @@ const CustomerDashboard = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Recent Activity */}
-      <div className='mt-8 sm:mt-12 px-4 sm:px-6 lg:px-8'>
-        <Card className='border-0 shadow-lg'>
-          <CardHeader className='px-4 sm:px-6'>
-            <div className='flex items-center gap-3'>
-              <div className='flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-bojj-primary to-bojj-secondary text-white'>
-                <Clock className='h-4 w-4 sm:h-5 sm:w-5' />
+      {/* Recent Activity & Tips Section */}
+      <div className='grid grid-cols-1 xl:grid-cols-3 gap-6'>
+        {/* Recent Activity */}
+        <div className='xl:col-span-2'>
+          <Card className='border-0 shadow-lg'>
+            <CardHeader>
+              <div className='flex items-center gap-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                  <Clock className='h-5 w-5' />
+                </div>
+                <div>
+                  <CardTitle className='text-xl'>Recent Activity</CardTitle>
+                  <CardDescription>
+                    Latest updates on your jobs and bids
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className='text-lg sm:text-xl'>
-                  Recent Activity
-                </CardTitle>
-                <CardDescription className='text-sm'>
-                  Latest updates on your jobs and bids
-                </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {jobs.length === 0 ? (
+                <div className='text-center py-8'>
+                  <p className='text-gray-500 text-base'>No recent activity</p>
+                </div>
+              ) : (
+                <ul className='space-y-4'>
+                  {activeJobs.slice(0, 3).map((job) => (
+                    <li
+                      key={job.id}
+                      className='flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors'
+                    >
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 flex-shrink-0'>
+                        <Briefcase className='h-5 w-5 text-purple-600' />
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <p className='font-medium text-gray-900 text-base'>
+                          Job "{job.title}" is active
+                        </p>
+                        <p className='text-sm text-gray-500 mt-1'>
+                          {job._count?.bids || 0} bids received • Posted{' '}
+                          {formatDate(job.createdAt)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                  {completedJobs.slice(0, 2).map((job) => (
+                    <li
+                      key={job.id}
+                      className='flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors'
+                    >
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0'>
+                        <CheckCircle className='h-5 w-5 text-emerald-600' />
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <p className='font-medium text-gray-900 text-base'>
+                          Job "{job.title}" completed
+                        </p>
+                        <p className='text-sm text-gray-500 mt-1'>
+                          Completed on {formatDate(job.updatedAt)}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tips & Help Section */}
+        <div>
+          <Card className='border-0 shadow-lg'>
+            <CardHeader>
+              <div className='flex items-center gap-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white'>
+                  <Star className='h-5 w-5' />
+                </div>
+                <div>
+                  <CardTitle className='text-xl'>Tips & Help</CardTitle>
+                  <CardDescription>Make the most of BOJJ</CardDescription>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className='px-4 sm:px-6 pb-4 sm:pb-6'>
-            {jobs.length === 0 ? (
-              <div className='text-center py-8'>
-                <p className='text-muted-foreground text-sm sm:text-base'>
-                  No recent activity
-                </p>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-4'>
+                <div className='p-3 rounded-lg bg-amber-50 border border-amber-200'>
+                  <h4 className='font-medium text-amber-800 text-sm mb-2'>
+                    💡 Getting Started
+                  </h4>
+                  <p className='text-amber-700 text-xs'>
+                    Post your first job with a clear description and budget to
+                    attract quality vendors.
+                  </p>
+                </div>
+
+                <div className='p-3 rounded-lg bg-blue-50 border border-blue-200'>
+                  <h4 className='font-medium text-blue-800 text-sm mb-2'>
+                    🎯 Best Practices
+                  </h4>
+                  <p className='text-blue-700 text-xs'>
+                    Review vendor profiles and ratings before selecting.
+                    Communication is key!
+                  </p>
+                </div>
+
+                <div className='p-3 rounded-lg bg-emerald-50 border border-emerald-200'>
+                  <h4 className='font-medium text-emerald-800 text-sm mb-2'>
+                    🔒 Secure Payments
+                  </h4>
+                  <p className='text-emerald-700 text-xs'>
+                    All payments are secured through our platform. Pay only when
+                    satisfied.
+                  </p>
+                </div>
+
+                <div className='p-3 rounded-lg bg-purple-50 border border-purple-200'>
+                  <h4 className='font-medium text-purple-800 text-sm mb-2'>
+                    📞 Need Help?
+                  </h4>
+                  <p className='text-purple-700 text-xs'>
+                    Our support team is available 24/7. Don't hesitate to reach
+                    out!
+                  </p>
+                </div>
               </div>
-            ) : (
-              <ul className='space-y-3 sm:space-y-4'>
-                {activeJobs.slice(0, 3).map((job) => (
-                  <li
-                    key={job.id}
-                    className='flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-muted/50 transition-colors'
-                  >
-                    <div className='flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-bojj-primary/20 to-bojj-secondary/20 flex-shrink-0'>
-                      <Briefcase className='h-4 w-4 sm:h-5 sm:w-5 text-bojj-primary' />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='font-medium text-foreground text-sm sm:text-base'>
-                        Job "{job.title}" is active
-                      </p>
-                      <p className='text-xs sm:text-sm text-muted-foreground mt-1'>
-                        {job._count?.bids || 0} bids received • Posted{' '}
-                        {formatDate(job.createdAt)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-                {completedJobs.slice(0, 2).map((job) => (
-                  <li
-                    key={job.id}
-                    className='flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-muted/50 transition-colors'
-                  >
-                    <div className='flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/20 dark:to-emerald-800/20 flex-shrink-0'>
-                      <CheckCircle className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 dark:text-emerald-400' />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='font-medium text-foreground text-sm sm:text-base'>
-                        Job "{job.title}" completed
-                      </p>
-                      <p className='text-xs sm:text-sm text-muted-foreground mt-1'>
-                        Completed on {formatDate(job.updatedAt)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
+
+  return <CustomerLayout>{dashboardContent}</CustomerLayout>;
 };
 
 export default CustomerDashboard;

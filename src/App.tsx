@@ -73,29 +73,24 @@ const App = () => {
                 path='/customer/*'
                 element={
                   <CustomerProvider>
-                    <DashboardLayout userType='customer'>
-                      <Routes>
-                        <Route path='/' element={<CustomerDashboard />} />
-                        <Route path='/jobs' element={<JobCRUD />} />
-                        <Route path='/messages' element={<MessagesPage />} />
-                        <Route
-                          path='/payments'
-                          element={<CustomerPaymentPage />}
-                        />
-                        <Route path='/support' element={<SupportPage />} />
-                        <Route path='/jobs/new' element={<JobPostingPage />} />
-                        <Route
-                          path='/jobs/:id/edit'
-                          element={<JobPostingPage />}
-                        />
-                        <Route path='/jobs/:id' element={<JobDetailPage />} />
-                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                        <Route
-                          path='/jobs/:id/bid'
-                          element={<SubmitBidPage />}
-                        />
-                      </Routes>
-                    </DashboardLayout>
+                    <Routes>
+                      <Route path='/' element={<CustomerDashboard />} />
+                      <Route path='/jobs' element={<JobCRUD />} />
+                      <Route path='/messages' element={<MessagesPage />} />
+                      <Route
+                        path='/payments'
+                        element={<CustomerPaymentPage />}
+                      />
+                      <Route path='/support' element={<SupportPage />} />
+                      <Route path='/jobs/new' element={<JobPostingPage />} />
+                      <Route
+                        path='/jobs/:id/edit'
+                        element={<JobPostingPage />}
+                      />
+                      <Route path='/jobs/:id' element={<JobDetailPage />} />
+                      <Route path='/jobs/:id/bids' element={<BidsPage />} />
+                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
+                    </Routes>
                   </CustomerProvider>
                 }
               />

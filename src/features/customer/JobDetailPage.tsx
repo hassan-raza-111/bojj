@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
+import CustomerLayout from '@/layouts/CustomerLayout';
 
 const JobDetailPage = () => {
   const { id } = useParams();
@@ -44,7 +45,7 @@ const JobDetailPage = () => {
     );
   }
 
-  return (
+  const jobDetailContent = (
     <div className='max-w-2xl mx-auto py-10'>
       <Card>
         <CardHeader>
@@ -132,6 +133,8 @@ const JobDetailPage = () => {
       </Card>
     </div>
   );
+
+  return <CustomerLayout>{jobDetailContent}</CustomerLayout>;
 };
 
 export default JobDetailPage;
