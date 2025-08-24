@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,7 +25,7 @@ interface VendorLayoutProps {
 }
 
 const VendorLayout = ({ children }: VendorLayoutProps) => {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -82,8 +82,44 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
   };
 
   const handleLogout = () => {
+    // Clear all auth data
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
+
+    // Call logout function
     logout();
+
+    // Redirect to login
+    window.location.href = '/login';
   };
+
+  // Show loading while checking auth status
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to='/login' replace />;
+  }
+
+  // Role-based access control - only VENDOR users can access
+  if (user?.role !== 'VENDOR') {
+    return <Navigate to='/' replace />;
+  }
+
+  const firstName = user?.firstName || 'Vendor';
+  const lastName = user?.lastName || '';
+  const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
 
   return (
     <div className='min-h-screen bg-gray-50 flex'>
@@ -131,7 +167,7 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               </div>
               <div className='flex-1 min-w-0'>
                 <p className='text-sm font-medium text-gray-900 truncate'>
-                  {user?.firstName} {user?.lastName}
+                  {fullName}
                 </p>
                 <p className='text-xs text-gray-500'>Professional Vendor</p>
                 <div className='flex items-center mt-1'>
@@ -227,9 +263,7 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               <h1 className='text-lg font-semibold text-gray-900'>
                 Vendor Dashboard
               </h1>
-              <p className='text-sm text-gray-500'>
-                Welcome back, {user?.firstName || 'Vendor'}
-              </p>
+              <p className='text-sm text-gray-500'>Welcome back, {firstName}</p>
             </div>
 
             {/* Right side actions */}
@@ -257,7 +291,7 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               {/* User menu */}
               <div className='flex items-center space-x-3'>
                 <span className='text-sm font-medium text-gray-700'>
-                  {user?.firstName} {user?.lastName}
+                  {fullName}
                 </span>
                 <Button variant='ghost' size='sm' onClick={handleLogout}>
                   <LogOut className='h-4 w-4 mr-2' />
