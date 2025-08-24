@@ -10,7 +10,6 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Link } from 'react-router-dom';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 export interface JobData {
   id: string;
@@ -234,7 +233,7 @@ const JobCRUD = () => {
     </div>
   );
 
-  return <CustomerLayout>{jobContent}</CustomerLayout>;
+  return jobContent;
 };
 
 export default JobCRUD;

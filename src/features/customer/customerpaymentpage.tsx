@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Lock } from 'lucide-react';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 const CustomerPaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -106,7 +105,7 @@ const CustomerPaymentPage = () => {
     </div>
   );
 
-  return <CustomerLayout>{paymentContent}</CustomerLayout>;
+  return paymentContent;
 };
 
 export default CustomerPaymentPage;

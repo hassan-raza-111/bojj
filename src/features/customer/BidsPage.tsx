@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useToast } from '@/components/ui/use-toast';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 // Types
 interface Bid {
@@ -182,8 +181,6 @@ const BidsPage = () => {
       </Card>
     </div>
   );
-
-  return <CustomerLayout>{bidsContent}</CustomerLayout>;
 };
 
 export default BidsPage;

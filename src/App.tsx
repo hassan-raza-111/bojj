@@ -7,7 +7,8 @@ import CustomerProvider from '@/contexts/CustomerContext';
 
 // Layout Components
 import MainLayout from './components/layouts/MainLayout';
-import DashboardLayout from './components/layouts/DashboardLayout';
+import CustomerLayout from './layouts/CustomerLayout';
+import VendorLayout from './layouts/VendorLayout';
 
 // Protected Route Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -73,24 +74,29 @@ const App = () => {
                 path='/customer/*'
                 element={
                   <CustomerProvider>
-                    <Routes>
-                      <Route path='/' element={<CustomerDashboard />} />
-                      <Route path='/jobs' element={<JobCRUD />} />
-                      <Route path='/messages' element={<MessagesPage />} />
-                      <Route
-                        path='/payments'
-                        element={<CustomerPaymentPage />}
-                      />
-                      <Route path='/support' element={<SupportPage />} />
-                      <Route path='/jobs/new' element={<JobPostingPage />} />
-                      <Route
-                        path='/jobs/:id/edit'
-                        element={<JobPostingPage />}
-                      />
-                      <Route path='/jobs/:id' element={<JobDetailPage />} />
-                      <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
-                    </Routes>
+                    <CustomerLayout>
+                      <Routes>
+                        <Route path='/' element={<CustomerDashboard />} />
+                        <Route path='/jobs' element={<JobCRUD />} />
+                        <Route path='/messages' element={<MessagesPage />} />
+                        <Route
+                          path='/payments'
+                          element={<CustomerPaymentPage />}
+                        />
+                        <Route path='/support' element={<SupportPage />} />
+                        <Route path='/jobs/new' element={<JobPostingPage />} />
+                        <Route
+                          path='/jobs/:id/edit'
+                          element={<JobPostingPage />}
+                        />
+                        <Route path='/jobs/:id' element={<JobDetailPage />} />
+                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
+                        <Route
+                          path='/jobs/:id/bid'
+                          element={<SubmitBidPage />}
+                        />
+                      </Routes>
+                    </CustomerLayout>
                   </CustomerProvider>
                 }
               />
@@ -101,7 +107,7 @@ const App = () => {
               <Route
                 path='/vendor-dashboard/*'
                 element={
-                  <DashboardLayout userType='vendor'>
+                  <VendorLayout>
                     <Routes>
                       <Route path='/' element={<VendorDashboard />} />
                       <Route path='/jobs' element={<VendorDashboard />} />
@@ -118,7 +124,7 @@ const App = () => {
                         element={<VendorJobDetailPage />}
                       />
                     </Routes>
-                  </DashboardLayout>
+                  </VendorLayout>
                 }
               />
             </Route>

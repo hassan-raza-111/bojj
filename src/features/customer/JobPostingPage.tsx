@@ -32,7 +32,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useCustomer } from '@/contexts/CustomerContext';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 const JobPostingPage = () => {
   const navigate = useNavigate();
@@ -809,7 +808,7 @@ const JobPostingPage = () => {
     </div>
   );
 
-  return <CustomerLayout>{jobPostingContent}</CustomerLayout>;
+  return jobPostingContent;
 };
 
 export default JobPostingPage;

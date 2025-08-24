@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 const JobDetailPage = () => {
   const { id } = useParams();
@@ -134,7 +133,7 @@ const JobDetailPage = () => {
     </div>
   );
 
-  return <CustomerLayout>{jobDetailContent}</CustomerLayout>;
+  return jobDetailContent;
 };
 
 export default JobDetailPage;

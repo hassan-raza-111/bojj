@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useAuth } from '@/hooks/useAuth';
-import CustomerLayout from '@/layouts/CustomerLayout';
 
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -958,7 +957,7 @@ const CustomerDashboard = () => {
     </div>
   );
 
-  return <CustomerLayout>{dashboardContent}</CustomerLayout>;
+  return dashboardContent;
 };
 
 export default CustomerDashboard;
