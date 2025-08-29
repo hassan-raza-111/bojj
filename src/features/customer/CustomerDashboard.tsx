@@ -26,11 +26,13 @@ import {
 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { jobs, stats, loading, error, fetchDashboard } = useCustomer();
   const { user } = useAuth();
+  const { theme } = useTheme();
 
   // Get jobs by status
   const activeJobs = jobs.filter(
@@ -97,14 +99,28 @@ const CustomerDashboard = () => {
   const dashboardContent = (
     <div className='space-y-8'>
       {/* Welcome Banner */}
-      <Card className='border-0 shadow-lg bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50'>
+      <Card
+        className={`border-0 shadow-lg ${
+          theme === 'dark'
+            ? 'bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800'
+            : 'bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50'
+        }`}
+      >
         <CardContent className='p-8'>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6 items-center'>
             <div className='md:col-span-2'>
-              <h2 className='text-2xl font-bold text-gray-900 mb-3'>
+              <h2
+                className={`text-2xl font-bold mb-3 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
+              >
                 🚀 Ready to get started?
               </h2>
-              <p className='text-gray-600 text-base mb-6'>
+              <p
+                className={`text-base mb-6 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}
+              >
                 Post your first job and connect with qualified vendors in your
                 area. Our platform makes it easy to find the right person for
                 any task.
@@ -146,22 +162,46 @@ const CustomerDashboard = () => {
         <div className='flex items-center justify-center py-16'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4'></div>
-            <p className='text-gray-600 text-lg'>Loading your dashboard...</p>
+            <p
+              className={`text-lg ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}
+            >
+              Loading your dashboard...
+            </p>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <Card className='border-red-200 bg-red-50'>
+        <Card
+          className={`border-red-200 ${
+            theme === 'dark' ? 'bg-red-900/20' : 'bg-red-50'
+          }`}
+        >
           <CardContent className='pt-6'>
             <div className='flex items-center gap-3'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-100'>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  theme === 'dark' ? 'bg-red-900/40' : 'bg-red-100'
+                }`}
+              >
                 <AlertCircle className='h-5 w-5 text-red-600' />
               </div>
               <div className='flex-1'>
-                <p className='font-medium text-red-800 text-base'>{error}</p>
-                <p className='text-sm text-red-600 mt-1'>
+                <p
+                  className={`font-medium text-base ${
+                    theme === 'dark' ? 'text-red-300' : 'text-red-800'
+                  }`}
+                >
+                  {error}
+                </p>
+                <p
+                  className={`text-sm mt-1 ${
+                    theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}
+                >
                   There was an issue loading your dashboard data
                 </p>
               </div>
@@ -169,7 +209,11 @@ const CustomerDashboard = () => {
                 variant='outline'
                 size='sm'
                 onClick={fetchDashboard}
-                className='border-red-200 text-red-700 hover:bg-red-100'
+                className={`${
+                  theme === 'dark'
+                    ? 'border-red-700 text-red-300 hover:bg-red-900/40'
+                    : 'border-red-200 text-red-700 hover:bg-red-100'
+                }`}
               >
                 Retry
               </Button>
@@ -180,7 +224,13 @@ const CustomerDashboard = () => {
 
       {/* Summary Cards */}
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-        <Card className='border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100'>
+        <Card
+          className={`border-0 shadow-lg ${
+            theme === 'dark'
+              ? 'bg-gradient-to-br from-blue-900/20 to-blue-800/20'
+              : 'bg-gradient-to-br from-blue-50 to-blue-100'
+          }`}
+        >
           <CardHeader className='pb-3'>
             <div className='flex items-center justify-between'>
               <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg'>
@@ -188,21 +238,39 @@ const CustomerDashboard = () => {
               </div>
               <TrendingUp className='h-5 w-5 text-blue-600' />
             </div>
-            <CardTitle className='text-lg font-semibold text-blue-900'>
+            <CardTitle
+              className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-blue-200' : 'text-blue-900'
+              }`}
+            >
               Total Jobs
             </CardTitle>
-            <CardDescription className='text-blue-700'>
+            <CardDescription
+              className={`${
+                theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
+              }`}
+            >
               All your posted jobs
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-bold text-blue-900'>
+            <p
+              className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-blue-200' : 'text-blue-900'
+              }`}
+            >
               {stats?.totalJobs || jobs.length}
             </p>
           </CardContent>
         </Card>
 
-        <Card className='border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100'>
+        <Card
+          className={`border-0 shadow-lg ${
+            theme === 'dark'
+              ? 'bg-gradient-to-br from-emerald-900/20 to-emerald-800/20'
+              : 'bg-gradient-to-br from-emerald-50 to-emerald-100'
+          }`}
+        >
           <CardHeader className='pb-3'>
             <div className='flex items-center justify-between'>
               <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg'>
@@ -210,21 +278,39 @@ const CustomerDashboard = () => {
               </div>
               <Clock className='h-5 w-5 text-emerald-600' />
             </div>
-            <CardTitle className='text-lg font-semibold text-emerald-900'>
+            <CardTitle
+              className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-emerald-200' : 'text-emerald-900'
+              }`}
+            >
               Active Jobs
             </CardTitle>
-            <CardDescription className='text-emerald-700'>
+            <CardDescription
+              className={`${
+                theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'
+              }`}
+            >
               Currently open for bids
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-bold text-emerald-900'>
+            <p
+              className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-emerald-200' : 'text-emerald-900'
+              }`}
+            >
               {stats?.activeJobs || activeJobs.length}
             </p>
           </CardContent>
         </Card>
 
-        <Card className='border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100'>
+        <Card
+          className={`border-0 shadow-lg ${
+            theme === 'dark'
+              ? 'bg-gradient-to-br from-purple-900/20 to-purple-800/20'
+              : 'bg-gradient-to-br from-purple-50 to-purple-100'
+          }`}
+        >
           <CardHeader className='pb-3'>
             <div className='flex items-center justify-between'>
               <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600 text-white shadow-lg'>
@@ -232,21 +318,39 @@ const CustomerDashboard = () => {
               </div>
               <MessageSquare className='h-5 w-5 text-purple-600' />
             </div>
-            <CardTitle className='text-lg font-semibold text-purple-900'>
+            <CardTitle
+              className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-purple-200' : 'text-purple-900'
+              }`}
+            >
               Total Bids
             </CardTitle>
-            <CardDescription className='text-purple-700'>
+            <CardDescription
+              className={`${
+                theme === 'dark' ? 'text-purple-300' : 'text-purple-700'
+              }`}
+            >
               Across all your jobs
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-bold text-purple-900'>
+            <p
+              className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-purple-200' : 'text-purple-900'
+              }`}
+            >
               {stats?.totalBids || 0}
             </p>
           </CardContent>
         </Card>
 
-        <Card className='border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100'>
+        <Card
+          className={`border-0 shadow-lg ${
+            theme === 'dark'
+              ? 'bg-gradient-to-br from-indigo-900/20 to-indigo-800/20'
+              : 'bg-gradient-to-br from-indigo-50 to-indigo-100'
+          }`}
+        >
           <CardHeader className='pb-3'>
             <div className='flex items-center justify-between'>
               <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg'>
@@ -254,15 +358,27 @@ const CustomerDashboard = () => {
               </div>
               <Star className='h-5 w-5 text-indigo-600' />
             </div>
-            <CardTitle className='text-lg font-semibold text-indigo-900'>
+            <CardTitle
+              className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-indigo-200' : 'text-indigo-900'
+              }`}
+            >
               Completed Jobs
             </CardTitle>
-            <CardDescription className='text-indigo-700'>
+            <CardDescription
+              className={`${
+                theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'
+              }`}
+            >
               Successfully finished
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className='text-3xl font-bold text-indigo-900'>
+            <p
+              className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-indigo-200' : 'text-indigo-900'
+              }`}
+            >
               {stats?.completedJobs || completedJobs.length}
             </p>
           </CardContent>
@@ -275,28 +391,48 @@ const CustomerDashboard = () => {
         onValueChange={setActiveTab}
         className='w-full'
       >
-        <TabsList className='grid w-full grid-cols-2 sm:grid-cols-4 bg-gray-100 p-1 rounded-xl'>
+        <TabsList
+          className={`grid w-full grid-cols-2 sm:grid-cols-4 p-1 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
+        >
           <TabsTrigger
             value='overview'
-            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
+            className={`data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2 ${
+              theme === 'dark'
+                ? 'data-[state=active]:bg-gray-700'
+                : 'data-[state=active]:bg-white'
+            }`}
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value='active'
-            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
+            className={`data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2 ${
+              theme === 'dark'
+                ? 'data-[state=active]:bg-gray-700'
+                : 'data-[state=active]:bg-white'
+            }`}
           >
             Active Jobs
           </TabsTrigger>
           <TabsTrigger
             value='completed'
-            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
+            className={`data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2 ${
+              theme === 'dark'
+                ? 'data-[state=active]:bg-gray-700'
+                : 'data-[state=active]:bg-white'
+            }`}
           >
             Completed Jobs
           </TabsTrigger>
           <TabsTrigger
             value='all'
-            className='data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2'
+            className={`data-[state=active]:shadow-sm rounded-lg transition-all duration-200 px-4 py-2 ${
+              theme === 'dark'
+                ? 'data-[state=active]:bg-gray-700'
+                : 'data-[state=active]:bg-white'
+            }`}
           >
             All Jobs
           </TabsTrigger>

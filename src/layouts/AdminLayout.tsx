@@ -6,23 +6,30 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   LayoutDashboard,
+  Users,
   Briefcase,
-  MessageSquare,
+  UserCheck,
+  UserPlus,
   CreditCard,
+  BarChart3,
+  Settings,
   HeadphonesIcon,
-  User,
   Bell,
   LogOut,
   Menu,
   X,
+  Shield,
+  TrendingUp,
+  DollarSign,
+  Activity,
 } from 'lucide-react';
 import { useState } from 'react';
 
-interface CustomerLayoutProps {
+interface AdminLayoutProps {
   children: ReactNode;
 }
 
-const CustomerLayout = ({ children }: CustomerLayoutProps) => {
+const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { theme } = useTheme();
   const location = useLocation();
@@ -31,45 +38,63 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const navigation = [
     {
       name: 'Dashboard',
-      href: '/customer',
+      href: '/admin',
       icon: LayoutDashboard,
-      description: 'Overview and analytics',
+      description: 'System overview and analytics',
     },
     {
-      name: 'Jobs',
-      href: '/customer/jobs',
+      name: 'User Management',
+      href: '/admin/users',
+      icon: Users,
+      description: 'Manage all platform users',
+    },
+    {
+      name: 'Job Management',
+      href: '/admin/jobs',
       icon: Briefcase,
-      description: 'Manage your jobs',
+      description: 'Monitor and manage jobs',
     },
     {
-      name: 'Messages',
-      href: '/customer/messages',
-      icon: MessageSquare,
-      description: 'Communication hub',
+      name: 'Vendor Management',
+      href: '/admin/vendors',
+      icon: UserCheck,
+      description: 'Vendor approvals and management',
     },
     {
-      name: 'Payments',
-      href: '/customer/payments',
+      name: 'Customer Management',
+      href: '/admin/customers',
+      icon: UserPlus,
+      description: 'Customer support and management',
+    },
+    {
+      name: 'Payment Management',
+      href: '/admin/payments',
       icon: CreditCard,
-      description: 'Payment history',
+      description: 'Transaction monitoring',
     },
     {
-      name: 'Support',
-      href: '/customer/support',
+      name: 'Analytics',
+      href: '/admin/analytics',
+      icon: BarChart3,
+      description: 'Business insights and reports',
+    },
+    {
+      name: 'Settings',
+      href: '/admin/settings',
+      icon: Settings,
+      description: 'System configuration',
+    },
+    {
+      name: 'Support Tickets',
+      href: '/admin/support',
       icon: HeadphonesIcon,
-      description: 'Get help and support',
-    },
-    {
-      name: 'Profile',
-      href: '/customer/profile',
-      icon: User,
-      description: 'Manage your profile',
+      description: 'Handle support requests',
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/customer') {
-      return location.pathname === '/customer';
+    if (href === '/admin') {
+      return location.pathname === '/admin';
     }
     return location.pathname.startsWith(href);
   };
@@ -91,22 +116,10 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   // Show loading while checking auth status
   if (isLoading) {
     return (
-      <div
-        className={`flex items-center justify-center min-h-screen ${
-          theme === 'dark'
-            ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-            : 'bg-gradient-to-br from-gray-50 to-gray-100'
-        }`}
-      >
+      <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4'></div>
-          <p
-            className={`${
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-            }`}
-          >
-            Loading your dashboard...
-          </p>
+          <div className='animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4'></div>
+          <p className='text-gray-600'>Loading admin dashboard...</p>
         </div>
       </div>
     );
@@ -117,12 +130,12 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
     return <Navigate to='/login' replace />;
   }
 
-  // Role-based access control - only CUSTOMER users can access
-  if (user?.role !== 'CUSTOMER') {
+  // Role-based access control - only ADMIN users can access
+  if (user?.role !== 'ADMIN') {
     return <Navigate to='/' replace />;
   }
 
-  const firstName = user?.firstName || 'Customer';
+  const firstName = user?.firstName || 'Admin';
   const lastName = user?.lastName || '';
   const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
 
@@ -154,8 +167,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             }`}
           >
             <div className='flex items-center space-x-3'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white font-bold text-xl'>
-                B
+              <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl'>
+                A
               </div>
               <div>
                 <h1
@@ -165,23 +178,15 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 >
                   BOJJ
                 </h1>
-                <p
-                  className={`text-xs ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                  }`}
-                >
-                  Customer Portal
+                <p className='text-xs text-blue-600 font-medium'>
+                  Admin Portal
                 </p>
               </div>
             </div>
             <Button
               variant='ghost'
               size='sm'
-              className={`lg:hidden ${
-                theme === 'dark'
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
+              className='lg:hidden'
               onClick={() => setSidebarOpen(false)}
             >
               <X className='h-5 w-5' />
@@ -195,8 +200,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             }`}
           >
             <div className='flex items-center space-x-3'>
-              <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white font-semibold text-lg'>
-                {user?.firstName?.charAt(0) || 'C'}
+              <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-semibold text-lg'>
+                {user?.firstName?.charAt(0) || 'A'}
               </div>
               <div className='flex-1 min-w-0'>
                 <p
@@ -206,29 +211,38 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 >
                   {fullName}
                 </p>
-                <p
-                  className={`text-xs ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                  }`}
-                >
-                  Customer
+                <p className='text-xs text-blue-600 font-medium'>
+                  System Administrator
                 </p>
-                <Badge
-                  variant='outline'
-                  className={`mt-1 text-xs ${
-                    theme === 'dark'
-                      ? 'bg-purple-900/20 text-purple-300 border-purple-700'
-                      : 'bg-purple-50 text-purple-700 border-purple-200'
-                  }`}
-                >
-                  Verified
-                </Badge>
+                <div className='flex items-center mt-1'>
+                  <Badge
+                    variant='outline'
+                    className={`text-xs ${
+                      theme === 'dark'
+                        ? 'bg-blue-900/20 text-blue-300 border-blue-700'
+                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                    }`}
+                  >
+                    <Shield className='w-3 h-3 mr-1' />
+                    Admin
+                  </Badge>
+                  <Badge
+                    variant='outline'
+                    className={`text-xs ml-2 ${
+                      theme === 'dark'
+                        ? 'bg-green-900/20 text-green-300 border-green-700'
+                        : 'bg-green-50 text-green-700 border-green-200'
+                    }`}
+                  >
+                    Verified
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className='flex-1 space-y-1 px-3 py-4'>
+          <nav className='flex-1 space-y-1 px-3 py-4 overflow-y-auto'>
             {navigation.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -240,8 +254,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                   className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     active
                       ? theme === 'dark'
-                        ? 'bg-purple-900/20 text-purple-300 border-r-2 border-purple-500'
-                        : 'bg-purple-50 text-purple-700 border-r-2 border-purple-600'
+                        ? 'bg-blue-900/20 text-blue-300 border-r-2 border-blue-500'
+                        : 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
                       : theme === 'dark'
                       ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
@@ -252,8 +266,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     className={`mr-3 h-5 w-5 flex-shrink-0 ${
                       active
                         ? theme === 'dark'
-                          ? 'text-purple-400'
-                          : 'text-purple-600'
+                          ? 'text-blue-400'
+                          : 'text-blue-600'
                         : theme === 'dark'
                         ? 'text-gray-400 group-hover:text-gray-300'
                         : 'text-gray-400 group-hover:text-gray-500'
@@ -265,7 +279,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                       {active && (
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            theme === 'dark' ? 'bg-purple-400' : 'bg-purple-600'
+                            theme === 'dark' ? 'bg-blue-400' : 'bg-blue-600'
                           }`}
                         ></div>
                       )}
@@ -274,8 +288,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                       className={`text-xs mt-1 ${
                         active
                           ? theme === 'dark'
-                            ? 'text-purple-400'
-                            : 'text-purple-600'
+                            ? 'text-blue-400'
+                            : 'text-blue-600'
                           : theme === 'dark'
                           ? 'text-gray-400'
                           : 'text-gray-500'
@@ -326,11 +340,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             <Button
               variant='ghost'
               size='sm'
-              className={`lg:hidden ${
-                theme === 'dark'
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
+              className='lg:hidden'
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className='h-5 w-5' />
@@ -343,7 +353,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
                 }`}
               >
-                Customer Dashboard
+                Admin Dashboard
               </h1>
               <p
                 className={`text-sm ${
@@ -356,19 +366,27 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
 
             {/* Right side actions */}
             <div className='flex items-center space-x-4'>
+              {/* Quick Stats */}
+              <div className='hidden md:flex items-center space-x-4 text-sm'>
+                <div className='flex items-center space-x-1 text-blue-600'>
+                  <Users className='h-4 w-4' />
+                  <span className='font-medium'>1,247 Users</span>
+                </div>
+                <div className='flex items-center space-x-1 text-green-600'>
+                  <Briefcase className='h-4 w-4' />
+                  <span className='font-medium'>89 Jobs</span>
+                </div>
+                <div className='flex items-center space-x-1 text-purple-600'>
+                  <DollarSign className='h-4 w-4' />
+                  <span className='font-medium'>$12.5K</span>
+                </div>
+              </div>
+
               {/* Notifications */}
-              <Button
-                variant='ghost'
-                size='sm'
-                className={`relative ${
-                  theme === 'dark'
-                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
+              <Button variant='ghost' size='sm' className='relative'>
                 <Bell className='h-5 w-5' />
                 <span className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white'>
-                  3
+                  8
                 </span>
               </Button>
 
@@ -381,16 +399,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 >
                   {fullName}
                 </span>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className={`${
-                    theme === 'dark'
-                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                  onClick={handleLogout}
-                >
+                <Button variant='ghost' size='sm' onClick={handleLogout}>
                   <LogOut className='h-4 w-4 mr-2' />
                   Logout
                 </Button>
@@ -412,4 +421,4 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   );
 };
 
-export default CustomerLayout;
+export default AdminLayout;

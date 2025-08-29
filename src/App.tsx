@@ -9,6 +9,7 @@ import CustomerProvider from '@/contexts/CustomerContext';
 import MainLayout from './components/layouts/MainLayout';
 import CustomerLayout from './layouts/CustomerLayout';
 import VendorLayout from './layouts/VendorLayout';
+import AdminLayout from './layouts/AdminLayout';
 
 // Protected Route Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -23,14 +24,24 @@ import FAQPage from './features/shared/FAQPage';
 import ContactPage from './features/shared/ContactPage';
 import SupportPage from './features/shared/SupportPage';
 import NotFound from './features/shared/NotFound';
-import AdminDashboard from './features/shared/AdminDashboard';
+
+// Admin Features - Import all admin pages
+import AdminDashboard from './features/admin/AdminDashboard';
+import UserManagement from './features/admin/UserManagement';
+import JobManagement from './features/admin/JobManagement';
+import VendorManagement from './features/admin/VendorManagement';
+import CustomerManagement from './features/admin/CustomerManagement';
+import PaymentManagement from './features/admin/PaymentManagement';
+import Analytics from './features/admin/Analytics';
+import Settings from './features/admin/Settings';
+import SupportTickets from './features/admin/SupportTickets';
 
 // Customer Features
 import CustomerDashboard from './features/customer/CustomerDashboard';
 import JobPostingPage from './features/customer/JobPostingPage';
 import JobDetailPage from './features/customer/JobDetailPage';
 import BidsPage from './features/customer/BidsPage';
-import JobCRUD from './features/customer/JobCrud';
+import JobCRUD from './features/customer/JobCRUD';
 import CustomerPaymentPage from './features/customer/customerpaymentpage';
 
 // Vendor Features
@@ -53,7 +64,27 @@ const App = () => {
           <Routes>
             {/* Protected Admin routes - Only ADMIN users can access */}
             <Route element={<AdminProtectedRoute />}>
-              <Route path='/admin' element={<AdminDashboard />} />
+              <Route
+                path='/admin/*'
+                element={
+                  <AdminLayout>
+                    <Routes>
+                      <Route path='/' element={<AdminDashboard />} />
+                      <Route path='/users' element={<UserManagement />} />
+                      <Route path='/jobs' element={<JobManagement />} />
+                      <Route path='/vendors' element={<VendorManagement />} />
+                      <Route
+                        path='/customers'
+                        element={<CustomerManagement />}
+                      />
+                      <Route path='/payments' element={<PaymentManagement />} />
+                      <Route path='/analytics' element={<Analytics />} />
+                      <Route path='/settings' element={<Settings />} />
+                      <Route path='/support' element={<SupportTickets />} />
+                    </Routes>
+                  </AdminLayout>
+                }
+              />
             </Route>
 
             {/* Public routes */}

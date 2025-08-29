@@ -3,6 +3,7 @@ import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   LayoutDashboard,
   Briefcase,
@@ -26,6 +27,7 @@ interface VendorLayoutProps {
 
 const VendorLayout = ({ children }: VendorLayoutProps) => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { theme } = useTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -122,7 +124,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
   const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
 
   return (
-    <div className='min-h-screen bg-gray-50 flex'>
+    <div
+      className={`min-h-screen flex ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+      }`}
+    >
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -133,20 +139,36 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
 
       {/* Fixed Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className='flex h-full flex-col'>
           {/* Sidebar Header */}
-          <div className='flex h-16 items-center justify-between px-6 border-b border-gray-200'>
+          <div
+            className={`flex h-16 items-center justify-between px-6 border-b ${
+              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+            }`}
+          >
             <div className='flex items-center space-x-3'>
               <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 text-white font-bold text-xl'>
                 B
               </div>
               <div>
-                <h1 className='text-lg font-semibold text-gray-900'>BOJJ</h1>
-                <p className='text-xs text-gray-500'>Vendor Portal</p>
+                <h1
+                  className={`text-lg font-semibold ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}
+                >
+                  BOJJ
+                </h1>
+                <p
+                  className={`text-xs ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
+                  Vendor Portal
+                </p>
               </div>
             </div>
             <Button
@@ -160,23 +182,48 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
           </div>
 
           {/* User Profile */}
-          <div className='px-6 py-4 border-b border-gray-200'>
+          <div
+            className={`px-6 py-4 border-b ${
+              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+            }`}
+          >
             <div className='flex items-center space-x-3'>
               <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white font-semibold text-lg'>
                 {user?.firstName?.charAt(0) || 'V'}
               </div>
               <div className='flex-1 min-w-0'>
-                <p className='text-sm font-medium text-gray-900 truncate'>
+                <p
+                  className={`text-sm font-medium truncate ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}
+                >
                   {fullName}
                 </p>
-                <p className='text-xs text-gray-500'>Professional Vendor</p>
+                <p
+                  className={`text-xs ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
+                  Professional Vendor
+                </p>
                 <div className='flex items-center mt-1'>
-                  <Badge variant='outline' className='text-xs mr-2'>
+                  <Badge
+                    variant='outline'
+                    className={`text-xs mr-2 ${
+                      theme === 'dark'
+                        ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
+                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}
+                  >
                     ⭐ 4.8
                   </Badge>
                   <Badge
                     variant='outline'
-                    className='text-xs bg-emerald-50 text-emerald-700 border-emerald-200'
+                    className={`text-xs ${
+                      theme === 'dark'
+                        ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}
                   >
                     Verified
                   </Badge>
@@ -197,7 +244,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                   to={item.href}
                   className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     active
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-600'
+                      ? theme === 'dark'
+                        ? 'bg-emerald-900/20 text-emerald-300 border-r-2 border-emerald-500'
+                        : 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-600'
+                      : theme === 'dark'
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
@@ -205,7 +256,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                   <Icon
                     className={`mr-3 h-5 w-5 flex-shrink-0 ${
                       active
-                        ? 'text-emerald-600'
+                        ? theme === 'dark'
+                          ? 'text-emerald-400'
+                          : 'text-emerald-600'
+                        : theme === 'dark'
+                        ? 'text-gray-400 group-hover:text-gray-300'
                         : 'text-gray-400 group-hover:text-gray-500'
                     }`}
                   />
@@ -213,12 +268,24 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                     <div className='flex items-center justify-between'>
                       <span>{item.name}</span>
                       {active && (
-                        <div className='w-2 h-2 bg-emerald-600 rounded-full'></div>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            theme === 'dark'
+                              ? 'bg-emerald-400'
+                              : 'bg-emerald-600'
+                          }`}
+                        ></div>
                       )}
                     </div>
                     <p
                       className={`text-xs mt-1 ${
-                        active ? 'text-emerald-600' : 'text-gray-500'
+                        active
+                          ? theme === 'dark'
+                            ? 'text-emerald-400'
+                            : 'text-emerald-600'
+                          : theme === 'dark'
+                          ? 'text-gray-400'
+                          : 'text-gray-500'
                       }`}
                     >
                       {item.description}
@@ -230,10 +297,18 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
           </nav>
 
           {/* Sidebar Footer */}
-          <div className='border-t border-gray-200 p-4'>
+          <div
+            className={`border-t p-4 ${
+              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+            }`}
+          >
             <Button
               variant='ghost'
-              className='w-full justify-start text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              className={`w-full justify-start ${
+                theme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
               onClick={handleLogout}
             >
               <LogOut className='mr-3 h-5 w-5' />
@@ -246,7 +321,13 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
       {/* Main Content Area */}
       <div className='flex-1 lg:ml-64'>
         {/* Fixed Top Header */}
-        <header className='fixed top-0 right-0 left-0 lg:left-64 z-30 bg-white shadow-sm border-b border-gray-200'>
+        <header
+          className={`fixed top-0 right-0 left-0 lg:left-64 z-30 shadow-sm border-b ${
+            theme === 'dark'
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}
+        >
           <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
             {/* Mobile menu button */}
             <Button
@@ -260,10 +341,20 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
 
             {/* Page Title */}
             <div className='flex-1 min-w-0 lg:ml-0'>
-              <h1 className='text-lg font-semibold text-gray-900'>
+              <h1
+                className={`text-lg font-semibold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
+              >
                 Vendor Dashboard
               </h1>
-              <p className='text-sm text-gray-500'>Welcome back, {firstName}</p>
+              <p
+                className={`text-sm ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                }`}
+              >
+                Welcome back, {firstName}
+              </p>
             </div>
 
             {/* Right side actions */}
@@ -290,7 +381,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
 
               {/* User menu */}
               <div className='flex items-center space-x-3'>
-                <span className='text-sm font-medium text-gray-700'>
+                <span
+                  className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
                   {fullName}
                 </span>
                 <Button variant='ghost' size='sm' onClick={handleLogout}>
@@ -303,7 +398,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
         </header>
 
         {/* Page Content with proper spacing */}
-        <main className='pt-16 min-h-screen'>
+        <main
+          className={`pt-16 min-h-screen ${
+            theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+          }`}
+        >
           <div className='p-6'>{children}</div>
         </main>
       </div>
