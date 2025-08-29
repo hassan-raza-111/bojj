@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import CustomerProvider from '@/contexts/CustomerContext';
 
 // Layout Components
-import MainLayout from './components/layouts/MainLayout';
+import MainLayout from './layouts/MainLayout';
 import CustomerLayout from './layouts/CustomerLayout';
 import VendorLayout from './layouts/VendorLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -16,47 +16,46 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
 
 // Pages
-import HomePage from './features/shared/HomePage';
-import LoginPage from './features/shared/LoginPage';
-import SignUpPage from './features/shared/SignUpPage';
-import AboutPage from './features/shared/AboutPage';
-import FAQPage from './features/shared/FAQPage';
-import ContactPage from './features/shared/ContactPage';
-import SupportPage from './features/shared/SupportPage';
-import NotFound from './features/shared/NotFound';
+import HomePage from './pages/shared/HomePage';
+import LoginPage from './pages/shared/LoginPage';
+import SignUpPage from './pages/shared/SignUpPage';
+import AboutPage from './pages/shared/AboutPage';
+import FAQPage from './pages/shared/FAQPage';
+import ContactPage from './pages/shared/ContactPage';
+import SupportPage from './pages/shared/SupportPage';
+import NotFound from './pages/shared/NotFound';
 
-// Admin Features - Import all admin pages
-import AdminDashboard from './features/admin/AdminDashboard';
-import UserManagement from './features/admin/UserManagement';
-import JobManagement from './features/admin/JobManagement';
-import VendorManagement from './features/admin/VendorManagement';
-import CustomerManagement from './features/admin/CustomerManagement';
-import PaymentManagement from './features/admin/PaymentManagement';
-import Analytics from './features/admin/Analytics';
-import Settings from './features/admin/Settings';
-import SupportTickets from './features/admin/SupportTickets';
+// Admin Features - Import admin pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import JobManagement from './pages/admin/JobManagement';
+import VendorManagement from './pages/admin/VendorManagement';
+import CustomerManagement from './pages/admin/CustomerManagement';
+import PaymentManagement from './pages/admin/PaymentManagement';
+import Analytics from './pages/admin/Analytics';
+import Settings from './pages/admin/Settings';
+import SupportTickets from './pages/admin/SupportTickets';
 
 // Customer Features
-import CustomerDashboard from './features/customer/CustomerDashboard';
-import JobPostingPage from './features/customer/JobPostingPage';
-import JobDetailPage from './features/customer/JobDetailPage';
-import BidsPage from './features/customer/BidsPage';
-import JobCRUD from './features/customer/JobCRUD';
-import CustomerPaymentPage from './features/customer/customerpaymentpage';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import JobPostingPage from './pages/customer/JobPostingPage';
+import JobDetailPage from './pages/customer/JobDetailPage';
+import BidsPage from './pages/customer/BidsPage';
+import JobCRUD from './pages/customer/JobCRUD';
+import CustomerPaymentPage from './pages/customer/customerpaymentpage';
 
 // Vendor Features
-import VendorDashboard from './features/vendor/VendorDashboard';
-import VendorJobsPage from './features/vendor/VendorJobsPage';
-import VendorBidsPage from './features/vendor/VendorBidsPage';
-import VendorProfileManagement from './features/vendor/VendorProfileManagement';
-import VendorProfilePage from './features/vendor/VendorProfilePage';
-import VendorJobDetailPage from './features/vendor/VendorJobDetailPage';
-import VendorDetailPage from './features/vendor/VendorDetailPage';
-import SubmitBidPage from './features/vendor/SubmitBidPage';
+import VendorDashboard from './pages/vendor/VendorDashboard';
+import VendorJobsPage from './pages/vendor/VendorJobsPage';
+import VendorBidsPage from './pages/vendor/VendorBidsPage';
+import VendorProfileManagement from './pages/vendor/VendorProfileManagement';
+import VendorProfilePage from './pages/vendor/VendorProfilePage';
+import VendorJobDetailPage from './pages/vendor/VendorJobDetailPage';
+import SubmitBidPage from './pages/vendor/SubmitBidPage';
 
 // Shared Features
-import MessagesPage from './features/shared/MessagesPage';
-import PaymentsPage from './features/shared/PaymentsPage';
+import MessagesPage from './pages/shared/MessagesPage';
+import PaymentsPage from './pages/shared/PaymentsPage';
 
 const App = () => {
   return (
@@ -128,6 +127,10 @@ const App = () => {
                         <Route
                           path='/jobs/:id/bid'
                           element={<SubmitBidPage />}
+                        />
+                        <Route
+                          path='/profile'
+                          element={<CustomerDashboard />}
                         />
                       </Routes>
                     </CustomerLayout>
