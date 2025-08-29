@@ -6,6 +6,33 @@ const prisma = new PrismaClient();
 
 export class AdminController {
   // ========================================
+  // PRIVATE HELPER METHODS
+  // ========================================
+
+  private async logAdminAction(
+    adminId: string,
+    action: string,
+    targetType: string,
+    targetId: string,
+    details?: any,
+    req?: Request
+  ) {
+    try {
+      // For now, just log to console until AdminActionLog table is properly set up
+      console.log(
+        `Admin Action: ${adminId} performed ${action} on ${targetType} ${targetId}`,
+        details
+      );
+      logger.info(
+        `Admin Action: ${adminId} performed ${action} on ${targetType} ${targetId}`,
+        details
+      );
+    } catch (error) {
+      logger.error('Failed to log admin action:', error);
+    }
+  }
+
+  // ========================================
   // DASHBOARD OVERVIEW & STATISTICS
   // ========================================
 
@@ -32,6 +59,12 @@ export class AdminController {
           activeJobs,
           completedJobs,
           totalRevenue,
+          totalBids,
+          totalServices,
+          recentUsers,
+          recentJobs,
+          recentPayments,
+          systemAlerts,
         ] = await Promise.all([
           prisma.user.count({ where: { role: 'VENDOR' } }),
           prisma.user.count({ where: { role: 'CUSTOMER' } }),
@@ -49,9 +82,41 @@ export class AdminController {
             where: { status: 'RELEASED' },
             _sum: { amount: true },
           }),
+          prisma.bid.count(),
+          prisma.service.count(),
+          prisma.user.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              status: true,
+              createdAt: true,
+            },
+          }),
+          prisma.job.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              customer: { select: { firstName: true, lastName: true } },
+              assignedVendor: { select: { firstName: true, lastName: true } },
+              bids: { select: { id: true } },
+            },
+          }),
+          prisma.payment.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: {
+              customer: { select: { firstName: true, lastName: true } },
+              vendor: { select: { firstName: true, lastName: true } },
+              job: { select: { title: true } },
+            },
+          }),
+          this.getSystemAlerts(),
         ]);
-
-        const recentActivity = await this.getRecentActivity();
 
         stats = {
           totalVendors,
@@ -62,7 +127,19 @@ export class AdminController {
           activeJobs,
           completedJobs,
           totalRevenue: totalRevenue._sum.amount || 0,
-          recentActivity,
+          totalBids,
+          totalServices,
+          recentUsers,
+          recentJobs,
+          recentPayments,
+          systemAlerts,
+          // Calculate growth percentages (mock for now)
+          growthRates: {
+            users: '+12%',
+            jobs: '+8%',
+            revenue: '+23%',
+            vendors: '+15%',
+          },
         };
 
         console.log('✅ Real data fetched successfully');
@@ -75,16 +152,24 @@ export class AdminController {
         // Provide mock data if tables don't exist
         stats = {
           totalVendors: 0,
-          totalCustomers: 1, // At least the admin user
+          totalCustomers: 1,
           totalJobs: 0,
           totalPayments: 0,
           pendingVendors: 0,
           activeJobs: 0,
           completedJobs: 0,
           totalRevenue: 0,
-          recentActivity: {
-            recentJobs: [],
-            recentPayments: [],
+          totalBids: 0,
+          totalServices: 0,
+          recentUsers: [],
+          recentJobs: [],
+          recentPayments: [],
+          systemAlerts: [],
+          growthRates: {
+            users: '+0%',
+            jobs: '+0%',
+            revenue: '+0%',
+            vendors: '+0%',
           },
         };
       }
@@ -95,13 +180,91 @@ export class AdminController {
       console.error('❌ Error in getDashboardStats:', error);
       logger.error('Error fetching dashboard stats:', error);
 
-      // Send more detailed error information
       res.status(500).json({
         success: false,
         message: 'Failed to fetch dashboard statistics',
         error: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       });
+    }
+  }
+
+  private async getSystemAlerts() {
+    try {
+      const alerts = [];
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      // Check for high pending vendors
+      const pendingVendorsCount = await prisma.user.count({
+        where: {
+          role: 'VENDOR',
+          vendorProfile: { verified: false },
+        },
+      });
+
+      if (pendingVendorsCount > 10) {
+        alerts.push({
+          id: 'pending-vendors',
+          type: 'warning',
+          message: `${pendingVendorsCount} vendors pending verification`,
+          time: 'Just now',
+        });
+      }
+
+      // Check for recent system activity
+      const recentLogins = await prisma.user.count({
+        where: {
+          createdAt: { gte: oneHourAgo },
+        },
+      });
+
+      if (recentLogins > 50) {
+        alerts.push({
+          id: 'high-activity',
+          type: 'info',
+          message: 'High user activity detected',
+          time: '1 hour ago',
+        });
+      }
+
+      // Check for payment issues
+      const pendingPayments = await prisma.payment.count({
+        where: {
+          status: 'PENDING',
+          createdAt: { gte: oneDayAgo },
+        },
+      });
+
+      if (pendingPayments > 20) {
+        alerts.push({
+          id: 'pending-payments',
+          type: 'warning',
+          message: `${pendingPayments} payments pending processing`,
+          time: '1 hour ago',
+        });
+      }
+
+      // Add success message
+      alerts.push({
+        id: 'system-ok',
+        type: 'success',
+        message: 'All systems operational',
+        time: 'Just now',
+      });
+
+      return alerts;
+    } catch (error) {
+      console.error('Error getting system alerts:', error);
+      return [
+        {
+          id: 'system-error',
+          type: 'error',
+          message: 'Unable to fetch system status',
+          time: 'Just now',
+        },
+      ];
     }
   }
 

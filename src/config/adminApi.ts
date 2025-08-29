@@ -312,6 +312,20 @@ export const releasePayment = async (paymentId: string): Promise<void> => {
   );
 };
 
+export const refundPayment = async (
+  paymentId: string,
+  reason: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/payments/${paymentId}/refund`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
+    },
+    true
+  );
+};
+
 // ========================================
 // JOB MANAGEMENT
 // ========================================
@@ -345,6 +359,34 @@ export const updateJobStatus = async (
     {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    },
+    true
+  );
+};
+
+export const assignJobToVendor = async (
+  jobId: string,
+  vendorId: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/jobs/${jobId}/assign`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ vendorId }),
+    },
+    true
+  );
+};
+
+export const cancelJob = async (
+  jobId: string,
+  reason: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/jobs/${jobId}/cancel`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
     },
     true
   );
@@ -388,4 +430,127 @@ export const assignTicket = async (
     },
     true
   );
+};
+
+export const updateTicketStatus = async (
+  ticketId: string,
+  status: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/support-tickets/${ticketId}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    },
+    true
+  );
+};
+
+export const closeTicket = async (
+  ticketId: string,
+  resolution: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/support-tickets/${ticketId}/close`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ resolution }),
+    },
+    true
+  );
+};
+
+// ========================================
+// CATEGORY MANAGEMENT
+// ========================================
+
+export const getAllCategories = async (): Promise<any[]> => {
+  const response = await apiCall(
+    '/api/admin/categories',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const createCategory = async (categoryData: any): Promise<void> => {
+  await apiCall(
+    '/api/admin/categories',
+    {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    },
+    true
+  );
+};
+
+export const updateCategory = async (
+  categoryId: string,
+  categoryData: any
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/categories/${categoryId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    },
+    true
+  );
+};
+
+export const deleteCategory = async (categoryId: string): Promise<void> => {
+  await apiCall(
+    `/api/admin/categories/${categoryId}`,
+    { method: 'DELETE' },
+    true
+  );
+};
+
+// ========================================
+// ADMIN ACTION LOGS
+// ========================================
+
+export const getAdminActionLogs = async (
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedResponse<any>> => {
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('limit', limit.toString());
+
+  const response = await apiCall(
+    `/api/admin/admin-logs?${params.toString()}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
+
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+export const formatDateTime = (dateString: string): string => {
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };

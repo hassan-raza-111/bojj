@@ -21,6 +21,8 @@ model User {
   status           UserStatus       @default(ACTIVE)
   emailVerified    Boolean          @default(false)
   phoneVerified    Boolean          @default(false)
+  lastLoginAt      DateTime?        // Track last login for admin monitoring
+  loginCount       Int              @default(0)     // Track login frequency
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   bids             Bid[]
@@ -36,6 +38,7 @@ model User {
   assignedTickets  SupportTicket[]  @relation("AssignedTickets")
   supportTickets   SupportTicket[]
   vendorProfile    VendorProfile?
+  adminActions     AdminActionLog[] @relation("AdminActions")
 
   @@map("users")
 }
@@ -252,6 +255,21 @@ model PasswordReset {
   @@index([token])
   @@index([userId])
   @@map("password_resets")
+}
+
+model AdminActionLog {
+  id          String   @id @default(uuid())
+  adminId     String
+  action      String   // e.g., "APPROVE_VENDOR", "UPDATE_JOB_STATUS"
+  targetType  String   // e.g., "USER", "JOB", "PAYMENT"
+  targetId    String   // ID of the target entity
+  details     Json?    // Additional action details
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  admin       User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_action_logs")
 }
 
 enum Role {
