@@ -46,6 +46,9 @@ import CustomerPaymentPage from './features/customer/customerpaymentpage';
 
 // Vendor Features
 import VendorDashboard from './features/vendor/VendorDashboard';
+import VendorJobsPage from './features/vendor/VendorJobsPage';
+import VendorBidsPage from './features/vendor/VendorBidsPage';
+import VendorProfileManagement from './features/vendor/VendorProfileManagement';
 import VendorProfilePage from './features/vendor/VendorProfilePage';
 import VendorJobDetailPage from './features/vendor/VendorJobDetailPage';
 import VendorDetailPage from './features/vendor/VendorDetailPage';
@@ -141,7 +144,12 @@ const App = () => {
                   <VendorLayout>
                     <Routes>
                       <Route path='/' element={<VendorDashboard />} />
-                      <Route path='/jobs' element={<VendorDashboard />} />
+                      <Route path='/jobs' element={<VendorJobsPage />} />
+                      <Route path='/bids' element={<VendorBidsPage />} />
+                      <Route
+                        path='/profile'
+                        element={<VendorProfileManagement />}
+                      />
                       <Route path='/messages' element={<MessagesPage />} />
                       <Route path='/earnings' element={<PaymentsPage />} />
                       <Route path='/support' element={<SupportPage />} />
