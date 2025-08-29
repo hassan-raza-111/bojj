@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { DollarSign, MessageSquare, Search, Star, Clock } from 'lucide-react';
-import VendorLayout from '@/layouts/VendorLayout';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('available');

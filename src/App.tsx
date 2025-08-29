@@ -64,6 +64,18 @@ const App = () => {
         <Toaster />
         <Router>
           <Routes>
+            {/* Public routes */}
+            <Route element={<MainLayout />}>
+              <Route path='/' element={<HomePage />} />
+              <Route path='/login' element={<LoginPage />} />
+              <Route path='/signup' element={<SignUpPage />} />
+              <Route path='/about' element={<AboutPage />} />
+              <Route path='/faq' element={<FAQPage />} />
+              <Route path='/contact' element={<ContactPage />} />
+              <Route path='/support' element={<SupportPage />} />
+              <Route path='/vendor/:id' element={<VendorProfilePage />} />
+            </Route>
+
             {/* Protected Admin routes - Only ADMIN users can access */}
             <Route element={<AdminProtectedRoute />}>
               <Route
@@ -87,18 +99,6 @@ const App = () => {
                   </AdminLayout>
                 }
               />
-            </Route>
-
-            {/* Public routes */}
-            <Route element={<MainLayout />}>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/login' element={<LoginPage />} />
-              <Route path='/signup' element={<SignUpPage />} />
-              <Route path='/about' element={<AboutPage />} />
-              <Route path='/faq' element={<FAQPage />} />
-              <Route path='/contact' element={<ContactPage />} />
-              <Route path='/support' element={<SupportPage />} />
-              <Route path='/vendor/:id' element={<VendorProfilePage />} />
             </Route>
 
             {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
