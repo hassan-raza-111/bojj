@@ -45,18 +45,10 @@ router.get(
 // USER MANAGEMENT
 // ========================================
 router.get('/users', (req, res) => adminController.getAllUsers(req, res));
-router.get('/users/stats', (req, res) =>
-  adminController.getUserStats(req, res)
-);
-router.get('/users/:userId', (req, res) =>
-  adminController.getUserDetails(req, res)
-);
-router.patch('/users/:userId/status', (req, res) =>
-  adminController.updateUserStatus(req, res)
-);
-router.delete('/users/:userId', (req, res) =>
-  adminController.deleteUser(req, res)
-);
+router.get('/users/stats', (req, res) => adminController.getUserStats(req, res));
+router.get('/users/:userId', (req, res) => adminController.getUserDetails(req, res));
+router.patch('/users/:userId/status', (req, res) => adminController.updateUserStatus(req, res));
+router.delete('/users/:userId', (req, res) => adminController.deleteUser(req, res));
 
 // New user management routes
 router.post('/users', (req, res) => adminController.createUser(req, res));
@@ -75,6 +67,16 @@ router.get('/users/:userId/activity', (req, res) =>
 router.get('/users/export', (req, res) =>
   adminController.exportUsers(req, res)
 );
+
+// Job management routes
+router.get('/jobs', (req, res) => adminController.getAllJobs(req, res));
+router.get('/jobs/stats', (req, res) => adminController.getJobStats(req, res));
+router.get('/jobs/:jobId', (req, res) => adminController.getJobDetails(req, res));
+router.patch('/jobs/:jobId/status', (req, res) => adminController.updateJobStatus(req, res));
+router.delete('/jobs/:jobId', (req, res) => adminController.deleteJob(req, res));
+router.patch('/jobs/bulk/status', (req, res) => adminController.bulkUpdateJobStatus(req, res));
+router.delete('/jobs/bulk', (req, res) => adminController.bulkDeleteJobs(req, res));
+router.get('/jobs/export', (req, res) => adminController.exportJobs(req, res));
 
 // ========================================
 // VENDOR MANAGEMENT
@@ -121,23 +123,6 @@ router.patch(
 router.patch(
   '/payments/:paymentId/refund',
   adminController.refundPayment.bind(adminController)
-);
-
-// ========================================
-// JOB MANAGEMENT
-// ========================================
-router.get('/jobs', adminController.getAllJobs.bind(adminController));
-router.patch(
-  '/jobs/:jobId/status',
-  adminController.updateJobStatus.bind(adminController)
-);
-router.patch(
-  '/jobs/:jobId/assign',
-  adminController.assignJobToVendor.bind(adminController)
-);
-router.patch(
-  '/jobs/:jobId/cancel',
-  adminController.cancelJob.bind(adminController)
 );
 
 // ========================================

@@ -1,3 +1,4 @@
+// Admin API functions - Updated to fix duplicate declarations - ${new Date().toISOString()}
 import { apiCall, API_CONFIG } from './api';
 
 export interface DashboardStats {
@@ -80,7 +81,7 @@ export interface Job {
   description: string;
   category: string;
   subcategory?: string;
-  budget: number;
+  budget?: number;
   budgetType: string;
   status: string;
   priority: string;
@@ -88,9 +89,11 @@ export interface Job {
   isRemote: boolean;
   deadline?: string;
   requirements?: string[];
+  tags?: string[];
   customer: { firstName: string; lastName: string; email: string };
   assignedVendor?: { firstName: string; lastName: string; email: string };
   bids: { id: string }[];
+  viewCount?: number;
   createdAt: string;
 }
 
@@ -110,7 +113,8 @@ export interface SupportTicket {
 export interface PaginatedResponse<T> {
   success: boolean;
   data: {
-    users: T[];
+    users?: T[];
+    jobs?: T[];
     pagination: {
       page: number;
       limit: number;
@@ -171,6 +175,29 @@ export interface UserStats {
     activeUsersThisMonth: number;
     userGrowth: string;
     activePercentage: string;
+  };
+}
+
+export interface JobStats {
+  success: boolean;
+  data: {
+    totalJobs: number;
+    activeJobs: number;
+    completedJobs: number;
+    disputedJobs: number;
+    totalValue: number;
+    averageBudget: number;
+    jobGrowth: string;
+    categoryDistribution: {
+      category: string;
+      count: number;
+      percentage: number;
+    }[];
+    monthlyTrends: {
+      month: string;
+      jobs: number;
+      value: number;
+    }[];
   };
 }
 
@@ -391,72 +418,6 @@ export const refundPayment = async (
 ): Promise<void> => {
   await apiCall(
     `/api/admin/payments/${paymentId}/refund`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify({ reason }),
-    },
-    true
-  );
-};
-
-// ========================================
-// JOB MANAGEMENT
-// ========================================
-
-export const getAllJobs = async (
-  status?: string,
-  category?: string,
-  page: number = 1,
-  limit: number = 10
-): Promise<PaginatedResponse<Job>> => {
-  const params = new URLSearchParams();
-  if (status) params.append('status', status);
-  if (category) params.append('category', category);
-  params.append('page', page.toString());
-  params.append('limit', limit.toString());
-
-  const response = await apiCall(
-    `/api/admin/jobs?${params.toString()}`,
-    { method: 'GET' },
-    true
-  );
-  return response;
-};
-
-export const updateJobStatus = async (
-  jobId: string,
-  status: string
-): Promise<void> => {
-  await apiCall(
-    `/api/admin/jobs/${jobId}/status`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    },
-    true
-  );
-};
-
-export const assignJobToVendor = async (
-  jobId: string,
-  vendorId: string
-): Promise<void> => {
-  await apiCall(
-    `/api/admin/jobs/${jobId}/assign`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify({ vendorId }),
-    },
-    true
-  );
-};
-
-export const cancelJob = async (
-  jobId: string,
-  reason: string
-): Promise<void> => {
-  await apiCall(
-    `/api/admin/jobs/${jobId}/cancel`,
     {
       method: 'PATCH',
       body: JSON.stringify({ reason }),
@@ -822,6 +783,168 @@ export const exportUsers = async (params?: {
     // For JSON, use regular apiCall
     const response = await apiCall(
       `/api/admin/users/export?${searchParams.toString()}`,
+      { method: 'GET' },
+      true
+    );
+    return response;
+  }
+};
+
+// ========================================
+// JOB MANAGEMENT APIs
+// ========================================
+
+export const getJobStats = async (): Promise<JobStats> => {
+  const response = await apiCall(
+    '/api/admin/jobs/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getAllJobs = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  category?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}): Promise<PaginatedResponse<Job>> => {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append('page', params.page.toString());
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  if (params?.status) searchParams.append('status', params.status);
+  if (params?.category) searchParams.append('category', params.category);
+  if (params?.search) searchParams.append('search', params.search);
+  if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
+  if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+
+  const response = await apiCall(
+    `/api/admin/jobs?${searchParams.toString()}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getJobDetails = async (
+  jobId: string
+): Promise<{ success: boolean; data: Job }> => {
+  const response = await apiCall(
+    `/api/admin/jobs/${jobId}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const updateJobStatus = async (
+  jobId: string,
+  status: string,
+  reason?: string
+): Promise<{ success: boolean; message: string; data: Job }> => {
+  const response = await apiCall(
+    `/api/admin/jobs/${jobId}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const deleteJob = async (
+  jobId: string,
+  reason?: string
+): Promise<{ success: boolean; message: string; data: Job }> => {
+  const response = await apiCall(
+    `/api/admin/jobs/${jobId}`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const bulkUpdateJobStatus = async (
+  jobIds: string[],
+  status: string,
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { updatedJobs: Job[] };
+}> => {
+  const response = await apiCall(
+    '/api/admin/jobs/bulk/status',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ jobIds, status, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const bulkDeleteJobs = async (
+  jobIds: string[],
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { deletedJobs: Job[] };
+}> => {
+  const response = await apiCall(
+    '/api/admin/jobs/bulk',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const exportJobs = async (params?: {
+  format?: 'csv' | 'json';
+  status?: string;
+  category?: string;
+  search?: string;
+}): Promise<Blob | { success: boolean; data: Job[]; exportInfo: any }> => {
+  const searchParams = new URLSearchParams();
+  if (params?.format) searchParams.append('format', params.format);
+  if (params?.status) searchParams.append('status', params.status);
+  if (params?.category) searchParams.append('category', params.category);
+  if (params?.search) searchParams.append('search', params.search);
+
+  if (params?.format === 'csv') {
+    // For CSV, return blob
+    const response = await fetch(
+      `${
+        process.env.REACT_APP_API_URL
+      }/api/admin/jobs/export?${searchParams.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to export jobs');
+    }
+
+    return response.blob();
+  } else {
+    // For JSON, use regular apiCall
+    const response = await apiCall(
+      `/api/admin/jobs/export?${searchParams.toString()}`,
       { method: 'GET' },
       true
     );

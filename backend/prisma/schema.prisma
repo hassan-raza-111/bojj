@@ -119,6 +119,13 @@ model Job {
   contactPreference String?
   images      String[]
   
+  // Admin tracking fields
+  viewCount   Int       @default(0)
+  bidCount    Int       @default(0)
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?
+  
   // Relations
   bids        Bid[]
   payments    Payment[]

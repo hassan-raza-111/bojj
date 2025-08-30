@@ -760,90 +760,827 @@ export class AdminController {
   }
 
   // ========================================
-  // JOB MANAGEMENT
+  // JOB MANAGEMENT METHODS
   // ========================================
+
+  async getJobStats(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+
+      // Get total jobs count
+      const totalJobs = await prisma.job.count({
+        where: { isDeleted: false },
+      });
+
+      // Get active jobs (OPEN + IN_PROGRESS)
+      const activeJobs = await prisma.job.count({
+        where: {
+          isDeleted: false,
+          status: { in: ['OPEN', 'IN_PROGRESS'] },
+        },
+      });
+
+      // Get completed jobs
+      const completedJobs = await prisma.job.count({
+        where: {
+          isDeleted: false,
+          status: 'COMPLETED',
+        },
+      });
+
+      // Get disputed jobs
+      const disputedJobs = await prisma.job.count({
+        where: {
+          isDeleted: false,
+          status: 'DISPUTED',
+        },
+      });
+
+      // Calculate total value and average budget
+      const jobsWithBudget = await prisma.job.findMany({
+        where: {
+          isDeleted: false,
+          budget: { not: null },
+        },
+        select: { budget: true },
+      });
+
+      const totalValue = jobsWithBudget.reduce(
+        (sum, job) => sum + (job.budget || 0),
+        0
+      );
+      const averageBudget =
+        jobsWithBudget.length > 0 ? totalValue / jobsWithBudget.length : 0;
+
+      // Get category distribution
+      const categoryStats = await prisma.job.groupBy({
+        by: ['category'],
+        where: { isDeleted: false },
+        _count: { category: true },
+      });
+
+      const categoryDistribution = categoryStats.map((stat) => ({
+        category: stat.category,
+        count: stat._count.category,
+        percentage: Math.round((stat._count.category / totalJobs) * 100),
+      }));
+
+      // Get monthly trends (last 6 months)
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const monthlyStats = await prisma.job.groupBy({
+        by: ['createdAt'],
+        where: {
+          isDeleted: false,
+          createdAt: { gte: sixMonthsAgo },
+        },
+        _count: { createdAt: true },
+        _sum: { budget: true },
+      });
+
+      const monthlyTrends = monthlyStats.map((stat) => ({
+        month: stat.createdAt.toISOString().slice(0, 7), // YYYY-MM format
+        jobs: stat._count.createdAt,
+        value: stat._sum.budget || 0,
+      }));
+
+      // Calculate job growth (compare current month with previous month)
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      const previousMonth = new Date(currentMonth);
+      previousMonth.setMonth(previousMonth.getMonth() - 1);
+
+      const currentMonthJobs = await prisma.job.count({
+        where: {
+          isDeleted: false,
+          createdAt: { gte: currentMonth },
+        },
+      });
+
+      const previousMonthJobs = await prisma.job.count({
+        where: {
+          isDeleted: false,
+          createdAt: { gte: previousMonth, lt: currentMonth },
+        },
+      });
+
+      const jobGrowth =
+        previousMonthJobs > 0
+          ? `${Math.round(((currentMonthJobs - previousMonthJobs) / previousMonthJobs) * 100)}%`
+          : '0%';
+
+      const stats = {
+        totalJobs,
+        activeJobs,
+        completedJobs,
+        disputedJobs,
+        totalValue,
+        averageBudget,
+        jobGrowth,
+        categoryDistribution,
+        monthlyTrends,
+      };
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'VIEW_JOB_STATS', 'JOB', 'BULK', {
+        statsViewed: 'job_statistics',
+      });
+
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      logger.error('Failed to get job stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get job statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
 
   async getAllJobs(req: Request, res: Response) {
     try {
-      const { status, category, page = 1, limit = 10 } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
+      const adminId = (req as any).user?.id;
+      const {
+        page = 1,
+        limit = 20,
+        status,
+        category,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+      } = req.query;
 
-      const where: any = {};
-      if (status) {
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Build where clause
+      const where: any = { isDeleted: false };
+
+      if (status && status !== 'all') {
         where.status = status;
       }
-      if (category) {
+
+      if (category && category !== 'all') {
         where.category = category;
       }
 
-      const [jobs, total] = await Promise.all([
-        prisma.job.findMany({
-          where,
-          include: {
+      if (search) {
+        where.OR = [
+          { title: { contains: search as string, mode: 'insensitive' } },
+          { description: { contains: search as string, mode: 'insensitive' } },
+          {
             customer: {
-              select: { firstName: true, lastName: true, email: true },
+              firstName: { contains: search as string, mode: 'insensitive' },
             },
-            assignedVendor: {
-              select: { firstName: true, lastName: true, email: true },
-            },
-            bids: { select: { id: true } },
           },
-          skip,
-          take: Number(limit),
-          orderBy: { createdAt: 'desc' },
-        }),
-        prisma.job.count({ where }),
-      ]);
+          {
+            customer: {
+              lastName: { contains: search as string, mode: 'insensitive' },
+            },
+          },
+        ];
+      }
+
+      // Get jobs with relations
+      const jobs = await prisma.job.findMany({
+        where,
+        include: {
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          assignedVendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              vendorProfile: {
+                select: { companyName: true },
+              },
+            },
+          },
+          bids: {
+            select: {
+              id: true,
+              amount: true,
+              description: true,
+              timeline: true,
+              status: true,
+              vendor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  vendorProfile: {
+                    select: { companyName: true },
+                  },
+                },
+              },
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          payments: {
+            select: {
+              id: true,
+              amount: true,
+              currency: true,
+              description: true,
+              status: true,
+              method: true,
+              isEscrow: true,
+              escrowFee: true,
+              createdAt: true,
+              updatedAt: true,
+              paidAt: true,
+              releasedAt: true,
+            },
+          },
+        },
+        orderBy: { [sortBy as string]: sortOrder },
+        skip,
+        take: limitNum,
+      });
+
+      // Get total count for pagination
+      const total = await prisma.job.count({ where });
+
+      // Transform jobs for frontend
+      const transformedJobs = jobs.map((job) => ({
+        ...job,
+        customer: {
+          id: job.customer.id,
+          firstName: job.customer.firstName,
+          lastName: job.customer.lastName,
+          email: job.customer.email,
+          phone: job.customer.phone,
+        },
+        assignedVendor: job.assignedVendor
+          ? {
+              id: job.assignedVendor.id,
+              firstName: job.assignedVendor.firstName,
+              lastName: job.assignedVendor.lastName,
+              email: job.assignedVendor.email,
+              companyName: job.assignedVendor.vendorProfile?.companyName,
+            }
+          : undefined,
+        bids: job.bids.map((bid) => ({
+          ...bid,
+          vendor: {
+            id: bid.vendor.id,
+            firstName: bid.vendor.firstName,
+            lastName: bid.vendor.lastName,
+            email: bid.vendor.email,
+            companyName: bid.vendor.vendorProfile?.companyName,
+          },
+        })),
+      }));
+
+      const pagination = {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      };
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'VIEW_JOBS', 'JOB', 'BULK', {
+        page: pageNum,
+        limit: limitNum,
+        filters: { status, category, search },
+        jobsViewed: jobs.length,
+      });
 
       res.json({
         success: true,
-        data: jobs,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
+        data: {
+          jobs: transformedJobs,
+          pagination,
         },
       });
     } catch (error) {
-      logger.error('Error fetching jobs:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch jobs' });
+      logger.error('Failed to get all jobs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get jobs',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getJobDetails(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+      const { jobId } = req.params;
+
+      const job = await prisma.job.findUnique({
+        where: { id: jobId, isDeleted: false },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          assignedVendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              vendorProfile: {
+                select: { companyName: true },
+              },
+            },
+          },
+          bids: {
+            include: {
+              vendor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  vendorProfile: {
+                    select: { companyName: true },
+                  },
+                },
+              },
+            },
+          },
+          payments: true,
+        },
+      });
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found',
+        });
+      }
+
+      // Transform job for frontend
+      const transformedJob = {
+        ...job,
+        customer: {
+          id: job.customer.id,
+          firstName: job.customer.firstName,
+          lastName: job.customer.lastName,
+          email: job.customer.email,
+          phone: job.customer.phone,
+        },
+        assignedVendor: job.assignedVendor
+          ? {
+              id: job.assignedVendor.id,
+              firstName: job.assignedVendor.firstName,
+              lastName: job.assignedVendor.lastName,
+              email: job.assignedVendor.email,
+              companyName: job.assignedVendor.vendorProfile?.companyName,
+            }
+          : undefined,
+        bids: job.bids.map((bid) => ({
+          ...bid,
+          vendor: {
+            id: bid.vendor.id,
+            firstName: bid.vendor.firstName,
+            lastName: bid.vendor.lastName,
+            email: bid.vendor.email,
+            companyName: bid.vendor.vendorProfile?.companyName,
+          },
+        })),
+      };
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'VIEW_JOB_DETAILS', 'JOB', jobId, {
+        jobTitle: job.title,
+        jobStatus: job.status,
+      });
+
+      res.json({
+        success: true,
+        data: transformedJob,
+      });
+    } catch (error) {
+      logger.error('Failed to get job details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get job details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
   async updateJobStatus(req: Request, res: Response) {
     try {
+      const adminId = (req as any).user?.id;
       const { jobId } = req.params;
-      const { status, adminNotes } = req.body;
+      const { status, reason } = req.body;
+
+      if (!status) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status is required',
+        });
+      }
 
       const job = await prisma.job.findUnique({
-        where: { id: jobId },
+        where: { id: jobId, isDeleted: false },
       });
 
       if (!job) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'Job not found' });
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found',
+        });
       }
 
-      // Update job status
-      await prisma.job.update({
+      const updatedJob = await prisma.job.update({
         where: { id: jobId },
-        data: {
-          status: status as any,
-          updatedAt: new Date(),
+        data: { status: status as any },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          assignedVendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              vendorProfile: {
+                select: { companyName: true },
+              },
+            },
+          },
         },
       });
 
-      logger.info(`Job ${jobId} status updated to ${status} by admin`);
-      res.json({ success: true, message: 'Job status updated successfully' });
+      // Log admin action
+      await this.logAdminAction(adminId, 'UPDATE_JOB_STATUS', 'JOB', jobId, {
+        oldStatus: job.status,
+        newStatus: status,
+        reason,
+        jobTitle: job.title,
+      });
+
+      res.json({
+        success: true,
+        message: 'Job status updated successfully',
+        data: updatedJob,
+      });
     } catch (error) {
-      logger.error('Error updating job status:', error);
-      res
-        .status(500)
-        .json({ success: false, message: 'Failed to update job status' });
+      logger.error('Failed to update job status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update job status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
+
+  async deleteJob(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+      const { jobId } = req.params;
+      const { reason } = req.body;
+
+      const job = await prisma.job.findUnique({
+        where: { id: jobId, isDeleted: false },
+      });
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job not found',
+        });
+      }
+
+      // Soft delete the job
+      const deletedJob = await prisma.job.update({
+        where: { id: jobId },
+        data: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: adminId,
+        },
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'DELETE_JOB', 'JOB', jobId, {
+        jobTitle: job.title,
+        reason,
+        jobStatus: job.status,
+      });
+
+      res.json({
+        success: true,
+        message: 'Job deleted successfully',
+        data: deletedJob,
+      });
+    } catch (error) {
+      logger.error('Failed to delete job:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete job',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkUpdateJobStatus(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+      const { jobIds, status, reason } = req.body;
+
+      if (!jobIds || !Array.isArray(jobIds) || jobIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Job IDs array is required',
+        });
+      }
+
+      if (!status) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status is required',
+        });
+      }
+
+      // Update all jobs in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const updatedJobs = [];
+        for (const jobId of jobIds) {
+          const job = await tx.job.findUnique({
+            where: { id: jobId, isDeleted: false },
+          });
+
+          if (job) {
+            const updatedJob = await tx.job.update({
+              where: { id: jobId },
+              data: { status: status as any },
+            });
+            updatedJobs.push(updatedJob);
+          }
+        }
+        return updatedJobs;
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'BULK_UPDATE_JOB_STATUS',
+        'JOB',
+        'BULK',
+        {
+          jobIds,
+          newStatus: status,
+          reason,
+          updatedCount: result.length,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Status updated for ${result.length} jobs`,
+        data: { updatedJobs: result },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk update job status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk update job status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkDeleteJobs(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+      const { jobIds, reason } = req.body;
+
+      if (!jobIds || !Array.isArray(jobIds) || jobIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Job IDs array is required',
+        });
+      }
+
+      // Soft delete all jobs in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const deletedJobs = [];
+        for (const jobId of jobIds) {
+          const job = await tx.job.findUnique({
+            where: { id: jobId, isDeleted: false },
+          });
+
+          if (job) {
+            const deletedJob = await tx.job.update({
+              where: { id: jobId },
+              data: {
+                isDeleted: true,
+                deletedAt: new Date(),
+                deletedBy: adminId,
+              },
+            });
+            deletedJobs.push(deletedJob);
+          }
+        }
+        return deletedJobs;
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'BULK_DELETE_JOBS', 'JOB', 'BULK', {
+        jobIds,
+        reason,
+        deletedCount: result.length,
+      });
+
+      res.json({
+        success: true,
+        message: `Successfully deleted ${result.length} jobs`,
+        data: { deletedJobs: result },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk delete jobs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk delete jobs',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async exportJobs(req: Request, res: Response) {
+    try {
+      const adminId = (req as any).user?.id;
+      const { format = 'csv', status, category, search } = req.query;
+
+      // Build where clause
+      const where: any = { isDeleted: false };
+
+      if (status && status !== 'all') {
+        where.status = status;
+      }
+
+      if (category && category !== 'all') {
+        where.category = category;
+      }
+
+      if (search) {
+        where.OR = [
+          { title: { contains: search as string, mode: 'insensitive' } },
+          { description: { contains: search as string, mode: 'insensitive' } },
+          {
+            customer: {
+              firstName: { contains: search as string, mode: 'insensitive' },
+            },
+          },
+          {
+            customer: {
+              lastName: { contains: search as string, mode: 'insensitive' },
+            },
+          },
+        ];
+      }
+
+      // Get all jobs matching criteria
+      const jobs = await prisma.job.findMany({
+        where,
+        include: {
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          assignedVendor: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+              vendorProfile: {
+                select: { companyName: true },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'EXPORT_JOBS', 'JOB', 'BULK', {
+        format,
+        status,
+        category,
+        search,
+        jobCount: jobs.length,
+      });
+
+      if (format === 'csv') {
+        // Generate CSV
+        const csvHeaders = [
+          'ID',
+          'Title',
+          'Description',
+          'Category',
+          'Subcategory',
+          'Budget',
+          'Budget Type',
+          'Status',
+          'Priority',
+          'Location',
+          'Is Remote',
+          'Deadline',
+          'Customer Name',
+          'Customer Email',
+          'Customer Phone',
+          'Assigned Vendor',
+          'Created At',
+          'Updated At',
+        ];
+
+        const csvRows = jobs.map((job) => [
+          job.id,
+          job.title,
+          job.description,
+          job.category,
+          job.subcategory || '',
+          job.budget || '',
+          job.budgetType,
+          job.status,
+          job.priority,
+          job.location || '',
+          job.isRemote ? 'Yes' : 'No',
+          job.deadline ? job.deadline.toISOString().split('T')[0] : '',
+          `${job.customer.firstName} ${job.customer.lastName}`,
+          job.customer.email,
+          job.customer.phone || '',
+          job.assignedVendor
+            ? `${job.assignedVendor.firstName} ${job.assignedVendor.lastName}`
+            : '',
+          job.createdAt.toISOString().split('T')[0],
+          job.updatedAt.toISOString().split('T')[0],
+        ]);
+
+        const csvContent = [csvHeaders, ...csvRows]
+          .map((row) => row.map((cell) => `"${cell}"`).join(','))
+          .join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename=jobs_export_${new Date().toISOString().split('T')[0]}.csv`
+        );
+        res.send(csvContent);
+      } else {
+        // Return JSON
+        res.json({
+          success: true,
+          data: jobs,
+          exportInfo: {
+            format,
+            status,
+            category,
+            search,
+            exportedAt: new Date().toISOString(),
+            totalJobs: jobs.length,
+          },
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to export jobs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export jobs',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // ========================================
+  // JOB MANAGEMENT
+  // ========================================
 
   async assignJobToVendor(req: Request, res: Response) {
     try {
@@ -1307,7 +2044,6 @@ export class AdminController {
                 experience: true,
                 skills: true,
                 verified: true,
-                totalJobs: true,
                 completedJobs: true,
               },
             },
@@ -1333,10 +2069,7 @@ export class AdminController {
       const transformedUsers = users.map((user) => ({
         ...user,
         location: user.location || 'N/A',
-        totalJobs:
-          user.vendorProfile?.totalJobs ||
-          user.customerProfile?.totalJobsPosted ||
-          0,
+        totalJobs: user.customerProfile?.totalJobsPosted || 0,
         totalSpent: user.customerProfile?.totalSpent || 0,
         joinedDate: user.createdAt.toISOString().split('T')[0],
         lastActive: user.lastLoginAt
@@ -1770,7 +2503,7 @@ export class AdminController {
         // Reviews
         prisma.review.findMany({
           where: {
-            OR: [{ reviewerId: userId }, { reviewedUserId: userId }],
+            OR: [{ reviewerId: userId }],
           },
           select: {
             id: true,
@@ -1778,12 +2511,6 @@ export class AdminController {
             comment: true,
             createdAt: true,
             reviewer: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            reviewedUser: {
               select: {
                 firstName: true,
                 lastName: true,
@@ -1814,7 +2541,7 @@ export class AdminController {
             : 0,
           prisma.review.count({
             where: {
-              OR: [{ reviewerId: userId }, { reviewedUserId: userId }],
+              OR: [{ reviewerId: userId }],
             },
           }),
         ]);
@@ -1917,7 +2644,6 @@ export class AdminController {
               experience: true,
               skills: true,
               verified: true,
-              totalJobs: true,
               completedJobs: true,
             },
           },
@@ -1990,7 +2716,7 @@ export class AdminController {
           user.vendorProfile?.experience || '',
           (user.vendorProfile?.skills || []).join(', '),
           user.vendorProfile?.verified ? 'Yes' : 'No',
-          user.vendorProfile?.totalJobs || 0,
+          0,
           user.vendorProfile?.completedJobs || 0,
           (user.customerProfile?.preferredCategories || []).join(', '),
           user.customerProfile?.budgetRange || '',
@@ -2057,7 +2783,6 @@ export class AdminController {
               experience: true,
               skills: true,
               verified: true,
-              totalJobs: true,
               completedJobs: true,
             },
           },
