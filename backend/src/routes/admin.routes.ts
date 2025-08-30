@@ -45,10 +45,18 @@ router.get(
 // USER MANAGEMENT
 // ========================================
 router.get('/users', (req, res) => adminController.getAllUsers(req, res));
-router.get('/users/stats', (req, res) => adminController.getUserStats(req, res));
-router.get('/users/:userId', (req, res) => adminController.getUserDetails(req, res));
-router.patch('/users/:userId/status', (req, res) => adminController.updateUserStatus(req, res));
-router.delete('/users/:userId', (req, res) => adminController.deleteUser(req, res));
+router.get('/users/stats', (req, res) =>
+  adminController.getUserStats(req, res)
+);
+router.get('/users/:userId', (req, res) =>
+  adminController.getUserDetails(req, res)
+);
+router.patch('/users/:userId/status', (req, res) =>
+  adminController.updateUserStatus(req, res)
+);
+router.delete('/users/:userId', (req, res) =>
+  adminController.deleteUser(req, res)
+);
 
 // New user management routes
 router.post('/users', (req, res) => adminController.createUser(req, res));
@@ -71,20 +79,33 @@ router.get('/users/export', (req, res) =>
 // Job management routes
 router.get('/jobs', (req, res) => adminController.getAllJobs(req, res));
 router.get('/jobs/stats', (req, res) => adminController.getJobStats(req, res));
-router.get('/jobs/:jobId', (req, res) => adminController.getJobDetails(req, res));
-router.patch('/jobs/:jobId/status', (req, res) => adminController.updateJobStatus(req, res));
-router.delete('/jobs/:jobId', (req, res) => adminController.deleteJob(req, res));
-router.patch('/jobs/bulk/status', (req, res) => adminController.bulkUpdateJobStatus(req, res));
-router.delete('/jobs/bulk', (req, res) => adminController.bulkDeleteJobs(req, res));
+router.get('/jobs/:jobId', (req, res) =>
+  adminController.getJobDetails(req, res)
+);
+router.patch('/jobs/:jobId/status', (req, res) =>
+  adminController.updateJobStatus(req, res)
+);
+router.delete('/jobs/:jobId', (req, res) =>
+  adminController.deleteJob(req, res)
+);
+router.patch('/jobs/bulk/status', (req, res) =>
+  adminController.bulkUpdateJobStatus(req, res)
+);
+router.delete('/jobs/bulk', (req, res) =>
+  adminController.bulkDeleteJobs(req, res)
+);
 router.get('/jobs/export', (req, res) => adminController.exportJobs(req, res));
 
 // ========================================
 // VENDOR MANAGEMENT
 // ========================================
 router.get('/vendors', adminController.getAllVendors.bind(adminController));
-router.get(
-  '/vendors/pending',
-  adminController.getPendingVendors.bind(adminController)
+router.get('/vendors/stats', (req, res) =>
+  adminController.getVendorStats(req, res)
+);
+router.get('/vendors/pending', adminController.getPendingVendors.bind(adminController));
+router.get('/vendors/:vendorId', (req, res) =>
+  adminController.getVendorDetails(req, res)
 );
 router.patch(
   '/vendors/:vendorId/approve',
@@ -97,6 +118,15 @@ router.patch(
 router.patch(
   '/vendors/:vendorId/status',
   adminController.toggleVendorStatus.bind(adminController)
+);
+router.patch('/vendors/bulk/status', (req, res) =>
+  adminController.bulkUpdateVendorStatus(req, res)
+);
+router.delete('/vendors/bulk', (req, res) =>
+  adminController.bulkDeleteVendors(req, res)
+);
+router.get('/vendors/export', (req, res) =>
+  adminController.exportVendors(req, res)
 );
 
 // ========================================

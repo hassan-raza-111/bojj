@@ -447,12 +447,14 @@ export class AdminController {
 
       res.json({
         success: true,
-        data: vendors,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
+        data: {
+          vendors,
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            pages: Math.ceil(total / Number(limit)),
+          },
         },
       });
     } catch (error) {
@@ -494,6 +496,346 @@ export class AdminController {
       res
         .status(500)
         .json({ success: false, message: 'Failed to update vendor status' });
+    }
+  }
+
+  // ========================================
+  // ENHANCED VENDOR MANAGEMENT
+  // ========================================
+
+  async getVendorStats(req: Request, res: Response) {
+    try {
+      const [
+        totalVendors,
+        verifiedVendors,
+        pendingVendors,
+        suspendedVendors,
+        deletedVendors,
+        newVendorsThisMonth,
+        averageRating,
+        totalCompletedJobs,
+      ] = await Promise.all([
+        prisma.user.count({ where: { role: 'VENDOR' } }),
+        prisma.user.count({
+          where: {
+            role: 'VENDOR',
+            vendorProfile: { verified: true },
+            status: 'ACTIVE',
+          },
+        }),
+        prisma.user.count({
+          where: {
+            role: 'VENDOR',
+            vendorProfile: { verified: false },
+            status: 'ACTIVE',
+          },
+        }),
+        prisma.user.count({
+          where: { role: 'VENDOR', status: 'SUSPENDED' },
+        }),
+        prisma.user.count({
+          where: { role: 'VENDOR', status: 'DELETED' },
+        }),
+        prisma.user.count({
+          where: {
+            role: 'VENDOR',
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+        }),
+        prisma.vendorProfile.aggregate({
+          where: { rating: { gt: 0 } },
+          _avg: { rating: true },
+        }),
+        prisma.vendorProfile.aggregate({
+          _sum: { completedJobs: true },
+        }),
+      ]);
+
+      const vendorGrowth =
+        totalVendors > 0
+          ? ((newVendorsThisMonth / totalVendors) * 100).toFixed(1)
+          : '0.0';
+
+      const verifiedPercentage =
+        totalVendors > 0
+          ? ((verifiedVendors / totalVendors) * 100).toFixed(1)
+          : '0.0';
+
+      res.json({
+        success: true,
+        data: {
+          totalVendors,
+          verifiedVendors,
+          pendingVendors,
+          suspendedVendors,
+          deletedVendors,
+          newVendorsThisMonth,
+          vendorGrowth: `${vendorGrowth}%`,
+          verifiedPercentage: `${verifiedPercentage}%`,
+          averageRating: averageRating._avg.rating || 0,
+          totalCompletedJobs: totalCompletedJobs._sum.completedJobs || 0,
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to get vendor stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch vendor statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getVendorDetails(req: Request, res: Response) {
+    try {
+      const { vendorId } = req.params;
+
+      const vendor = await prisma.user.findUnique({
+        where: { id: vendorId, role: 'VENDOR' },
+        include: {
+          vendorProfile: {
+            select: {
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              rating: true,
+              totalReviews: true,
+              completedJobs: true,
+              portfolio: true,
+              documents: true,
+              verified: true,
+            },
+          },
+          jobs: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              budget: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          },
+          reviews: {
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          },
+        },
+      });
+
+      if (!vendor) {
+        return res
+          .status(404)
+          .json({ success: false, message: 'Vendor not found' });
+      }
+
+      res.json({ success: true, data: vendor });
+    } catch (error) {
+      logger.error('Failed to get vendor details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch vendor details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkUpdateVendorStatus(req: Request, res: Response) {
+    try {
+      const { vendorIds, status, reason } = req.body;
+      const adminId = (req as any).user.id;
+
+      if (!vendorIds || !Array.isArray(vendorIds) || vendorIds.length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Vendor IDs are required' });
+      }
+
+      const updatedVendors = await prisma.user.updateMany({
+        where: {
+          id: { in: vendorIds },
+          role: 'VENDOR',
+        },
+        data: { status: status as any },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'BULK_UPDATE_VENDOR_STATUS',
+        'VENDOR',
+        vendorIds.join(','),
+        {
+          vendorIds,
+          status,
+          reason,
+          count: updatedVendors.count,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Status updated for ${updatedVendors.count} vendors`,
+        data: { updatedVendors: updatedVendors.count },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk update vendor status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk update vendor status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkDeleteVendors(req: Request, res: Response) {
+    try {
+      const { vendorIds, reason } = req.body;
+      const adminId = (req as any).user.id;
+
+      if (!vendorIds || !Array.isArray(vendorIds) || vendorIds.length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Vendor IDs are required' });
+      }
+
+      const deletedVendors = await prisma.user.updateMany({
+        where: {
+          id: { in: vendorIds },
+          role: 'VENDOR',
+        },
+        data: { status: 'DELETED' },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'BULK_DELETE_VENDORS',
+        'VENDOR',
+        vendorIds.join(','),
+        {
+          vendorIds,
+          reason,
+          count: deletedVendors.count,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Successfully deleted ${deletedVendors.count} vendors`,
+        data: { deletedVendors: deletedVendors.count },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk delete vendors:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk delete vendors',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async exportVendors(req: Request, res: Response) {
+    try {
+      const { format = 'csv', status, verification, search } = req.query;
+
+      const where: any = { role: 'VENDOR' };
+
+      if (status && status !== 'all') {
+        where.status = status;
+      }
+
+      if (verification && verification !== 'all') {
+        where.vendorProfile = {
+          verified: verification === 'verified',
+        };
+      }
+
+      if (search) {
+        where.OR = [
+          { firstName: { contains: String(search), mode: 'insensitive' } },
+          { lastName: { contains: String(search), mode: 'insensitive' } },
+          { email: { contains: String(search), mode: 'insensitive' } },
+        ];
+      }
+
+      const vendors = await prisma.user.findMany({
+        where,
+        include: {
+          vendorProfile: {
+            select: {
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              rating: true,
+              totalReviews: true,
+              completedJobs: true,
+              verified: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (format === 'csv') {
+        const csvData = vendors.map((vendor) => ({
+          'Vendor ID': vendor.id,
+          'First Name': vendor.firstName,
+          'Last Name': vendor.lastName,
+          Email: vendor.email,
+          Phone: vendor.phone || 'N/A',
+          Status: vendor.status,
+          'Company Name': vendor.vendorProfile?.companyName || 'N/A',
+          'Business Type': vendor.vendorProfile?.businessType || 'N/A',
+          'Experience (Years)': vendor.vendorProfile?.experience || 0,
+          Skills: vendor.vendorProfile?.skills?.join(', ') || 'N/A',
+          Rating: vendor.vendorProfile?.rating || 0,
+          'Total Reviews': vendor.vendorProfile?.totalReviews || 0,
+          'Completed Jobs': vendor.vendorProfile?.completedJobs || 0,
+          Verified: vendor.vendorProfile?.verified ? 'Yes' : 'No',
+          'Email Verified': vendor.emailVerified ? 'Yes' : 'No',
+          'Phone Verified': vendor.phoneVerified ? 'Yes' : 'No',
+          Location: vendor.location || 'N/A',
+          'Joined Date': vendor.createdAt,
+          'Last Active': vendor.lastLoginAt || 'N/A',
+        }));
+
+        const csv = this.convertToCSV(csvData);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename=vendors_export_${new Date().toISOString().split('T')[0]}.csv`
+        );
+        res.send(csv);
+      } else {
+        res.json({
+          success: true,
+          data: vendors,
+          exportInfo: {
+            totalVendors: vendors.length,
+            exportDate: new Date().toISOString(),
+            filters: { status, verification, search },
+          },
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to export vendors:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export vendors',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -2988,5 +3330,29 @@ export class AdminController {
     if (diffInSeconds < 31536000)
       return `${Math.floor(diffInSeconds / 2592000)} months ago`;
     return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+  }
+
+  // Helper method to convert data to CSV format
+  private convertToCSV(data: any[]): string {
+    if (data.length === 0) return '';
+
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'string' && value.includes(',')) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          })
+          .join(',')
+      ),
+    ];
+
+    return csvRows.join('\n');
   }
 }

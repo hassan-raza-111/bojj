@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -34,6 +35,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Users,
   UserCheck,
   UserX,
@@ -56,122 +68,385 @@ import {
   TrendingDown,
   Plus,
   MoreHorizontal,
+  Loader2,
+  RefreshCw,
+  AlertTriangle,
   Download,
   Mail,
   Phone,
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  getVendorStats,
+  getAllVendors,
+  getVendorDetails,
+  approveVendor,
+  rejectVendor,
+  toggleVendorStatus,
+  bulkUpdateVendorStatus,
+  bulkDeleteVendors,
+  exportVendors,
+  Vendor,
+} from '@/config/adminApi';
 
 const VendorManagement = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [showVendorDetails, setShowVendorDetails] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [statusReason, setStatusReason] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data for demonstration
-  const vendors = [
-    {
-      id: '1',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      email: 'jane@example.com',
-      phone: '+1-555-0124',
-      companyName: 'Design Studio Pro',
-      businessType: 'Design Agency',
-      experience: 5,
-      skills: ['UI/UX Design', 'Logo Design', 'Branding'],
-      portfolio: ['portfolio1.com', 'portfolio2.com'],
-      verified: false,
-      documents: ['id_proof.pdf', 'business_license.pdf'],
-      rating: 4.8,
-      totalReviews: 23,
-      completedJobs: 45,
-      status: 'PENDING',
-      location: 'Los Angeles, CA',
-      joinedDate: '2024-01-20',
-      lastActive: '1 day ago',
-      emailVerified: true,
-      phoneVerified: false,
+  // New state variables for enhanced functionality
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
+  const [showBulkActionsDialog, setShowBulkActionsDialog] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // React Query hooks
+  const {
+    data: vendorStats,
+    isLoading: statsLoading,
+    error: statsError,
+    refetch: refetchStats,
+  } = useQuery({
+    queryKey: ['admin', 'vendorStats'],
+    queryFn: getVendorStats,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const {
+    data: vendorsData,
+    isLoading: vendorsLoading,
+    error: vendorsError,
+    refetch: refetchVendors,
+  } = useQuery({
+    queryKey: [
+      'admin',
+      'vendors',
+      currentPage,
+      statusFilter,
+      verificationFilter,
+      searchTerm,
+    ],
+    queryFn: () =>
+      getAllVendors(
+        searchTerm || undefined,
+        statusFilter === 'all' ? undefined : statusFilter,
+        currentPage,
+        20
+      ),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Mutations
+  const approveVendorMutation = useMutation({
+    mutationFn: approveVendor,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendorStats'] });
+      toast({
+        title: 'Success',
+        description: 'Vendor approved successfully',
+      });
     },
-    {
-      id: '2',
-      firstName: 'Mike',
-      lastName: 'Johnson',
-      email: 'mike@example.com',
-      phone: '+1-555-0125',
-      companyName: 'Tech Solutions Inc',
-      businessType: 'Software Development',
-      experience: 8,
-      skills: ['React', 'Node.js', 'Python', 'AWS'],
-      portfolio: ['techsolutions.com', 'github.com/mike'],
-      verified: true,
-      documents: ['id_proof.pdf', 'business_license.pdf', 'certifications.pdf'],
-      rating: 4.9,
-      totalReviews: 67,
-      completedJobs: 89,
-      status: 'VERIFIED',
-      location: 'Chicago, IL',
-      joinedDate: '2024-01-10',
-      lastActive: '5 hours ago',
-      emailVerified: true,
-      phoneVerified: true,
+    onError: (error) => {
+      console.error('Failed to approve vendor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve vendor',
+        variant: 'destructive',
+      });
     },
-    {
-      id: '3',
-      firstName: 'Sarah',
-      lastName: 'Wilson',
-      email: 'sarah@example.com',
-      phone: '+1-555-0126',
-      companyName: 'Content Creators',
-      businessType: 'Content Agency',
-      experience: 3,
-      skills: ['Content Writing', 'SEO', 'Blog Writing'],
-      portfolio: ['contentcreators.com', 'blog.sarah.com'],
-      verified: false,
-      documents: ['id_proof.pdf'],
-      rating: 4.2,
-      totalReviews: 12,
-      completedJobs: 18,
-      status: 'PENDING',
-      location: 'Miami, FL',
-      joinedDate: '2024-01-15',
-      lastActive: '2 days ago',
-      emailVerified: true,
-      phoneVerified: false,
+  });
+
+  const rejectVendorMutation = useMutation({
+    mutationFn: ({ vendorId, reason }: { vendorId: string; reason: string }) =>
+      rejectVendor(vendorId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendorStats'] });
+      toast({
+        title: 'Success',
+        description: 'Vendor rejected successfully',
+      });
     },
-    {
-      id: '4',
-      firstName: 'David',
-      lastName: 'Brown',
-      email: 'david@example.com',
-      phone: '+1-555-0127',
-      companyName: 'Mobile Apps Pro',
-      businessType: 'Mobile Development',
-      experience: 6,
-      skills: ['iOS Development', 'Android Development', 'React Native'],
-      portfolio: ['mobileappspro.com', 'appstore.com/david'],
-      verified: true,
-      documents: ['id_proof.pdf', 'business_license.pdf', 'portfolio.pdf'],
-      rating: 4.7,
-      totalReviews: 34,
-      completedJobs: 56,
-      status: 'VERIFIED',
-      location: 'Austin, TX',
-      joinedDate: '2024-01-08',
-      lastActive: '3 hours ago',
-      emailVerified: true,
-      phoneVerified: true,
+    onError: (error) => {
+      console.error('Failed to reject vendor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject vendor',
+        variant: 'destructive',
+      });
     },
-  ];
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ vendorId, status }: { vendorId: string; status: string }) =>
+      toggleVendorStatus(vendorId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendorStats'] });
+      toast({
+        title: 'Success',
+        description: 'Vendor status updated successfully',
+      });
+      setShowStatusDialog(false);
+      setSelectedVendor(null);
+      setNewStatus('');
+      setStatusReason('');
+    },
+    onError: (error) => {
+      console.error('Failed to update vendor status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update vendor status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: ({
+      vendorIds,
+      status,
+      reason,
+    }: {
+      vendorIds: string[];
+      status: string;
+      reason?: string;
+    }) => bulkUpdateVendorStatus(vendorIds, status, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendorStats'] });
+      toast({
+        title: 'Success',
+        description: `Status updated for ${selectedVendors.length} vendors`,
+      });
+      setSelectedVendors([]);
+      setShowBulkActionsDialog(false);
+    },
+    onError: (error) => {
+      console.error('Failed to bulk update status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to bulk update status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const bulkDeleteVendorsMutation = useMutation({
+    mutationFn: ({
+      vendorIds,
+      reason,
+    }: {
+      vendorIds: string[];
+      reason?: string;
+    }) => bulkDeleteVendors(vendorIds, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'vendorStats'] });
+      toast({
+        title: 'Success',
+        description: `Successfully deleted ${selectedVendors.length} vendors`,
+      });
+      setSelectedVendors([]);
+      setShowBulkActionsDialog(false);
+    },
+    onError: (error) => {
+      console.error('Failed to bulk delete vendors:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to bulk delete vendors',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handler functions
+  const handleApproveVendor = (vendorId: string) => {
+    approveVendorMutation.mutate(vendorId);
+  };
+
+  const handleRejectVendor = (vendorId: string) => {
+    rejectVendorMutation.mutate({
+      vendorId,
+      reason: 'Admin rejection',
+    });
+  };
+
+  const handleStatusUpdate = () => {
+    if (!selectedVendor || !newStatus) return;
+    toggleStatusMutation.mutate({
+      vendorId: selectedVendor.id,
+      status: newStatus,
+    });
+  };
+
+  const handleBulkUpdateStatus = () => {
+    if (selectedVendors.length === 0 || !newStatus) return;
+    bulkUpdateStatusMutation.mutate({
+      vendorIds: selectedVendors,
+      status: newStatus,
+      reason: statusReason,
+    });
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedVendors.length === 0) return;
+    bulkDeleteVendorsMutation.mutate({
+      vendorIds: selectedVendors,
+      reason: 'Admin bulk deletion',
+    });
+  };
+
+  const handleVendorSelection = (vendorId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedVendors([...selectedVendors, vendorId]);
+    } else {
+      setSelectedVendors(selectedVendors.filter((id) => id !== vendorId));
+    }
+  };
+
+  const handleSelectAllVendors = (checked: boolean) => {
+    if (checked && vendorsData?.data?.vendors) {
+      setSelectedVendors(vendorsData.data.vendors.map((vendor) => vendor.id));
+    } else {
+      setSelectedVendors([]);
+    }
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = () => {
+    setCurrentPage(1);
+  };
+
+  const handleExportVendors = async (format: 'csv' | 'json' = 'csv') => {
+    try {
+      setExporting(true);
+
+      const result = await exportVendors({
+        format,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        verification:
+          verificationFilter === 'all' ? undefined : verificationFilter,
+        search: searchTerm || undefined,
+      });
+
+      if (format === 'csv' && result instanceof Blob) {
+        // Download CSV file
+        const url = window.URL.createObjectURL(result);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vendors_export_${
+          new Date().toISOString().split('T')[0]
+        }.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+
+      toast({
+        title: 'Success',
+        description: `Vendors exported successfully in ${format.toUpperCase()} format`,
+      });
+    } catch (error) {
+      console.error('Failed to export vendors:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to export vendors',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Handle filter changes
+  useEffect(() => {
+    if (statusFilter !== 'all' || verificationFilter !== 'all') {
+      handleFilterChange();
+    }
+  }, [statusFilter, verificationFilter]);
+
+  // Loading state
+  if (statsLoading || vendorsLoading) {
+    return (
+      <div className='flex items-center justify-center min-h-[400px]'>
+        <div className='flex items-center space-x-2'>
+          <Loader2 className='h-6 w-6 animate-spin' />
+          <span>Loading vendors...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (statsError || vendorsError) {
+    return (
+      <div className='flex items-center justify-center min-h-[400px]'>
+        <div className='text-center'>
+          <AlertTriangle className='h-12 w-12 text-red-500 mx-auto mb-4' />
+          <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+            Error Loading Data
+          </h3>
+          <p className='text-gray-600 mb-4'>
+            Failed to load vendor data. Please try again.
+          </p>
+          <Button
+            onClick={() => {
+              refetchStats();
+              refetchVendors();
+            }}
+          >
+            <RefreshCw className='h-4 w-4 mr-2' />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract data safely
+  const vendors = vendorsData?.data?.vendors || [];
+  const pagination = vendorsData?.data?.pagination || { pages: 1, total: 0 };
+  const stats = vendorStats?.data || {
+    totalVendors: 0,
+    verifiedVendors: 0,
+    pendingVendors: 0,
+    suspendedVendors: 0,
+    rejectedVendors: 0,
+    newVendorsThisMonth: 0,
+    vendorGrowth: '0%',
+    verifiedPercentage: '0%',
+    averageRating: 0,
+    totalCompletedJobs: 0,
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'VERIFIED':
-        return <Badge className='bg-green-100 text-green-800'>Verified</Badge>;
+      case 'ACTIVE':
+        return <Badge className='bg-green-100 text-green-800'>Active</Badge>;
       case 'PENDING':
         return <Badge className='bg-yellow-100 text-yellow-800'>Pending</Badge>;
       case 'SUSPENDED':
         return <Badge className='bg-red-100 text-red-800'>Suspended</Badge>;
       case 'REJECTED':
         return <Badge className='bg-gray-100 text-gray-800'>Rejected</Badge>;
+      case 'DELETED':
+        return <Badge className='bg-gray-100 text-gray-800'>Deleted</Badge>;
       default:
         return <Badge variant='outline'>{status}</Badge>;
     }
@@ -195,28 +470,47 @@ const VendorManagement = () => {
     );
   };
 
-  const filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch =
-      vendor.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.companyName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'all' || vendor.status === statusFilter;
-    const matchesVerification =
-      verificationFilter === 'all' ||
-      vendor.verified === (verificationFilter === 'verified');
-    return matchesSearch && matchesStatus && matchesVerification;
-  });
-
   return (
     <div className='space-y-6'>
       {/* Welcome Banner */}
       <div className='bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white'>
-        <h1 className='text-2xl font-bold mb-2'>Vendor Management</h1>
-        <p className='text-blue-100'>
-          Manage vendor accounts, verifications, and approvals
-        </p>
+        <div className='flex items-center justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold mb-2'>Vendor Management</h1>
+            <p className='text-blue-100'>
+              Manage vendor accounts, verifications, and approvals
+            </p>
+          </div>
+          <div className='flex gap-2'>
+            <Button
+              onClick={() => {
+                setRefreshing(true);
+                Promise.all([refetchStats(), refetchVendors()]).finally(() =>
+                  setRefreshing(false)
+                );
+              }}
+              disabled={vendorsLoading || refreshing}
+              variant='outline'
+              className='bg-white/10 border-white/20 text-white hover:bg-white/20'
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${
+                  vendorsLoading || refreshing ? 'animate-spin' : ''
+                }`}
+              />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => handleExportVendors('csv')}
+              disabled={exporting}
+              variant='outline'
+              className='bg-white/10 border-white/20 text-white hover:bg-white/20'
+            >
+              <Download className='h-4 w-4 mr-2' />
+              {exporting ? 'Exporting...' : 'Export'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -231,8 +525,10 @@ const VendorManagement = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>456</div>
-            <p className='text-xs text-green-600'>+15% from last month</p>
+            <div className='text-2xl font-bold'>{stats.totalVendors}</div>
+            <p className='text-xs text-green-600'>
+              {stats.vendorGrowth} from last month
+            </p>
           </CardContent>
         </Card>
 
@@ -246,8 +542,10 @@ const VendorManagement = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>389</div>
-            <p className='text-xs text-green-600'>85.3% of total</p>
+            <div className='text-2xl font-bold'>{stats.verifiedVendors}</div>
+            <p className='text-xs text-green-600'>
+              {stats.verifiedPercentage} of total
+            </p>
           </CardContent>
         </Card>
 
@@ -261,7 +559,7 @@ const VendorManagement = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>23</div>
+            <div className='text-2xl font-bold'>{stats.pendingVendors}</div>
             <p className='text-xs text-yellow-600'>Requires attention</p>
           </CardContent>
         </Card>
@@ -276,7 +574,9 @@ const VendorManagement = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>4.7</div>
+            <div className='text-2xl font-bold'>
+              {stats.averageRating.toFixed(1)}
+            </div>
             <p className='text-xs text-green-600'>+0.2 from last month</p>
           </CardContent>
         </Card>
@@ -368,7 +668,7 @@ const VendorManagement = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='all'>All Status</SelectItem>
-                    <SelectItem value='VERIFIED'>Verified</SelectItem>
+                    <SelectItem value='ACTIVE'>Active</SelectItem>
                     <SelectItem value='PENDING'>Pending</SelectItem>
                     <SelectItem value='SUSPENDED'>Suspended</SelectItem>
                     <SelectItem value='REJECTED'>Rejected</SelectItem>
@@ -387,6 +687,14 @@ const VendorManagement = () => {
                     <SelectItem value='unverified'>Unverified</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button
+                  onClick={() => setShowBulkActionsDialog(true)}
+                  disabled={selectedVendors.length === 0}
+                  variant='outline'
+                  className='whitespace-nowrap'
+                >
+                  Bulk Actions ({selectedVendors.length})
+                </Button>
               </div>
 
               {/* Vendors Table */}
@@ -394,6 +702,19 @@ const VendorManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className='w-12'>
+                        <input
+                          type='checkbox'
+                          checked={
+                            selectedVendors.length === vendors.length &&
+                            vendors.length > 0
+                          }
+                          onChange={(e) =>
+                            handleSelectAllVendors(e.target.checked)
+                          }
+                          className='rounded border-gray-300'
+                        />
+                      </TableHead>
                       <TableHead>Vendor Details</TableHead>
                       <TableHead>Company</TableHead>
                       <TableHead>Skills & Experience</TableHead>
@@ -404,8 +725,18 @@ const VendorManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredVendors.map((vendor) => (
+                    {vendors.map((vendor) => (
                       <TableRow key={vendor.id}>
+                        <TableCell>
+                          <input
+                            type='checkbox'
+                            checked={selectedVendors.includes(vendor.id)}
+                            onChange={(e) =>
+                              handleVendorSelection(vendor.id, e.target.checked)
+                            }
+                            className='rounded border-gray-300'
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className='space-y-2'>
                             <div className='flex items-center space-x-3'>
@@ -420,50 +751,59 @@ const VendorManagement = () => {
                                   <Mail className='h-3 w-3' />
                                   {vendor.email}
                                 </div>
-                                <div className='text-sm text-gray-500 flex items-center gap-2'>
-                                  <Phone className='h-3 w-3' />
-                                  {vendor.phone}
-                                </div>
+                                {vendor.phone && (
+                                  <div className='text-sm text-gray-500 flex items-center gap-2'>
+                                    <Phone className='h-3 w-3' />
+                                    {vendor.phone}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <div className='flex items-center gap-2 text-xs text-gray-500'>
-                              <MapPin className='h-3 w-3' />
-                              {vendor.location}
-                            </div>
+                            {vendor.location && (
+                              <div className='flex items-center gap-2 text-xs text-gray-500'>
+                                <MapPin className='h-3 w-3' />
+                                {vendor.location}
+                              </div>
+                            )}
                             <div className='flex items-center gap-2 text-xs text-gray-500'>
                               <Calendar className='h-3 w-3' />
-                              Joined: {vendor.joinedDate}
+                              Joined:{' '}
+                              {new Date(vendor.createdAt).toLocaleDateString()}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className='space-y-1'>
                             <div className='font-medium'>
-                              {vendor.companyName}
+                              {vendor.vendorProfile?.companyName || 'N/A'}
                             </div>
                             <div className='text-sm text-gray-500'>
-                              {vendor.businessType}
+                              {vendor.vendorProfile?.businessType || 'N/A'}
                             </div>
                             <div className='text-sm text-gray-500'>
-                              {vendor.experience} years experience
+                              {vendor.vendorProfile?.experience || 0} years
+                              experience
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className='space-y-2'>
                             <div className='flex flex-wrap gap-1'>
-                              {vendor.skills.slice(0, 3).map((skill, index) => (
-                                <Badge
-                                  key={index}
-                                  variant='outline'
-                                  className='text-xs'
-                                >
-                                  {skill}
-                                </Badge>
-                              ))}
+                              {(vendor.vendorProfile?.skills || [])
+                                .slice(0, 3)
+                                .map((skill, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant='outline'
+                                    className='text-xs'
+                                  >
+                                    {skill}
+                                  </Badge>
+                                ))}
                             </div>
                             <div className='text-xs text-gray-500'>
-                              {vendor.portfolio.length} portfolio links
+                              {(vendor.vendorProfile?.portfolio || []).length}{' '}
+                              portfolio links
                             </div>
                           </div>
                         </TableCell>
@@ -480,46 +820,84 @@ const VendorManagement = () => {
                               </div>
                             </div>
                             <div className='text-xs text-gray-500'>
-                              {vendor.documents.length} documents uploaded
+                              {(vendor.vendorProfile?.documents || []).length}{' '}
+                              documents uploaded
                             </div>
                             <div className='flex items-center gap-1'>
-                              {vendor.verified ? (
+                              {vendor.vendorProfile?.verified ? (
                                 <CheckCircle className='h-3 w-3 text-green-600' />
                               ) : (
                                 <Clock className='h-3 w-3 text-yellow-600' />
                               )}
                               <span className='text-xs'>
-                                {vendor.verified ? 'Verified' : 'Pending'}
+                                {vendor.vendorProfile?.verified
+                                  ? 'Verified'
+                                  : 'Pending'}
                               </span>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className='space-y-2'>
-                            {getRatingStars(vendor.rating)}
+                            {vendor.vendorProfile?.rating ? (
+                              getRatingStars(vendor.vendorProfile.rating)
+                            ) : (
+                              <span className='text-sm text-gray-500'>
+                                No rating
+                              </span>
+                            )}
                             <div className='text-sm text-gray-500'>
-                              {vendor.totalReviews} reviews
+                              {vendor.vendorProfile?.totalReviews || 0} reviews
                             </div>
                             <div className='text-sm text-gray-500'>
-                              {vendor.completedJobs} jobs completed
+                              {vendor.vendorProfile?.completedJobs || 0} jobs
+                              completed
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(vendor.status)}</TableCell>
                         <TableCell>
                           <div className='flex items-center gap-2'>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setSelectedVendor(vendor);
+                                setShowVendorDetails(true);
+                              }}
+                            >
                               <Eye className='h-4 w-4' />
                             </Button>
-                            <Button variant='ghost' size='sm'>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setSelectedVendor(vendor);
+                                setShowStatusDialog(true);
+                              }}
+                            >
                               <Edit className='h-4 w-4' />
                             </Button>
-                            <Button variant='ghost' size='sm'>
-                              <FileText className='h-4 w-4' />
-                            </Button>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='h-4 w-4' />
-                            </Button>
+                            {vendor.status === 'PENDING' && (
+                              <>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => handleApproveVendor(vendor.id)}
+                                  disabled={approveVendorMutation.isPending}
+                                >
+                                  <CheckCircle className='h-4 w-4 text-green-600' />
+                                </Button>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() => handleRejectVendor(vendor.id)}
+                                  disabled={rejectVendorMutation.isPending}
+                                >
+                                  <XCircle className='h-4 w-4 text-red-600' />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -531,14 +909,25 @@ const VendorManagement = () => {
               {/* Pagination */}
               <div className='flex items-center justify-between mt-6'>
                 <div className='text-sm text-gray-500'>
-                  Showing 1 to {filteredVendors.length} of {vendors.length}{' '}
-                  results
+                  Showing {(currentPage - 1) * 20 + 1} to{' '}
+                  {Math.min(currentPage * 20, pagination.total)} of{' '}
+                  {pagination.total} results
                 </div>
                 <div className='flex gap-2'>
-                  <Button variant='outline' size='sm'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                  >
                     Previous
                   </Button>
-                  <Button variant='outline' size='sm'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    disabled={currentPage === pagination.pages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                  >
                     Next
                   </Button>
                 </div>
@@ -646,6 +1035,136 @@ const VendorManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Status Update Dialog */}
+      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Vendor Status</DialogTitle>
+            <DialogDescription>
+              Change the status of the selected vendor
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-4'>
+            <div>
+              <label className='text-sm font-medium'>New Status</label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select status' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='ACTIVE'>Set to Active</SelectItem>
+                  <SelectItem value='SUSPENDED'>Set to Suspended</SelectItem>
+                  <SelectItem value='REJECTED'>Set to Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className='text-sm font-medium'>Reason (Optional)</label>
+              <Input
+                placeholder='Enter reason for status change'
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+              />
+            </div>
+            <div className='flex gap-2 justify-end'>
+              <Button
+                variant='outline'
+                onClick={() => setShowStatusDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleStatusUpdate}
+                disabled={!newStatus || toggleStatusMutation.isPending}
+              >
+                {toggleStatusMutation.isPending ? (
+                  <>
+                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Status'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Actions Dialog */}
+      <Dialog
+        open={showBulkActionsDialog}
+        onOpenChange={setShowBulkActionsDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bulk Actions</DialogTitle>
+            <DialogDescription>
+              Perform actions on {selectedVendors.length} selected vendors
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-4'>
+            <div>
+              <label className='text-sm font-medium'>Action</label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Select action' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='ACTIVE'>Set to Active</SelectItem>
+                  <SelectItem value='SUSPENDED'>Set to Suspended</SelectItem>
+                  <SelectItem value='REJECTED'>Set to Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className='text-sm font-medium'>Reason (Optional)</label>
+              <Input
+                placeholder='Enter reason for action'
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+              />
+            </div>
+            <div className='flex gap-2 justify-end'>
+              <Button
+                variant='outline'
+                onClick={() => setShowBulkActionsDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleBulkUpdateStatus}
+                disabled={!newStatus || bulkUpdateStatusMutation.isPending}
+                className='mr-2'
+              >
+                {bulkUpdateStatusMutation.isPending ? (
+                  <>
+                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Status'
+                )}
+              </Button>
+              <Button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteVendorsMutation.isPending}
+                variant='destructive'
+              >
+                {bulkDeleteVendorsMutation.isPending ? (
+                  <>
+                    <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Vendors'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

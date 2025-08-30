@@ -32,7 +32,13 @@ export interface Vendor {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
   status: string;
+  location?: string;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  createdAt: string;
+  lastLoginAt?: string;
   vendorProfile?: {
     companyName?: string;
     businessType?: string;
@@ -41,8 +47,11 @@ export interface Vendor {
     rating: number;
     totalReviews: number;
     completedJobs: number;
+    portfolio?: string[];
+    documents?: string[];
+    verified: boolean;
+    verifiedAt?: string;
   };
-  createdAt: string;
 }
 
 export interface Customer {
@@ -115,6 +124,7 @@ export interface PaginatedResponse<T> {
   data: {
     users?: T[];
     jobs?: T[];
+    vendors?: T[];
     pagination: {
       page: number;
       limit: number;
@@ -334,6 +344,153 @@ export const toggleVendorStatus = async (
     },
     true
   );
+};
+
+// Enhanced vendor management APIs
+export const getVendorStats = async (): Promise<{
+  success: boolean;
+  data: {
+    totalVendors: number;
+    verifiedVendors: number;
+    pendingVendors: number;
+    suspendedVendors: number;
+    rejectedVendors: number;
+    newVendorsThisMonth: number;
+    vendorGrowth: string;
+    verifiedPercentage: string;
+    averageRating: number;
+    totalCompletedJobs: number;
+  };
+}> => {
+  const response = await apiCall(
+    '/api/admin/vendors/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getVendorDetails = async (
+  vendorId: string
+): Promise<{
+  success: boolean;
+  data: Vendor & {
+    vendorProfile?: {
+      companyName?: string;
+      businessType?: string;
+      experience?: number;
+      skills: string[];
+      rating: number;
+      totalReviews: number;
+      completedJobs: number;
+      portfolio?: string[];
+      documents?: string[];
+      verified: boolean;
+      verifiedAt?: string;
+    };
+    jobs: {
+      id: string;
+      title: string;
+      status: string;
+      budget: number;
+      createdAt: string;
+    }[];
+    reviews: {
+      id: string;
+      rating: number;
+      comment: string;
+      createdAt: string;
+    }[];
+  };
+}> => {
+  const response = await apiCall(
+    `/api/admin/vendors/${vendorId}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const bulkUpdateVendorStatus = async (
+  vendorIds: string[],
+  status: string,
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { updatedVendors: number };
+}> => {
+  const response = await apiCall(
+    '/api/admin/vendors/bulk/status',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ vendorIds, status, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const bulkDeleteVendors = async (
+  vendorIds: string[],
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { deletedVendors: number };
+}> => {
+  const response = await apiCall(
+    '/api/admin/vendors/bulk',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ vendorIds, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const exportVendors = async (params?: {
+  format?: 'csv' | 'json';
+  status?: string;
+  verification?: string;
+  search?: string;
+}): Promise<Blob | { success: boolean; data: Vendor[]; exportInfo: any }> => {
+  const searchParams = new URLSearchParams();
+  if (params?.format) searchParams.append('format', params.format);
+  if (params?.status) searchParams.append('status', params.status);
+  if (params?.verification)
+    searchParams.append('verification', params.verification);
+  if (params?.search) searchParams.append('search', params.search);
+
+  if (params?.format === 'csv') {
+    // For CSV, return blob
+    const response = await fetch(
+      `${
+        process.env.REACT_APP_API_URL
+      }/api/admin/vendors/export?${searchParams.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to export vendors');
+    }
+
+    return response.blob();
+  } else {
+    // For JSON, use regular apiCall
+    const response = await apiCall(
+      `/api/admin/vendors/export?${searchParams.toString()}`,
+      { method: 'GET' },
+      true
+    );
+    return response;
+  }
 };
 
 // ========================================
