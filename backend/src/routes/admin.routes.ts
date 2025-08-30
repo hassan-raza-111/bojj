@@ -12,6 +12,8 @@ router.get('/debug', (req, res) => {
     routes: [
       '/dashboard/stats',
       '/dashboard/analytics',
+      '/users',
+      '/users/stats',
       '/vendors',
       '/customers',
       '/payments',
@@ -24,7 +26,7 @@ router.get('/debug', (req, res) => {
   });
 });
 
-// Apply admin authentication middleware to all routes
+// Apply admin authentication middleware to ALL protected routes
 router.use(authMiddleware);
 
 // ========================================
@@ -37,6 +39,41 @@ router.get(
 router.get(
   '/dashboard/analytics',
   adminController.getSystemAnalytics.bind(adminController)
+);
+
+// ========================================
+// USER MANAGEMENT
+// ========================================
+router.get('/users', (req, res) => adminController.getAllUsers(req, res));
+router.get('/users/stats', (req, res) =>
+  adminController.getUserStats(req, res)
+);
+router.get('/users/:userId', (req, res) =>
+  adminController.getUserDetails(req, res)
+);
+router.patch('/users/:userId/status', (req, res) =>
+  adminController.updateUserStatus(req, res)
+);
+router.delete('/users/:userId', (req, res) =>
+  adminController.deleteUser(req, res)
+);
+
+// New user management routes
+router.post('/users', (req, res) => adminController.createUser(req, res));
+router.patch('/users/bulk/status', (req, res) =>
+  adminController.bulkUpdateUserStatus(req, res)
+);
+router.delete('/users/bulk', (req, res) =>
+  adminController.bulkDeleteUsers(req, res)
+);
+router.patch('/users/:userId/verification', (req, res) =>
+  adminController.updateUserVerification(req, res)
+);
+router.get('/users/:userId/activity', (req, res) =>
+  adminController.getUserActivity(req, res)
+);
+router.get('/users/export', (req, res) =>
+  adminController.exportUsers(req, res)
 );
 
 // ========================================

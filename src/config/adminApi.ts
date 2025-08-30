@@ -108,13 +108,86 @@ export interface SupportTicket {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
+  success: boolean;
+  data: {
+    users: T[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
   };
+}
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: 'CUSTOMER' | 'VENDOR' | 'ADMIN';
+  status: 'ACTIVE' | 'PENDING' | 'VERIFIED' | 'SUSPENDED' | 'DELETED';
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  rating?: number;
+  totalReviews?: number;
+  totalEarnings?: number;
+  createdAt: string;
+  lastLoginAt?: string;
+  loginCount?: number;
+  location?: string;
+  totalJobs?: number;
+  totalSpent?: number;
+  joinedDate?: string;
+  lastActive?: string;
+  vendorProfile?: {
+    companyName?: string;
+    businessType?: string;
+    experience?: number;
+    skills: string[];
+    verified: boolean;
+    totalJobs: number;
+    completedJobs: number;
+  };
+  customerProfile?: {
+    preferredCategories: string[];
+    budgetRange?: string;
+    totalJobsPosted: number;
+    totalSpent: number;
+  };
+}
+
+export interface UserStats {
+  success: boolean;
+  data: {
+    totalUsers: number;
+    activeUsers: number;
+    pendingVerification: number;
+    suspendedUsers: number;
+    totalVendors: number;
+    totalCustomers: number;
+    newUsersThisMonth: number;
+    activeUsersThisMonth: number;
+    userGrowth: string;
+    activePercentage: string;
+  };
+}
+
+export interface UserDetails extends User {
+  jobs: {
+    id: string;
+    title: string;
+    status: string;
+    budget: number;
+    createdAt: string;
+  }[];
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+  }[];
 }
 
 // ========================================
@@ -524,6 +597,236 @@ export const getAdminActionLogs = async (
     true
   );
   return response;
+};
+
+// ========================================
+// USER MANAGEMENT APIs
+// ========================================
+
+export const getAllUsers = async (params?: {
+  page?: number;
+  limit?: number;
+  role?: string;
+  status?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}): Promise<PaginatedResponse<User>> => {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append('page', params.page.toString());
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+  if (params?.role) searchParams.append('role', params.role);
+  if (params?.status) searchParams.append('status', params.status);
+  if (params?.search) searchParams.append('search', params.search);
+  if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
+  if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+
+  const response = await apiCall(
+    `/api/admin/users?${searchParams.toString()}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getUserStats = async (): Promise<UserStats> => {
+  const response = await apiCall(
+    '/api/admin/users/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getUserDetails = async (userId: string): Promise<UserDetails> => {
+  const response = await apiCall(
+    `/api/admin/users/${userId}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const updateUserStatus = async (
+  userId: string,
+  status: string,
+  reason?: string
+): Promise<{ success: boolean; message: string; data: any }> => {
+  const response = await apiCall(
+    `/api/admin/users/${userId}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const deleteUser = async (
+  userId: string
+): Promise<{ success: boolean; message: string; data: any }> => {
+  const response = await apiCall(
+    `/api/admin/users/${userId}`,
+    { method: 'DELETE' },
+    true
+  );
+  return response;
+};
+
+// New user management APIs
+export const createUser = async (userData: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: 'CUSTOMER' | 'VENDOR' | 'ADMIN';
+  password: string;
+  location?: string;
+  companyName?: string;
+  businessType?: string;
+  experience?: number;
+  skills?: string[];
+  preferredCategories?: string[];
+  budgetRange?: string;
+}): Promise<{ success: boolean; message: string; data: User }> => {
+  const response = await apiCall(
+    '/api/admin/users',
+    {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    },
+    true
+  );
+  return response;
+};
+
+export const bulkUpdateUserStatus = async (
+  userIds: string[],
+  status: string,
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { updatedUsers: User[] };
+}> => {
+  const response = await apiCall(
+    '/api/admin/users/bulk/status',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ userIds, status, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const bulkDeleteUsers = async (
+  userIds: string[],
+  reason?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  data: { deletedUsers: User[] };
+}> => {
+  const response = await apiCall(
+    '/api/admin/users/bulk',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ userIds, reason }),
+    },
+    true
+  );
+  return response;
+};
+
+export const updateUserVerification = async (
+  userId: string,
+  verificationData: {
+    emailVerified?: boolean;
+    phoneVerified?: boolean;
+    reason?: string;
+  }
+): Promise<{ success: boolean; message: string; data: User }> => {
+  const response = await apiCall(
+    `/api/admin/users/${userId}/verification`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(verificationData),
+    },
+    true
+  );
+  return response;
+};
+
+export const getUserActivity = async (
+  userId: string,
+  params?: {
+    page?: number;
+    limit?: number;
+  }
+): Promise<{
+  success: boolean;
+  data: {
+    user: User;
+    jobs: PaginatedResponse<any>;
+    payments: PaginatedResponse<any>;
+    bids?: PaginatedResponse<any>;
+    reviews: PaginatedResponse<any>;
+  };
+}> => {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.append('page', params.page.toString());
+  if (params?.limit) searchParams.append('limit', params.limit.toString());
+
+  const response = await apiCall(
+    `/api/admin/users/${userId}/activity?${searchParams.toString()}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const exportUsers = async (params?: {
+  format?: 'csv' | 'json';
+  role?: string;
+  status?: string;
+  search?: string;
+}): Promise<Blob | { success: boolean; data: User[]; exportInfo: any }> => {
+  const searchParams = new URLSearchParams();
+  if (params?.format) searchParams.append('format', params.format);
+  if (params?.role) searchParams.append('role', params.role);
+  if (params?.status) searchParams.append('status', params.status);
+  if (params?.search) searchParams.append('search', params.search);
+
+  if (params?.format === 'csv') {
+    // For CSV, return blob
+    const response = await fetch(
+      `${
+        process.env.REACT_APP_API_URL
+      }/api/admin/users/export?${searchParams.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to export users');
+    }
+
+    return response.blob();
+  } else {
+    // For JSON, use regular apiCall
+    const response = await apiCall(
+      `/api/admin/users/export?${searchParams.toString()}`,
+      { method: 'GET' },
+      true
+    );
+    return response;
+  }
 };
 
 // ========================================

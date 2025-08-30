@@ -1253,4 +1253,1015 @@ export class AdminController {
         .json({ success: false, message: 'Failed to fetch admin action logs' });
     }
   }
+
+  // ========================================
+  // USER MANAGEMENT
+  // ========================================
+
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const search = req.query.search as string;
+      const role = req.query.role as string;
+      const status = req.query.status as string;
+      const sortBy = (req.query.sortBy as string) || 'createdAt';
+      const sortOrder = (req.query.sortOrder as string) || 'desc';
+
+      const pageNum = Math.max(1, page);
+      const limitNum = Math.min(100, Math.max(1, limit));
+
+      // Build where clause
+      const where: any = {};
+      if (search) {
+        where.OR = [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+      if (role && role !== 'all') where.role = role;
+      if (status && status !== 'all') where.status = status;
+
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            role: true,
+            status: true,
+            emailVerified: true,
+            phoneVerified: true,
+            createdAt: true,
+            lastLoginAt: true,
+            loginCount: true,
+            location: true,
+            vendorProfile: {
+              select: {
+                companyName: true,
+                businessType: true,
+                experience: true,
+                skills: true,
+                verified: true,
+                totalJobs: true,
+                completedJobs: true,
+              },
+            },
+            customerProfile: {
+              select: {
+                preferredCategories: true,
+                budgetRange: true,
+                totalJobsPosted: true,
+                totalSpent: true,
+              },
+            },
+          },
+          skip: (pageNum - 1) * limitNum,
+          take: limitNum,
+          orderBy: { [sortBy as string]: sortOrder as 'asc' | 'desc' },
+        }),
+        prisma.user.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(total / limitNum);
+
+      // Transform data for frontend
+      const transformedUsers = users.map((user) => ({
+        ...user,
+        location: user.location || 'N/A',
+        totalJobs:
+          user.vendorProfile?.totalJobs ||
+          user.customerProfile?.totalJobsPosted ||
+          0,
+        totalSpent: user.customerProfile?.totalSpent || 0,
+        joinedDate: user.createdAt.toISOString().split('T')[0],
+        lastActive: user.lastLoginAt
+          ? this.getTimeAgo(user.lastLoginAt)
+          : 'Never',
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          users: transformedUsers,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to get all users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch users',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async createUser(req: Request, res: Response) {
+    try {
+      const {
+        firstName,
+        lastName,
+        email,
+        phone,
+        role,
+        password,
+        location,
+        companyName,
+        businessType,
+        experience,
+        skills,
+        preferredCategories,
+        budgetRange,
+      } = req.body;
+
+      const adminId = (req as any).user?.id;
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !role || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields',
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User with this email already exists',
+        });
+      }
+
+      // Create user with transaction to handle profile creation
+      const result = await prisma.$transaction(async (tx) => {
+        // Create user
+        const user = await tx.user.create({
+          data: {
+            firstName,
+            lastName,
+            email,
+            phone,
+            role: role as any,
+            password: password, // Note: In production, hash this password
+            location,
+            status: 'ACTIVE',
+            emailVerified: true, // Admin-created users are pre-verified
+            phoneVerified: true,
+          },
+        });
+
+        // Create vendor profile if role is VENDOR
+        if (role === 'VENDOR') {
+          await tx.vendorProfile.create({
+            data: {
+              userId: user.id,
+              companyName,
+              businessType,
+              experience: experience ? parseInt(experience) : 0,
+              skills: skills || [],
+              verified: true, // Admin-created vendors are pre-verified
+            },
+          });
+        }
+
+        // Create customer profile if role is CUSTOMER
+        if (role === 'CUSTOMER') {
+          await tx.customerProfile.create({
+            data: {
+              userId: user.id,
+              preferredCategories: preferredCategories || [],
+              budgetRange,
+            },
+          });
+        }
+
+        return user;
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'CREATE_USER', 'USER', result.id, {
+        userEmail: result.email,
+        userRole: result.role,
+        firstName,
+        lastName,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'User created successfully',
+        data: result,
+      });
+    } catch (error) {
+      logger.error('Failed to create user:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create user',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkUpdateUserStatus(req: Request, res: Response) {
+    try {
+      const { userIds, status, reason } = req.body;
+      const adminId = (req as any).user?.id;
+
+      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'User IDs array is required',
+        });
+      }
+
+      if (!['ACTIVE', 'SUSPENDED', 'PENDING', 'VERIFIED'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid status value',
+        });
+      }
+
+      // Update all users in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const updates = await Promise.all(
+          userIds.map((userId: string) =>
+            tx.user.update({
+              where: { id: userId },
+              data: { status },
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+              },
+            })
+          )
+        );
+
+        return updates;
+      });
+
+      // Log admin action for each user
+      await Promise.all(
+        result.map((user) =>
+          this.logAdminAction(
+            adminId,
+            `BULK_UPDATE_STATUS_TO_${status}`,
+            'USER',
+            user.id,
+            { reason, previousStatus: 'ACTIVE' }
+          )
+        )
+      );
+
+      res.json({
+        success: true,
+        message: `Status updated to ${status} for ${result.length} users`,
+        data: { updatedUsers: result },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk update user status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk update user status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkDeleteUsers(req: Request, res: Response) {
+    try {
+      const { userIds, reason } = req.body;
+      const adminId = (req as any).user?.id;
+
+      if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'User IDs array is required',
+        });
+      }
+
+      // Soft delete all users in a transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const deletes = await Promise.all(
+          userIds.map((userId: string) =>
+            tx.user.update({
+              where: { id: userId },
+              data: { status: 'DELETED' },
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+              },
+            })
+          )
+        );
+
+        return deletes;
+      });
+
+      // Log admin action for each user
+      await Promise.all(
+        result.map((user) =>
+          this.logAdminAction(adminId, 'BULK_DELETE_USER', 'USER', user.id, {
+            reason,
+            userEmail: user.email,
+            userRole: user.role,
+          })
+        )
+      );
+
+      res.json({
+        success: true,
+        message: `Successfully deleted ${result.length} users`,
+        data: { deletedUsers: result },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk delete users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk delete users',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async updateUserVerification(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { emailVerified, phoneVerified, reason } = req.body;
+      const adminId = (req as any).user?.id;
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          emailVerified: true,
+          phoneVerified: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Update verification status
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          emailVerified:
+            emailVerified !== undefined ? emailVerified : user.emailVerified,
+          phoneVerified:
+            phoneVerified !== undefined ? phoneVerified : user.phoneVerified,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          emailVerified: true,
+          phoneVerified: true,
+        },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'UPDATE_VERIFICATION_STATUS',
+        'USER',
+        userId,
+        {
+          reason,
+          previousEmailVerified: user.emailVerified,
+          previousPhoneVerified: user.phoneVerified,
+          newEmailVerified: updatedUser.emailVerified,
+          newPhoneVerified: updatedUser.phoneVerified,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: 'User verification status updated successfully',
+        data: updatedUser,
+      });
+    } catch (error) {
+      logger.error('Failed to update user verification:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update user verification status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getUserActivity(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+      const pageNum = Math.max(1, parseInt(page as string));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
+
+      // Get user details
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          lastLoginAt: true,
+          loginCount: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Get user activity data
+      const [jobs, payments, bids, reviews] = await Promise.all([
+        // Jobs (as customer or vendor)
+        prisma.job.findMany({
+          where: {
+            OR: [{ customerId: userId }, { assignedVendorId: userId }],
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            budget: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (pageNum - 1) * limitNum,
+          take: limitNum,
+        }),
+
+        // Payments
+        prisma.payment.findMany({
+          where: {
+            OR: [{ customerId: userId }, { vendorId: userId }],
+          },
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            method: true,
+            createdAt: true,
+            paidAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (pageNum - 1) * limitNum,
+          take: limitNum,
+        }),
+
+        // Bids (for vendors)
+        user.role === 'VENDOR'
+          ? prisma.bid.findMany({
+              where: { vendorId: userId },
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                createdAt: true,
+                job: {
+                  select: {
+                    id: true,
+                    title: true,
+                    budget: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+              skip: (pageNum - 1) * limitNum,
+              take: limitNum,
+            })
+          : [],
+
+        // Reviews
+        prisma.review.findMany({
+          where: {
+            OR: [{ reviewerId: userId }, { reviewedUserId: userId }],
+          },
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            reviewer: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+            reviewedUser: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (pageNum - 1) * limitNum,
+          take: limitNum,
+        }),
+      ]);
+
+      // Get counts for pagination
+      const [totalJobs, totalPayments, totalBids, totalReviews] =
+        await Promise.all([
+          prisma.job.count({
+            where: {
+              OR: [{ customerId: userId }, { assignedVendorId: userId }],
+            },
+          }),
+          prisma.payment.count({
+            where: {
+              OR: [{ customerId: userId }, { vendorId: userId }],
+            },
+          }),
+          user.role === 'VENDOR'
+            ? prisma.bid.count({ where: { vendorId: userId } })
+            : 0,
+          prisma.review.count({
+            where: {
+              OR: [{ reviewerId: userId }, { reviewedUserId: userId }],
+            },
+          }),
+        ]);
+
+      const activity = {
+        user,
+        jobs: {
+          data: jobs,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalJobs,
+            pages: Math.ceil(totalJobs / limitNum),
+          },
+        },
+        payments: {
+          data: payments,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalPayments,
+            pages: Math.ceil(totalPayments / limitNum),
+          },
+        },
+        bids:
+          user.role === 'VENDOR'
+            ? {
+                data: bids,
+                pagination: {
+                  page: pageNum,
+                  limit: limitNum,
+                  total: totalBids,
+                  pages: Math.ceil(totalBids / limitNum),
+                },
+              }
+            : null,
+        reviews: {
+          data: reviews,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalReviews,
+            pages: Math.ceil(totalReviews / limitNum),
+          },
+        },
+      };
+
+      res.json({
+        success: true,
+        data: activity,
+      });
+    } catch (error) {
+      logger.error('Failed to get user activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user activity',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async exportUsers(req: Request, res: Response) {
+    try {
+      const { format = 'csv', role, status, search } = req.query;
+      const adminId = (req as any).user?.id;
+
+      // Build where clause
+      const where: any = {};
+      if (search) {
+        where.OR = [
+          { firstName: { contains: search as string, mode: 'insensitive' } },
+          { lastName: { contains: search as string, mode: 'insensitive' } },
+          { email: { contains: search as string, mode: 'insensitive' } },
+        ];
+      }
+      if (role && role !== 'all') where.role = role;
+      if (status && status !== 'all') where.status = status;
+
+      // Get all users matching criteria
+      const users = await prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          role: true,
+          status: true,
+          emailVerified: true,
+          phoneVerified: true,
+          location: true,
+          createdAt: true,
+          lastLoginAt: true,
+          loginCount: true,
+          vendorProfile: {
+            select: {
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              verified: true,
+              totalJobs: true,
+              completedJobs: true,
+            },
+          },
+          customerProfile: {
+            select: {
+              preferredCategories: true,
+              budgetRange: true,
+              totalJobsPosted: true,
+              totalSpent: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'EXPORT_USERS', 'USER', 'BULK', {
+        format,
+        role,
+        status,
+        search,
+        userCount: users.length,
+      });
+
+      if (format === 'csv') {
+        // Generate CSV
+        const csvHeaders = [
+          'ID',
+          'Email',
+          'First Name',
+          'Last Name',
+          'Phone',
+          'Role',
+          'Status',
+          'Email Verified',
+          'Phone Verified',
+          'Location',
+          'Created At',
+          'Last Login',
+          'Login Count',
+          'Company Name',
+          'Business Type',
+          'Experience',
+          'Skills',
+          'Vendor Verified',
+          'Total Jobs',
+          'Completed Jobs',
+          'Preferred Categories',
+          'Budget Range',
+          'Jobs Posted',
+          'Total Spent',
+        ];
+
+        const csvRows = users.map((user) => [
+          user.id,
+          user.email,
+          user.firstName,
+          user.lastName,
+          user.phone || '',
+          user.role,
+          user.status,
+          user.emailVerified ? 'Yes' : 'No',
+          user.phoneVerified ? 'Yes' : 'No',
+          user.location || '',
+          user.createdAt.toISOString(),
+          user.lastLoginAt ? user.lastLoginAt.toISOString() : '',
+          user.loginCount,
+          user.vendorProfile?.companyName || '',
+          user.vendorProfile?.businessType || '',
+          user.vendorProfile?.experience || '',
+          (user.vendorProfile?.skills || []).join(', '),
+          user.vendorProfile?.verified ? 'Yes' : 'No',
+          user.vendorProfile?.totalJobs || 0,
+          user.vendorProfile?.completedJobs || 0,
+          (user.customerProfile?.preferredCategories || []).join(', '),
+          user.customerProfile?.budgetRange || '',
+          user.customerProfile?.totalJobsPosted || 0,
+          user.customerProfile?.totalSpent || 0,
+        ]);
+
+        const csvContent = [csvHeaders, ...csvRows]
+          .map((row) => row.map((cell) => `"${cell}"`).join(','))
+          .join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename="users_export_${new Date().toISOString().split('T')[0]}.csv"`
+        );
+        res.send(csvContent);
+      } else {
+        // Return JSON
+        res.json({
+          success: true,
+          data: users,
+          exportInfo: {
+            format,
+            totalUsers: users.length,
+            exportedAt: new Date().toISOString(),
+          },
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to export users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export users',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getUserDetails(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          role: true,
+          status: true,
+          emailVerified: true,
+          phoneVerified: true,
+          createdAt: true,
+          lastLoginAt: true,
+          loginCount: true,
+          location: true,
+          vendorProfile: {
+            select: {
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              verified: true,
+              totalJobs: true,
+              completedJobs: true,
+            },
+          },
+          customerProfile: {
+            select: {
+              preferredCategories: true,
+              budgetRange: true,
+              totalJobsPosted: true,
+              totalSpent: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      logger.error('Failed to get user details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async updateUserStatus(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { status, reason } = req.body;
+      const adminId = (req as any).user?.id;
+
+      if (!['ACTIVE', 'SUSPENDED', 'PENDING', 'VERIFIED'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid status value',
+        });
+      }
+
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { status },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        `UPDATE_STATUS_TO_${status}`,
+        'USER',
+        userId,
+        { reason, previousStatus: 'ACTIVE' }
+      );
+
+      res.json({
+        success: true,
+        message: `User status updated to ${status}`,
+        data: user,
+      });
+    } catch (error) {
+      logger.error('Failed to update user status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update user status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async deleteUser(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const adminId = (req as any).user?.id;
+
+      // Check if user exists
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Soft delete - update status to DELETED instead of actually deleting
+      await prisma.user.update({
+        where: { id: userId },
+        data: { status: 'DELETED' },
+      });
+
+      // Log admin action
+      await this.logAdminAction(adminId, 'DELETE_USER', 'USER', userId, {
+        userEmail: user.email,
+        userRole: user.role,
+      });
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully',
+        data: user,
+      });
+    } catch (error) {
+      logger.error('Failed to delete user:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete user',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getUserStats(req: Request, res: Response) {
+    try {
+      const [
+        totalUsers,
+        activeUsers,
+        suspendedUsers,
+        totalVendors,
+        totalCustomers,
+        newUsersThisMonth,
+      ] = await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { status: 'ACTIVE' } }),
+        prisma.user.count({ where: { status: 'SUSPENDED' } }),
+        prisma.user.count({ where: { role: 'VENDOR' } }),
+        prisma.user.count({ where: { role: 'CUSTOMER' } }),
+        prisma.user.count({
+          where: {
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+        }),
+      ]);
+
+      const userGrowth =
+        totalUsers > 0
+          ? ((newUsersThisMonth / totalUsers) * 100).toFixed(1)
+          : '0.0';
+
+      res.json({
+        success: true,
+        data: {
+          totalUsers,
+          activeUsers,
+          suspendedUsers,
+          totalVendors,
+          totalCustomers,
+          newUsersThisMonth,
+          userGrowth: `${userGrowth}%`,
+          activePercentage:
+            totalUsers > 0
+              ? ((activeUsers / totalUsers) * 100).toFixed(1)
+              : '0.0',
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to get user stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch user statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // Helper method to format time ago
+  private getTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000)
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 31536000)
+      return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+  }
 }
