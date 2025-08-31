@@ -236,4 +236,16 @@ router.get(
   adminController.getAdminActionLogs.bind(adminController)
 );
 
+// ========================================
+// ADMIN DASHBOARD STATS & NOTIFICATIONS
+// ========================================
+router.get(
+  '/dashboard/stats',
+  adminController.getAdminDashboardStats.bind(adminController)
+);
+router.get(
+  '/notifications',
+  adminController.getAdminNotifications.bind(adminController)
+);
+
 export default router;

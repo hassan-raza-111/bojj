@@ -4403,4 +4403,318 @@ export class AdminController {
       });
     }
   }
+
+  // ========================================
+  // ADMIN DASHBOARD STATS & NOTIFICATIONS
+  // ========================================
+
+  async getAdminDashboardStats(req: Request, res: Response) {
+    try {
+      console.log('🔍 Getting admin dashboard stats...');
+
+      // Get comprehensive dashboard statistics
+      const [
+        totalUsers,
+        totalCustomers,
+        totalVendors,
+        totalJobs,
+        totalPayments,
+        pendingVendorApprovals,
+        pendingSupportTickets,
+        totalRevenue,
+        monthlyGrowth,
+        recentActivities,
+        systemAlerts,
+      ] = await Promise.all([
+        // User counts
+        prisma.user.count(),
+        prisma.user.count({ where: { role: 'CUSTOMER' } }),
+        prisma.user.count({ where: { role: 'VENDOR' } }),
+        
+        // Job counts
+        prisma.job.count(),
+        prisma.job.count({ where: { status: 'OPEN' } }),
+        
+        // Payment counts
+        prisma.payment.count(),
+        prisma.payment.aggregate({
+          where: { status: 'RELEASED' },
+          _sum: { amount: true },
+        }),
+        
+        // Vendor approvals
+        prisma.user.count({ 
+          where: { 
+            role: 'VENDOR', 
+            status: 'PENDING' 
+          } 
+        }),
+        
+        // Support tickets
+        prisma.supportTicket.count({ 
+          where: { 
+            status: 'OPEN' 
+          } 
+        }),
+        
+        // Revenue calculations
+        prisma.payment.aggregate({
+          where: { status: 'RELEASED' },
+          _sum: { amount: true },
+        }),
+        
+        // Monthly growth calculation
+        prisma.payment.aggregate({
+          where: {
+            status: 'RELEASED',
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+              lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+          _sum: { amount: true },
+        }),
+        
+        // Recent admin activities
+        prisma.adminActionLog.findMany({
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            admin: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        }),
+        
+        // System alerts (users with issues, failed payments, etc.)
+        prisma.user.count({
+          where: {
+            OR: [
+              { status: 'SUSPENDED' },
+              { status: 'PENDING' },
+            ],
+          },
+        }),
+      ]);
+
+      const totalRevenueAmount = totalRevenue._sum.amount || 0;
+      const lastMonthRevenue = monthlyGrowth._sum.amount || 0;
+      const monthlyGrowthPercentage = lastMonthRevenue > 0 
+        ? (((totalRevenueAmount - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1)
+        : '0.0';
+
+      // Calculate notification count
+      const notificationCount = pendingVendorApprovals + pendingSupportTickets + systemAlerts;
+
+      console.log('✅ Admin dashboard stats calculated successfully');
+
+      res.json({
+        success: true,
+        data: {
+          overview: {
+            totalUsers,
+            totalCustomers,
+            totalVendors,
+            totalJobs,
+            openJobs: totalJobs,
+            totalPayments,
+            totalRevenue: totalRevenueAmount,
+            monthlyGrowth: `${monthlyGrowthPercentage}%`,
+          },
+          pendingActions: {
+            vendorApprovals: pendingVendorApprovals,
+            supportTickets: pendingSupportTickets,
+            systemAlerts: systemAlerts,
+            totalNotifications: notificationCount,
+          },
+          recentActivities: recentActivities.map(activity => ({
+            id: activity.id,
+            action: activity.action,
+            details: activity.details,
+            adminName: `${activity.admin.firstName} ${activity.admin.lastName}`,
+            timestamp: activity.createdAt,
+            severity: activity.severity,
+          })),
+          quickStats: {
+            activeUsers: totalUsers - systemAlerts,
+            successRate: totalJobs > 0 ? ((totalJobs - pendingSupportTickets) / totalJobs * 100).toFixed(1) : '0.0',
+            averageJobValue: totalJobs > 0 ? (totalRevenueAmount / totalJobs).toFixed(2) : '0.00',
+          },
+        },
+      });
+    } catch (error) {
+      console.error('❌ Error getting admin dashboard stats:', error);
+      logger.error('Failed to get admin dashboard stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch dashboard statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getAdminNotifications(req: Request, res: Response) {
+    try {
+      console.log('🔍 Getting admin notifications...');
+
+      const [
+        pendingVendors,
+        urgentTickets,
+        systemIssues,
+        recentPayments,
+      ] = await Promise.all([
+        // Pending vendor approvals
+        prisma.user.findMany({
+          where: { 
+            role: 'VENDOR', 
+            status: 'PENDING' 
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            createdAt: true,
+            vendorProfile: {
+              select: {
+                companyName: true,
+                businessType: true,
+              },
+            },
+          },
+        }),
+        
+        // Urgent support tickets
+        prisma.supportTicket.findMany({
+          where: { 
+            priority: 'HIGH',
+            status: 'OPEN'
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            priority: true,
+            status: true,
+            createdAt: true,
+            customer: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        }),
+        
+        // System issues (failed payments, suspended users, etc.)
+        prisma.payment.findMany({
+          where: { 
+            status: 'FAILED' 
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            createdAt: true,
+            customer: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        }),
+        
+        // Recent large payments
+        prisma.payment.findMany({
+          where: { 
+            status: 'RELEASED',
+            amount: { gte: 1000 } // Payments over $1000
+          },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+            customer: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+            vendor: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+      console.log('✅ Admin notifications fetched successfully');
+
+      res.json({
+        success: true,
+        data: {
+          pendingVendors: pendingVendors.map(vendor => ({
+            id: vendor.id,
+            name: `${vendor.firstName} ${vendor.lastName}`,
+            email: vendor.email,
+            company: vendor.vendorProfile?.companyName || 'N/A',
+            businessType: vendor.vendorProfile?.businessType || 'N/A',
+            pendingSince: vendor.createdAt,
+            type: 'vendor_approval',
+            priority: 'medium',
+          })),
+          urgentTickets: urgentTickets.map(ticket => ({
+            id: ticket.id,
+            title: ticket.title,
+            priority: ticket.priority,
+            status: ticket.status,
+            customer: `${ticket.customer.firstName} ${ticket.customer.lastName}`,
+            customerEmail: ticket.customer.email,
+            createdAt: ticket.createdAt,
+            type: 'support_ticket',
+            priority: 'high',
+          })),
+          systemIssues: systemIssues.map(issue => ({
+            id: issue.id,
+            type: 'failed_payment',
+            amount: issue.amount,
+            customer: `${issue.customer.firstName} ${issue.customer.lastName}`,
+            createdAt: issue.createdAt,
+            priority: 'high',
+          })),
+          recentPayments: recentPayments.map(payment => ({
+            id: payment.id,
+            amount: payment.amount,
+            customer: `${payment.customer.firstName} ${payment.customer.lastName}`,
+            vendor: `${payment.vendor.firstName} ${payment.vendor.lastName}`,
+            createdAt: payment.createdAt,
+            type: 'large_payment',
+            priority: 'low',
+          })),
+        },
+      });
+    } catch (error) {
+      console.error('❌ Error getting admin notifications:', error);
+      logger.error('Failed to get admin notifications:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch notifications',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
 }

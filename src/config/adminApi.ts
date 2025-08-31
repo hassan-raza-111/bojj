@@ -1350,3 +1350,83 @@ export const formatDateTime = (dateString: string): string => {
     minute: '2-digit',
   });
 };
+
+// ========================================
+// ADMIN DASHBOARD STATS & NOTIFICATIONS
+// ========================================
+
+export interface AdminDashboardStats {
+  overview: {
+    totalUsers: number;
+    totalCustomers: number;
+    totalVendors: number;
+    totalJobs: number;
+    openJobs: number;
+    totalPayments: number;
+    totalRevenue: number;
+    monthlyGrowth: string;
+  };
+  pendingActions: {
+    vendorApprovals: number;
+    supportTickets: number;
+    systemAlerts: number;
+    totalNotifications: number;
+  };
+  recentActivities: Array<{
+    id: string;
+    action: string;
+    details: string;
+    adminName: string;
+    timestamp: Date;
+    severity: string;
+  }>;
+  quickStats: {
+    activeUsers: number;
+    successRate: string;
+    averageJobValue: string;
+  };
+}
+
+export interface AdminNotification {
+  id: string;
+  name?: string;
+  email?: string;
+  company?: string;
+  businessType?: string;
+  pendingSince?: Date;
+  title?: string;
+  priority: string;
+  status?: string;
+  customer?: string;
+  customerEmail?: string;
+  amount?: number;
+  vendor?: string;
+  type: string;
+  createdAt?: Date;
+}
+
+export const getAdminDashboardStats = async (): Promise<AdminDashboardStats> => {
+  const response = await apiCall(
+    '/api/admin/dashboard/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getAdminNotifications = async (): Promise<{
+  success: boolean;
+  data: {
+    pendingVendors: AdminNotification[];
+    urgentTickets: AdminNotification[];
+    systemIssues: AdminNotification[];
+    recentPayments: AdminNotification[];
+  };
+}> => {
+  const response = await apiCall(
+    '/api/admin/notifications',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
