@@ -108,10 +108,18 @@ export class VendorController {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const { page = 1, limit = 10, category, location } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        category,
+        location,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+      } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
 
-      // Get vendor skills
+      // Get vendor skills for better job matching
       const vendorProfile = await prisma.vendorProfile.findUnique({
         where: { userId: vendorId },
         select: { skills: true },
@@ -127,15 +135,39 @@ export class VendorController {
         },
       };
 
-      if (category) {
+      // Category filter
+      if (category && category !== 'all') {
         whereClause.category = category;
       }
 
-      if (location) {
+      // Location filter
+      if (location && location !== 'all') {
         whereClause.OR = [
           { city: { contains: location as string, mode: 'insensitive' } },
           { state: { contains: location as string, mode: 'insensitive' } },
+          { location: { contains: location as string, mode: 'insensitive' } },
         ];
+      }
+
+      // Search filter
+      if (search) {
+        whereClause.OR = [
+          { title: { contains: search as string, mode: 'insensitive' } },
+          { description: { contains: search as string, mode: 'insensitive' } },
+          { category: { contains: search as string, mode: 'insensitive' } },
+        ];
+      }
+
+      // Sort options
+      const orderBy: any = {};
+      if (sortBy === 'budget') {
+        orderBy.budget = sortOrder === 'asc' ? 'asc' : 'desc';
+      } else if (sortBy === 'deadline') {
+        orderBy.deadline = sortOrder === 'asc' ? 'asc' : 'desc';
+      } else if (sortBy === 'urgency') {
+        orderBy.urgency = sortOrder === 'asc' ? 'asc' : 'desc';
+      } else {
+        orderBy.createdAt = sortOrder === 'asc' ? 'asc' : 'desc';
       }
 
       const jobs = await prisma.job.findMany({
@@ -143,38 +175,91 @@ export class VendorController {
         include: {
           customer: {
             select: {
+              id: true,
               firstName: true,
               lastName: true,
               location: true,
+              customerProfile: {
+                select: {
+                  totalJobsPosted: true,
+                },
+              },
             },
           },
           bids: {
             select: {
               id: true,
+              amount: true,
+              status: true,
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy,
         skip,
         take: Number(limit),
       });
 
+      // Get total count for pagination
       const total = await prisma.job.count({ where: whereClause });
 
+      // Get available categories for filtering
+      const categories = await prisma.job.findMany({
+        where: { status: 'OPEN', isDeleted: false },
+        select: { category: true },
+        distinct: ['category'],
+      });
+
+      // Get available locations for filtering
+      const locations = await prisma.job.findMany({
+        where: { status: 'OPEN', isDeleted: false },
+        select: { city: true, state: true, location: true },
+        distinct: ['city', 'state', 'location'],
+      });
+
       res.json({
-        jobs,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
+        success: true,
+        data: {
+          jobs: jobs.map((job) => ({
+            ...job,
+            totalBids: job.bids?.length || 0,
+            averageBidAmount:
+              job.bids && job.bids.length > 0
+                ? job.bids.reduce(
+                    (sum: number, bid: any) => sum + bid.amount,
+                    0
+                  ) / job.bids.length
+                : 0,
+            customerRating: job.customer?.customerProfile?.totalJobsPosted || 0,
+            customerTotalJobs:
+              job.customer?.customerProfile?.totalJobsPosted || 0,
+            distance: 'Calculated based on location', // This would need geolocation service
+            urgency: job.urgency || 'Medium',
+          })),
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            pages: Math.ceil(total / Number(limit)),
+          },
+          filters: {
+            categories: categories.map((c) => c.category),
+            locations: locations
+              .filter((l) => l.city || l.state || l.location)
+              .map(
+                (l) =>
+                  `${l.city || ''}${l.city && l.state ? ', ' : ''}${l.state || ''}${l.location && !l.city && !l.state ? l.location : ''}`
+              )
+              .filter((l) => l.trim() !== ''),
+          },
         },
       });
     } catch (error) {
       logger.error('Error getting available jobs:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -456,6 +541,101 @@ export class VendorController {
     } catch (error) {
       logger.error('Error submitting bid:', error);
       res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Get available categories and locations for filtering
+  static async getAvailableFilters(req: Request, res: Response) {
+    console.log('🔍 getAvailableFilters called!', req.url, req.method);
+    try {
+      const vendorId = req.user?.id;
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Get available categories
+      const categories = await prisma.job.findMany({
+        where: {
+          status: 'OPEN',
+          isDeleted: false,
+          bids: {
+            none: {
+              vendorId: vendorId,
+            },
+          },
+        },
+        select: { category: true },
+        distinct: ['category'],
+        orderBy: { category: 'asc' },
+      });
+
+      // Get available locations
+      const locations = await prisma.job.findMany({
+        where: {
+          status: 'OPEN',
+          isDeleted: false,
+          bids: {
+            none: {
+              vendorId: vendorId,
+            },
+          },
+        },
+        select: { city: true, state: true, location: true },
+        distinct: ['city', 'state', 'location'],
+      });
+
+      // Get budget ranges
+      const budgetRanges = await prisma.job.findMany({
+        where: {
+          status: 'OPEN',
+          isDeleted: false,
+          bids: {
+            none: {
+              vendorId: vendorId,
+            },
+          },
+          budget: { not: null },
+        },
+        select: { budget: true },
+        orderBy: { budget: 'asc' },
+      });
+
+      const minBudget = Math.min(...budgetRanges.map((j) => j.budget!));
+      const maxBudget = Math.max(...budgetRanges.map((j) => j.budget!));
+
+      res.json({
+        success: true,
+        data: {
+          categories: categories.map((c) => c.category),
+          locations: locations
+            .filter((l) => l.city || l.state || l.location)
+            .map(
+              (l) =>
+                `${l.city || ''}${l.city && l.state ? ', ' : ''}${l.state || ''}${l.location && !l.city && !l.state ? l.location : ''}`
+            )
+            .filter((l) => l.trim() !== '')
+            .sort(),
+          budgetRanges: {
+            min: minBudget,
+            max: maxBudget,
+            ranges: [
+              { label: 'Under $500', min: 0, max: 500 },
+              { label: '$500 - $1,000', min: 500, max: 1000 },
+              { label: '$1,000 - $2,500', min: 1000, max: 2500 },
+              { label: '$2,500 - $5,000', min: 2500, max: 5000 },
+              { label: '$5,000 - $10,000', min: 5000, max: 10000 },
+              { label: 'Over $10,000', min: 10000, max: Infinity },
+            ],
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Error getting available filters:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 

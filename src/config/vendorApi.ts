@@ -22,12 +22,27 @@ export interface AvailableJob {
   state?: string;
   deadline?: string;
   createdAt: string;
+  urgency?: string;
+  estimatedDuration?: string;
+  totalBids: number;
+  averageBidAmount: number;
+  customerRating: number;
+  customerTotalJobs: number;
+  distance: string;
   customer: {
+    id: string;
     firstName: string;
     lastName: string;
     location?: string;
+    customerProfile?: {
+      totalJobsPosted: number;
+    };
   };
-  bids: Array<{ id: string }>;
+  bids: Array<{ 
+    id: string;
+    amount: number;
+    status: string;
+  }>;
 }
 
 export interface ActiveBid {
@@ -111,7 +126,8 @@ export interface JobDetails {
 export const vendorApi = {
   // Get dashboard summary
   getDashboardSummary: async (): Promise<VendorDashboardSummary> => {
-    return apiCall('/api/vendor/dashboard/summary', { method: 'GET' }, true);
+    const response = await apiCall('/api/vendor/dashboard/summary', { method: 'GET' }, true);
+    return response;
   },
 
   // Get available jobs
@@ -120,6 +136,11 @@ export const vendorApi = {
     limit?: number;
     category?: string;
     location?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    budgetMin?: number;
+    budgetMax?: number;
   }) => {
     const queryString = params
       ? `?${new URLSearchParams(params as any).toString()}`
@@ -129,6 +150,11 @@ export const vendorApi = {
       { method: 'GET' },
       true
     );
+  },
+
+  // Get available filters
+  getAvailableFilters: async () => {
+    return apiCall('/api/vendor/jobs/filters', { method: 'GET' }, true);
   },
 
   // Get active bids

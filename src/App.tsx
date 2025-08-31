@@ -150,6 +150,7 @@ const App = () => {
                     <Routes>
                       <Route path='/' element={<VendorDashboard />} />
                       <Route path='/jobs' element={<VendorJobsPage />} />
+                      <Route path='/jobs/search' element={<VendorJobsPage />} />
                       <Route path='/bids' element={<VendorBidsPage />} />
                       <Route
                         path='/profile'

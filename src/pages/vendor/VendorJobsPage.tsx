@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,147 +25,109 @@ import {
   DollarSign,
   Calendar,
   Star,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+import { useAvailableJobs, JobFilters } from '@/hooks/useAvailableJobs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const VendorJobsPage = () => {
   const { theme } = useTheme();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-
-  // Mock data for available jobs
-  const availableJobs = [
-    {
-      id: 'job-1',
-      title: 'Kitchen Renovation',
-      description:
-        'Complete renovation of kitchen including cabinets, countertops, and appliances. Looking for experienced contractor with kitchen renovation expertise.',
-      location: 'Chicago, IL',
-      postedDate: '2023-04-25',
-      budget: '$8,000 - $12,000',
-      category: 'Home Renovation',
-      distance: '3.2 miles away',
-      customerRating: 4.8,
-      totalBids: 12,
-      urgency: 'High',
-    },
-    {
-      id: 'job-2',
-      title: 'Bathroom Remodel',
-      description:
-        'Full bathroom remodel with new fixtures, tile, and vanity. Need someone who can work with existing plumbing.',
-      location: 'Evanston, IL',
-      postedDate: '2023-04-23',
-      budget: '$5,000 - $7,500',
-      category: 'Home Renovation',
-      distance: '5.1 miles away',
-      customerRating: 4.6,
-      totalBids: 8,
-      urgency: 'Medium',
-    },
-    {
-      id: 'job-3',
-      title: 'Deck Construction',
-      description:
-        "Build a 12' x 14' wooden deck in the backyard. Must be weather-resistant and include railings.",
-      location: 'Oak Park, IL',
-      postedDate: '2023-04-21',
-      budget: '$3,000 - $4,500',
-      category: 'Carpentry',
-      distance: '4.3 miles away',
-      customerRating: 4.9,
-      totalBids: 15,
-      urgency: 'Low',
-    },
-    {
-      id: 'job-4',
-      title: 'Basement Finishing',
-      description:
-        'Convert unfinished basement into living space. Include electrical, plumbing, and drywall work.',
-      location: 'Naperville, IL',
-      postedDate: '2023-04-20',
-      budget: '$15,000 - $20,000',
-      category: 'Home Renovation',
-      distance: '8.7 miles away',
-      customerRating: 4.7,
-      totalBids: 6,
-      urgency: 'High',
-    },
-    {
-      id: 'job-5',
-      title: 'Roof Repair',
-      description:
-        'Repair damaged shingles and flashing around chimney. Also need gutter cleaning and repair.',
-      location: 'Arlington Heights, IL',
-      postedDate: '2023-04-18',
-      budget: '$2,000 - $3,500',
-      category: 'Roofing',
-      distance: '6.2 miles away',
-      customerRating: 4.5,
-      totalBids: 9,
-      urgency: 'High',
-    },
-    {
-      id: 'job-6',
-      title: 'Landscape Design',
-      description:
-        'Design and implement complete landscape plan including plants, irrigation, and hardscaping.',
-      location: 'Wheaton, IL',
-      postedDate: '2023-04-17',
-      budget: '$6,000 - $9,000',
-      category: 'Landscaping',
-      distance: '10.1 miles away',
-      customerRating: 4.8,
-      totalBids: 11,
-      urgency: 'Medium',
-    },
-  ];
-
-  const categories = [
-    'all',
-    'Home Renovation',
-    'Carpentry',
-    'Roofing',
-    'Landscaping',
-    'Plumbing',
-    'Electrical',
-    'Painting',
-    'Flooring',
-  ];
-
-  const locations = [
-    'all',
-    'Chicago, IL',
-    'Evanston, IL',
-    'Oak Park, IL',
-    'Naperville, IL',
-    'Arlington Heights, IL',
-    'Wheaton, IL',
-  ];
-
-  const filteredJobs = availableJobs.filter((job) => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'all' || job.category === selectedCategory;
-    const matchesLocation =
-      selectedLocation === 'all' || job.location === selectedLocation;
-
-    return matchesSearch && matchesCategory && matchesLocation;
+  
+  // State for filters
+  const [filters, setFilters] = useState<JobFilters>({
+    category: 'all',
+    location: 'all',
+    search: '',
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
   });
 
+  // Debounced search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Use the custom hook
+  const {
+    jobs,
+    pagination,
+    filters: availableFilters,
+    isLoading,
+    isError,
+    refreshJobs,
+    refreshFilters,
+  } = useAvailableJobs(filters);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Update filters when search changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      search: debouncedSearchTerm,
+    }));
+  }, [debouncedSearchTerm]);
+
+  // Handle filter changes
+  const handleFilterChange = (key: keyof JobFilters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  // Handle sort change
+  const handleSortChange = (sortBy: string) => {
+    setFilters(prev => ({
+      ...prev,
+      sortBy,
+      sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  // Get budget display text
+  const getBudgetDisplay = (budget?: number, budgetType?: string) => {
+    if (!budget) return 'Negotiable';
+    return `${formatCurrency(budget)} (${budgetType || 'Fixed'})`;
+  };
+
+  // Get urgency color
   const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'High':
+    switch (urgency?.toLowerCase()) {
+      case 'high':
         return theme === 'dark'
           ? 'bg-red-900/20 text-red-300 border-red-700'
           : 'bg-red-50 text-red-700 border-red-200';
-      case 'Medium':
+      case 'medium':
         return theme === 'dark'
           ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
           : 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Low':
+      case 'low':
         return theme === 'dark'
           ? 'bg-green-900/20 text-green-300 border-green-700'
           : 'bg-green-50 text-green-700 border-green-200';
@@ -175,6 +137,55 @@ const VendorJobsPage = () => {
           : 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i} className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+          <CardHeader className='pb-3'>
+            <Skeleton className='h-6 w-3/4 mb-2' />
+            <Skeleton className='h-4 w-1/2' />
+            <div className='flex justify-between items-center mt-2'>
+              <Skeleton className='h-5 w-20' />
+              <Skeleton className='h-5 w-24' />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className='h-4 w-full mb-2' />
+            <Skeleton className='h-4 w-3/4 mb-4' />
+            <div className='grid grid-cols-2 gap-4 mb-4'>
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
+            </div>
+            <div className='flex space-x-3'>
+              <Skeleton className='h-10 flex-1' />
+              <Skeleton className='h-10 flex-1' />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  // Error component
+  const ErrorComponent = () => (
+    <div className='flex flex-col items-center justify-center py-12'>
+      <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
+      <h3 className='text-lg font-semibold mb-2'>Something went wrong</h3>
+      <p className='text-gray-600 dark:text-gray-400 mb-4'>
+        Failed to load available jobs. Please try again.
+      </p>
+      <Button onClick={refreshJobs} variant='outline'>
+        <RefreshCw className='mr-2 h-4 w-4' />
+        Retry
+      </Button>
+    </div>
+  );
+
+  if (isError) {
+    return <ErrorComponent />;
+  }
 
   return (
     <div
@@ -204,195 +215,95 @@ const VendorJobsPage = () => {
           <div className='flex-1 relative'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
             <Input
-              placeholder='Search jobs by title or description...'
+              placeholder='Search jobs by title, description, or category...'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className='pl-10'
             />
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          
+          <Select 
+            value={filters.category} 
+            onValueChange={(value) => handleFilterChange('category', value)}
+          >
             <SelectTrigger className='w-full sm:w-48'>
               <SelectValue placeholder='Category' />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
+              <SelectItem value='all'>All Categories</SelectItem>
+              {availableFilters?.categories?.map((category) => (
                 <SelectItem key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
+                  {category}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+          
+          <Select 
+            value={filters.location} 
+            onValueChange={(value) => handleFilterChange('location', value)}
+          >
             <SelectTrigger className='w-full sm:w-48'>
               <SelectValue placeholder='Location' />
             </SelectTrigger>
             <SelectContent>
-              {locations.map((location) => (
+              <SelectItem value='all'>All Locations</SelectItem>
+              {availableFilters?.locations?.map((location) => (
                 <SelectItem key={location} value={location}>
-                  {location === 'all' ? 'All Locations' : location}
+                  {location}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Sort Options */}
+        <div className='flex items-center gap-4'>
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            Sort by:
+          </span>
+          <div className='flex gap-2'>
+            {[
+              { key: 'createdAt', label: 'Date Posted' },
+              { key: 'budget', label: 'Budget' },
+              { key: 'urgency', label: 'Urgency' },
+            ].map((sortOption) => (
+              <Button
+                key={sortOption.key}
+                variant={filters.sortBy === sortOption.key ? 'default' : 'outline'}
+                size='sm'
+                onClick={() => handleSortChange(sortOption.key)}
+                className='text-xs'
+              >
+                {sortOption.label}
+                {filters.sortBy === sortOption.key && (
+                  <span className='ml-1'>
+                    {filters.sortOrder === 'asc' ? '↑' : '↓'}
+                  </span>
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Results Count */}
-      <div className='mb-6'>
+      {/* Results Count and Refresh */}
+      <div className='flex justify-between items-center mb-6'>
         <p
           className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
         >
-          Showing {filteredJobs.length} of {availableJobs.length} available jobs
+          {isLoading ? 'Loading...' : `Showing ${jobs.length} of ${pagination?.total || 0} available jobs`}
         </p>
+        <Button onClick={refreshJobs} variant='outline' size='sm' disabled={isLoading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Jobs Grid */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        {filteredJobs.map((job) => (
-          <Card
-            key={job.id}
-            className={`${
-              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-            } hover:shadow-lg transition-shadow duration-200`}
-          >
-            <CardHeader className='pb-3'>
-              <div className='flex justify-between items-start mb-3'>
-                <div className='min-w-0 flex-1'>
-                  <CardTitle
-                    className={`text-xl ${
-                      theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}
-                  >
-                    {job.title}
-                  </CardTitle>
-                  <div className='flex items-center gap-2 mt-1'>
-                    <MapPin className='h-4 w-4 text-gray-400' />
-                    <span
-                      className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                      }`}
-                    >
-                      {job.location} • {job.distance}
-                    </span>
-                  </div>
-                </div>
-                <Badge
-                  variant='outline'
-                  className={`${
-                    theme === 'dark'
-                      ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  }`}
-                >
-                  {job.category}
-                </Badge>
-              </div>
-
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-4'>
-                  <div className='flex items-center gap-1'>
-                    <Star className='h-4 w-4 text-yellow-500 fill-current' />
-                    <span
-                      className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                      }`}
-                    >
-                      {job.customerRating}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}
-                  >
-                    {job.totalBids} bids
-                  </span>
-                </div>
-                <Badge
-                  variant='outline'
-                  className={getUrgencyColor(job.urgency)}
-                >
-                  {job.urgency}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <p
-                className={`mb-4 line-clamp-3 ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}
-              >
-                {job.description}
-              </p>
-
-              <div className='grid grid-cols-2 gap-4 mb-4'>
-                <div className='flex items-center gap-2'>
-                  <DollarSign className='h-4 w-4 text-green-500' />
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}
-                    >
-                      Budget
-                    </p>
-                    <p
-                      className={`font-semibold ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}
-                    >
-                      {job.budget}
-                    </p>
-                  </div>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <Calendar className='h-4 w-4 text-blue-500' />
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}
-                    >
-                      Posted
-                    </p>
-                    <p
-                      className={`font-semibold ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}
-                    >
-                      {job.postedDate}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className='flex space-x-3'>
-                <Link
-                  to={`/vendor-dashboard/jobs/${job.id}/view`}
-                  className='flex-1 min-w-0'
-                >
-                  <Button variant='outline' className='w-full'>
-                    View Details
-                  </Button>
-                </Link>
-
-                <Link
-                  to={`/vendor-dashboard/jobs/${job.id}/bid`}
-                  className='flex-1 min-w-0'
-                >
-                  <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
-                    Submit Bid
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* No Results */}
-      {filteredJobs.length === 0 && (
+      {isLoading ? (
+        <LoadingSkeleton />
+      ) : jobs.length === 0 ? (
         <div className='text-center py-12'>
           <div className='mb-4'>
             <Search className='h-12 w-12 mx-auto text-gray-400' />
@@ -409,9 +320,223 @@ const VendorJobsPage = () => {
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
             }`}
           >
-            Try adjusting your search criteria or check back later for new
-            opportunities.
+            Try adjusting your search criteria or check back later for new opportunities.
           </p>
+        </div>
+      ) : (
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          {jobs.map((job) => (
+            <Card
+              key={job.id}
+              className={`${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+              } hover:shadow-lg transition-shadow duration-200`}
+            >
+              <CardHeader className='pb-3'>
+                <div className='flex justify-between items-start mb-3'>
+                  <div className='min-w-0 flex-1'>
+                    <CardTitle
+                      className={`text-xl ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      {job.title}
+                    </CardTitle>
+                    <div className='flex items-center gap-2 mt-1'>
+                      <MapPin className='h-4 w-4 text-gray-400' />
+                      <span
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        {job.city && job.state
+                          ? `${job.city}, ${job.state}`
+                          : job.location || 'Location not specified'}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    variant='outline'
+                    className={`${
+                      theme === 'dark'
+                        ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}
+                  >
+                    {job.category}
+                  </Badge>
+                </div>
+
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <div className='flex items-center gap-1'>
+                      <Star className='h-4 w-4 text-yellow-500 fill-current' />
+                      <span
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        {job.customerRating?.toFixed(1) || 'N/A'}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
+                      {job.totalBids} bids
+                    </span>
+                  </div>
+                  <Badge
+                    variant='outline'
+                    className={getUrgencyColor(job.urgency)}
+                  >
+                    {job.urgency || 'Medium'}
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <p
+                  className={`mb-4 line-clamp-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  {job.description}
+                </p>
+
+                <div className='grid grid-cols-2 gap-4 mb-4'>
+                  <div className='flex items-center gap-2'>
+                    <DollarSign className='h-4 w-4 text-green-500' />
+                    <div>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`}
+                      >
+                        Budget
+                      </p>
+                      <p
+                        className={`font-semibold ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        {getBudgetDisplay(job.budget, job.budgetType)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Calendar className='h-4 w-4 text-blue-500' />
+                    <div>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`}
+                      >
+                        Posted
+                      </p>
+                      <p
+                        className={`font-semibold ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        {formatDate(job.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Job Info */}
+                <div className='grid grid-cols-2 gap-4 mb-4'>
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
+                      Customer Jobs
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      {job.customerTotalJobs || 0} completed
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
+                      Avg Bid
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      {job.averageBidAmount > 0 ? formatCurrency(job.averageBidAmount) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className='flex space-x-3'>
+                  <Link
+                    to={`/vendor-dashboard/jobs/${job.id}/view`}
+                    className='flex-1 min-w-0'
+                  >
+                    <Button variant='outline' className='w-full'>
+                      View Details
+                    </Button>
+                  </Link>
+
+                  <Link
+                    to={`/vendor-dashboard/jobs/${job.id}/bid`}
+                    className='flex-1 min-w-0'
+                  >
+                    <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
+                      Submit Bid
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.pages > 1 && (
+        <div className='flex justify-center items-center space-x-2 mt-8'>
+          <Button
+            variant='outline'
+            size='sm'
+            disabled={pagination.page <= 1}
+            onClick={() => {
+              // Handle page change
+            }}
+          >
+            <ChevronLeft className='h-4 w-4' />
+            Previous
+          </Button>
+          
+          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          
+          <Button
+            variant='outline'
+            size='sm'
+            disabled={pagination.page >= pagination.pages}
+            onClick={() => {
+              // Handle page change
+            }}
+          >
+            Next
+            <ChevronRight className='h-4 w-4' />
+          </Button>
         </div>
       )}
     </div>
