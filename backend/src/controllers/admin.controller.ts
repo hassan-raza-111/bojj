@@ -871,27 +871,30 @@ export class AdminController {
   async testDatabaseConnection(req: Request, res: Response) {
     try {
       console.log('🧪 Testing database connection...');
-      
+
       // Test basic connection
       await prisma.$queryRaw`SELECT 1`;
       console.log('✅ Database connection successful');
-      
+
       // Test if users table exists and has data
       const userCount = await prisma.user.count();
       console.log('✅ Users table accessible, count:', userCount);
-      
+
       // Test if customer profiles table exists
       const profileCount = await prisma.customerProfile.count();
-      console.log('✅ Customer profiles table accessible, count:', profileCount);
-      
+      console.log(
+        '✅ Customer profiles table accessible, count:',
+        profileCount
+      );
+
       // Test if jobs table exists
       const jobCount = await prisma.job.count();
       console.log('✅ Jobs table accessible, count:', jobCount);
-      
+
       // Test if reviews table exists
       const reviewCount = await prisma.review.count();
       console.log('✅ Reviews table accessible, count:', reviewCount);
-      
+
       res.json({
         success: true,
         message: 'Database connection test successful',
@@ -900,7 +903,7 @@ export class AdminController {
           profileCount,
           jobCount,
           reviewCount,
-        }
+        },
       });
     } catch (error) {
       console.error('❌ Database connection test failed:', error);
@@ -908,7 +911,7 @@ export class AdminController {
         success: false,
         message: 'Database connection test failed',
         error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
     }
   }
@@ -919,7 +922,13 @@ export class AdminController {
       const { search, status, spending, page = 1, limit = 10 } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
 
-      console.log('🔍 Query params:', { search, status, spending, page, limit });
+      console.log('🔍 Query params:', {
+        search,
+        status,
+        spending,
+        page,
+        limit,
+      });
 
       const where: any = { role: 'CUSTOMER' };
 
@@ -972,14 +981,17 @@ export class AdminController {
         orderBy: { createdAt: 'desc' },
       });
 
-      console.log('✅ Basic customers query successful, found:', basicCustomers.length);
+      console.log(
+        '✅ Basic customers query successful, found:',
+        basicCustomers.length
+      );
 
       // Now let's get the total count
       const total = await prisma.user.count({ where });
       console.log('✅ Total count query successful:', total);
 
       // Try to get customer profiles separately to avoid complex join issues
-      const customerIds = basicCustomers.map(c => c.id);
+      const customerIds = basicCustomers.map((c) => c.id);
       console.log('🔍 Fetching customer profiles for IDs:', customerIds);
 
       const customerProfiles = await prisma.customerProfile.findMany({
@@ -993,11 +1005,14 @@ export class AdminController {
         },
       });
 
-      console.log('✅ Customer profiles query successful, found:', customerProfiles.length);
+      console.log(
+        '✅ Customer profiles query successful, found:',
+        customerProfiles.length
+      );
 
       // Create a map for easy lookup
       const profileMap = new Map(
-        customerProfiles.map(profile => [profile.userId, profile])
+        customerProfiles.map((profile) => [profile.userId, profile])
       );
 
       // Try to get recent jobs for activity tracking
@@ -1018,7 +1033,7 @@ export class AdminController {
 
       // Group jobs by customer
       const jobsMap = new Map();
-      recentJobs.forEach(job => {
+      recentJobs.forEach((job) => {
         if (!jobsMap.has(job.customerId)) {
           jobsMap.set(job.customerId, []);
         }
@@ -1039,7 +1054,7 @@ export class AdminController {
 
       // Group reviews by customer
       const reviewsMap = new Map();
-      reviews.forEach(review => {
+      reviews.forEach((review) => {
         if (!reviewsMap.has(review.reviewerId)) {
           reviewsMap.set(review.reviewerId, []);
         }
@@ -1048,21 +1063,28 @@ export class AdminController {
 
       // Enhance customer data with calculated fields
       console.log('🔍 Enhancing customer data...');
-      const enhancedCustomers = basicCustomers.map(customer => {
+      const enhancedCustomers = basicCustomers.map((customer) => {
         const profile = profileMap.get(customer.id);
         const customerJobs = jobsMap.get(customer.id) || [];
         const customerReviews = reviewsMap.get(customer.id) || [];
 
         const totalReviews = customerReviews.length;
-                     const averageRating = totalReviews > 0
-               ? customerReviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / totalReviews
-               : 0;
-        
+        const averageRating =
+          totalReviews > 0
+            ? customerReviews.reduce(
+                (sum: number, review: { rating: number }) =>
+                  sum + review.rating,
+                0
+              ) / totalReviews
+            : 0;
+
         const lastJob = customerJobs[0];
-        const lastActive = lastJob ? this.formatTimeAgo(lastJob.createdAt) : 'Never';
-        
-        const recentActivity = lastJob 
-          ? `Posted job: ${lastJob.title}` 
+        const lastActive = lastJob
+          ? this.formatTimeAgo(lastJob.createdAt)
+          : 'Never';
+
+        const recentActivity = lastJob
+          ? `Posted job: ${lastJob.title}`
           : 'No recent activity';
 
         return {
@@ -1097,13 +1119,13 @@ export class AdminController {
     } catch (error) {
       console.error('❌ Error in getAllCustomers:', error);
       logger.error('Error fetching customers:', error);
-      
+
       // Send more detailed error information for debugging
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         message: 'Failed to fetch customers',
         error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
     }
   }
@@ -1462,17 +1484,21 @@ export class AdminController {
       ]);
 
       // Enhance customer data with calculated fields
-      const enhancedCustomers = customers.map(customer => {
+      const enhancedCustomers = customers.map((customer) => {
         const totalReviews = customer.reviews.length;
-        const averageRating = totalReviews > 0 
-          ? customer.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
-          : 0;
-        
+        const averageRating =
+          totalReviews > 0
+            ? customer.reviews.reduce((sum, review) => sum + review.rating, 0) /
+              totalReviews
+            : 0;
+
         const lastJob = customer.jobs[0];
-        const lastActive = lastJob ? this.formatTimeAgo(lastJob.createdAt) : 'Never';
-        
-        const recentActivity = lastJob 
-          ? `Posted job: ${lastJob.title}` 
+        const lastActive = lastJob
+          ? this.formatTimeAgo(lastJob.createdAt)
+          : 'Never';
+
+        const recentActivity = lastJob
+          ? `Posted job: ${lastJob.title}`
           : 'No recent activity';
 
         return {
@@ -1595,57 +1621,6 @@ export class AdminController {
         message: 'Failed to export customers',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-    }
-  }
-
-  // ========================================
-  // PAYMENT MANAGEMENT
-  // ========================================
-
-  async getAllPayments(req: Request, res: Response) {
-    try {
-      const { status, page = 1, limit = 10 } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const where: any = {};
-      if (status) {
-        where.status = status;
-      }
-
-      const [payments, total] = await Promise.all([
-        prisma.payment.findMany({
-          where,
-          include: {
-            customer: {
-              select: { firstName: true, lastName: true, email: true },
-            },
-            vendor: {
-              select: { firstName: true, lastName: true, email: true },
-            },
-            job: { select: { title: true } },
-          },
-          skip,
-          take: Number(limit),
-          orderBy: { createdAt: 'desc' },
-        }),
-        prisma.payment.count({ where }),
-      ]);
-
-      res.json({
-        success: true,
-        data: payments,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit)),
-        },
-      });
-    } catch (error) {
-      logger.error('Error fetching payments:', error);
-      res
-        .status(500)
-        .json({ success: false, message: 'Failed to fetch payments' });
     }
   }
 
@@ -4018,5 +3993,414 @@ export class AdminController {
     ];
 
     return csvRows.join('\n');
+  }
+
+  // ========================================
+  // PAYMENT MANAGEMENT
+  // ========================================
+
+  async getAllPayments(req: Request, res: Response) {
+    try {
+      console.log('🔍 Starting getAllPayments...');
+
+      const { status, type, page = 1, limit = 10, search } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const skip = (pageNum - 1) * limitNum;
+
+      console.log('📋 Query params:', {
+        status,
+        type,
+        page: pageNum,
+        limit: limitNum,
+        search,
+      });
+
+      // Build where clause
+      const whereClause: any = {};
+
+      if (status && status !== 'all') {
+        whereClause.status = status;
+      }
+
+      if (type && type !== 'all') {
+        whereClause.isEscrow = type === 'ESCROW';
+      }
+
+      console.log('🔍 Where clause:', whereClause);
+
+      // Get total count
+      const totalPayments = await prisma.payment.count({ where: whereClause });
+      console.log('📊 Total payments count:', totalPayments);
+
+      // Get payments with pagination
+      const payments = await prisma.payment.findMany({
+        where: whereClause,
+        include: {
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          vendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+            },
+          },
+          job: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              budget: true,
+              budgetType: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum,
+      });
+
+      console.log('📋 Fetched payments:', payments.length);
+
+      // Transform data for frontend
+      const transformedPayments = payments.map((payment) => ({
+        id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        description: payment.description,
+        status: payment.status,
+        method: payment.method,
+        isEscrow: payment.isEscrow,
+        escrowFee: payment.escrowFee,
+        platformFee: (payment as any).platformFee || 0,
+        netAmount:
+          (payment as any).netAmount ||
+          payment.amount - ((payment as any).platformFee || 0),
+        jobId: payment.jobId,
+        customerId: payment.customerId,
+        vendorId: payment.vendorId,
+        transactionId: (payment as any).transactionId,
+        paymentMethod: (payment as any).paymentMethod,
+        createdAt: payment.createdAt,
+        paidAt: payment.paidAt,
+        releasedAt: payment.releasedAt,
+        customer: {
+          firstName: payment.customer.firstName,
+          lastName: payment.customer.lastName,
+          email: payment.customer.email,
+          phone: payment.customer.phone,
+        },
+        vendor: {
+          firstName: payment.vendor.firstName,
+          lastName: payment.vendor.lastName,
+          email: payment.vendor.email,
+          phone: payment.vendor.phone,
+        },
+        job: payment.job
+          ? {
+              id: payment.job.id,
+              title: payment.job.title,
+              description: payment.job.description,
+              budget: payment.job.budget,
+              budgetType: payment.job.budgetType,
+            }
+          : null,
+      }));
+
+      console.log('✅ Transformed payments successfully');
+
+      res.json({
+        success: true,
+        data: {
+          payments: transformedPayments,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalPayments,
+            totalPages: Math.ceil(totalPayments / limitNum),
+          },
+        },
+      });
+    } catch (error) {
+      console.error('❌ Error in getAllPayments:', error);
+      logger.error('Failed to fetch payments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch payments',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getPaymentStats(req: Request, res: Response) {
+    try {
+      console.log('🔍 Starting getPaymentStats...');
+
+      // Get payment statistics
+      const [
+        totalPayments,
+        completedPayments,
+        pendingPayments,
+        failedPayments,
+        totalRevenue,
+        totalPlatformFees,
+        totalEscrowFees,
+        monthlyRevenue,
+        monthlyGrowth,
+      ] = await Promise.all([
+        prisma.payment.count(),
+        prisma.payment.count({ where: { status: 'RELEASED' } }),
+        prisma.payment.count({ where: { status: 'PENDING' } }),
+        prisma.payment.count({ where: { status: 'DISPUTED' } }),
+        prisma.payment.aggregate({
+          where: { status: 'RELEASED' },
+          _sum: { amount: true },
+        }),
+        prisma.payment.aggregate({
+          where: { status: 'RELEASED' },
+          _sum: { escrowFee: true },
+        }),
+        prisma.payment.aggregate({
+          where: { status: 'RELEASED' },
+          _sum: { escrowFee: true },
+        }),
+        prisma.payment.aggregate({
+          where: {
+            status: 'RELEASED',
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+          _sum: { amount: true },
+        }),
+        prisma.payment.aggregate({
+          where: {
+            status: 'RELEASED',
+            createdAt: {
+              gte: new Date(
+                new Date().getFullYear(),
+                new Date().getMonth() - 1,
+                1
+              ),
+              lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      const totalRevenueAmount = totalRevenue._sum.amount || 0;
+      const totalPlatformFeesAmount = totalPlatformFees._sum.escrowFee || 0;
+      const totalEscrowFeesAmount = totalEscrowFees._sum.escrowFee || 0;
+      const monthlyRevenueAmount = monthlyRevenue._sum.amount || 0;
+      const lastMonthRevenue = monthlyGrowth._sum.amount || 0;
+
+      const monthlyGrowthPercentage =
+        lastMonthRevenue > 0
+          ? (
+              ((monthlyRevenueAmount - lastMonthRevenue) / lastMonthRevenue) *
+              100
+            ).toFixed(1)
+          : '0.0';
+
+      const successRate =
+        totalPayments > 0
+          ? ((completedPayments / totalPayments) * 100).toFixed(1)
+          : '0.0';
+
+      console.log('✅ Payment stats calculated successfully');
+
+      res.json({
+        success: true,
+        data: {
+          totalPayments,
+          completedPayments,
+          pendingPayments,
+          failedPayments,
+          totalRevenue: totalRevenueAmount,
+          totalPlatformFees: totalPlatformFeesAmount,
+          totalEscrowFees: totalEscrowFeesAmount,
+          monthlyRevenue: monthlyRevenueAmount,
+          monthlyGrowth: `${monthlyGrowthPercentage}%`,
+          successRate: `${successRate}%`,
+          pendingAmount: pendingPayments * 1000, // Mock calculation
+        },
+      });
+    } catch (error) {
+      console.error('❌ Error in getPaymentStats:', error);
+      logger.error('Failed to get payment stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch payment statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async updatePaymentStatus(req: Request, res: Response) {
+    try {
+      const { paymentId } = req.params;
+      const { status, reason } = req.body;
+      const adminId = (req as any).user?.id;
+
+      console.log('🔍 Updating payment status:', { paymentId, status, reason });
+
+      if (!adminId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Admin authentication required',
+        });
+      }
+
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: {
+          customer: true,
+          vendor: true,
+          job: true,
+        },
+      });
+
+      if (!payment) {
+        return res.status(404).json({
+          success: false,
+          message: 'Payment not found',
+        });
+      }
+
+      // Update payment status
+      const updatedPayment = await prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: status as any,
+          updatedAt: new Date(),
+          ...(status === 'RELEASED' && { releasedAt: new Date() }),
+          ...(status === 'PAID' && { paidAt: new Date() }),
+        },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'UPDATE_PAYMENT_STATUS',
+        'PAYMENT',
+        paymentId,
+        { oldStatus: payment.status, newStatus: status, reason }
+      );
+
+      console.log('✅ Payment status updated successfully');
+
+      res.json({
+        success: true,
+        data: updatedPayment,
+        message: 'Payment status updated successfully',
+      });
+    } catch (error) {
+      console.error('❌ Error updating payment status:', error);
+      logger.error('Failed to update payment status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update payment status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async exportPayments(req: Request, res: Response) {
+    try {
+      const { format = 'csv', status, type } = req.query;
+
+      console.log('🔍 Exporting payments:', { format, status, type });
+
+      // Build where clause
+      const whereClause: any = {};
+
+      if (status && status !== 'all') {
+        whereClause.status = status;
+      }
+
+      if (type && type !== 'all') {
+        whereClause.isEscrow = type === 'ESCROW';
+      }
+
+      // Get all payments for export
+      const payments = await prisma.payment.findMany({
+        where: whereClause,
+        include: {
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          vendor: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          job: {
+            select: {
+              title: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (format === 'csv') {
+        const csvData = payments.map((payment) => ({
+          'Payment ID': payment.id,
+          Amount: payment.amount,
+          Currency: payment.currency,
+          Status: payment.status,
+          Method: payment.method,
+          Customer: `${payment.customer.firstName} ${payment.customer.lastName}`,
+          'Customer Email': payment.customer.email,
+          Vendor: `${payment.vendor.firstName} ${payment.vendor.lastName}`,
+          'Vendor Email': payment.vendor.email,
+          'Job Title': payment.job?.title || 'N/A',
+          'Created Date': payment.createdAt.toISOString(),
+          'Platform Fee': (payment as any).platformFee || 0,
+          'Net Amount':
+            (payment as any).netAmount ||
+            payment.amount - ((payment as any).platformFee || 0),
+        }));
+
+        const csv = this.convertToCSV(csvData);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+          'Content-Disposition',
+          'attachment; filename=payments.csv'
+        );
+        res.send(csv);
+      } else {
+        res.json({
+          success: true,
+          data: payments,
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error exporting payments:', error);
+      logger.error('Failed to export payments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export payments',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   }
 }

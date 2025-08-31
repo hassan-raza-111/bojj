@@ -117,15 +117,57 @@ export interface Payment {
   id: string;
   amount: number;
   currency: string;
+  description: string;
   status: string;
   method: string;
   isEscrow: boolean;
-  customer: { firstName: string; lastName: string; email: string };
-  vendor: { firstName: string; lastName: string; email: string };
-  job?: { title: string };
+  escrowFee: number;
+  platformFee: number;
+  netAmount: number;
+  jobId?: string;
+  customerId: string;
+  vendorId: string;
+  transactionId?: string;
+  paymentMethod?: string;
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  vendor: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  job?: {
+    id: string;
+    title: string;
+    description: string;
+    budget?: number;
+    budgetType: string;
+  };
   createdAt: string;
   paidAt?: string;
   releasedAt?: string;
+}
+
+export interface PaymentStats {
+  success: boolean;
+  data: {
+    totalPayments: number;
+    completedPayments: number;
+    pendingPayments: number;
+    failedPayments: number;
+    totalRevenue: number;
+    totalPlatformFees: number;
+    totalEscrowFees: number;
+    monthlyRevenue: number;
+    monthlyGrowth: string;
+    successRate: string;
+    pendingAmount: number;
+  };
 }
 
 export interface Job {
@@ -665,11 +707,13 @@ export const exportCustomers = async (
 
 export const getAllPayments = async (
   status?: string,
+  type?: string,
   page: number = 1,
   limit: number = 10
 ): Promise<PaginatedResponse<Payment>> => {
   const params = new URLSearchParams();
   if (status) params.append('status', status);
+  if (type) params.append('type', type);
   params.append('page', page.toString());
   params.append('limit', limit.toString());
 
@@ -679,6 +723,47 @@ export const getAllPayments = async (
     true
   );
   return response;
+};
+
+export const getPaymentStats = async (): Promise<PaymentStats> => {
+  const response = await apiCall(
+    '/api/admin/payments/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const updatePaymentStatus = async (
+  paymentId: string,
+  status: string,
+  reason?: string
+): Promise<void> => {
+  await apiCall(
+    `/api/admin/payments/${paymentId}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    },
+    true
+  );
+};
+
+export const exportPayments = async (
+  format: 'csv' | 'json' = 'csv',
+  status?: string,
+  type?: string
+): Promise<void> => {
+  const params = new URLSearchParams();
+  params.append('format', format);
+  if (status) params.append('status', status);
+  if (type) params.append('type', type);
+
+  await apiCall(
+    `/api/admin/payments/export?${params.toString()}`,
+    { method: 'GET' },
+    true
+  );
 };
 
 export const confirmPayment = async (paymentId: string): Promise<void> => {

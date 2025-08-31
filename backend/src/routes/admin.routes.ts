@@ -163,6 +163,14 @@ router.get('/customers/export', (req, res) =>
 // PAYMENT MANAGEMENT
 // ========================================
 router.get('/payments', adminController.getAllPayments.bind(adminController));
+router.get(
+  '/payments/stats',
+  adminController.getPaymentStats.bind(adminController)
+);
+router.patch(
+  '/payments/:paymentId/status',
+  adminController.updatePaymentStatus.bind(adminController)
+);
 router.patch(
   '/payments/:paymentId/confirm',
   adminController.confirmPayment.bind(adminController)
@@ -174,6 +182,10 @@ router.patch(
 router.patch(
   '/payments/:paymentId/refund',
   adminController.refundPayment.bind(adminController)
+);
+router.get(
+  '/payments/export',
+  adminController.exportPayments.bind(adminController)
 );
 
 // ========================================

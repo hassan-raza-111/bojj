@@ -188,9 +188,13 @@ model Payment {
   method      PaymentMethod
   isEscrow    Boolean       @default(true)
   escrowFee   Float         @default(0)
+  platformFee Float         @default(0)
+  netAmount   Float         @default(0)
   jobId       String?
   customerId  String
   vendorId    String
+  transactionId String?
+  paymentMethod String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   paidAt      DateTime?
