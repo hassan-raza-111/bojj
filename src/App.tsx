@@ -38,7 +38,8 @@ import SupportTickets from './pages/admin/SupportTickets';
 
 // Customer Features
 import CustomerDashboard from './pages/customer/CustomerDashboard';
-import JobPostingPage from './pages/customer/JobPostingPage';
+import CustomerJobsPage from './pages/customer/CustomerJobsPage';
+import JobPostingForm from './pages/customer/JobPostingForm';
 import JobDetailPage from './pages/customer/JobDetailPage';
 import BidsPage from './pages/customer/BidsPage';
 import JobCRUD from './pages/customer/JobCRUD';
@@ -110,17 +111,18 @@ const App = () => {
                     <CustomerLayout>
                       <Routes>
                         <Route path='/' element={<CustomerDashboard />} />
-                        <Route path='/jobs' element={<JobCRUD />} />
+                        <Route path='/jobs' element={<CustomerJobsPage />} />
+                        <Route path='/jobs/post' element={<JobPostingForm />} />
                         <Route path='/messages' element={<MessagesPage />} />
                         <Route
                           path='/payments'
                           element={<CustomerPaymentPage />}
                         />
                         <Route path='/support' element={<SupportPage />} />
-                        <Route path='/jobs/new' element={<JobPostingPage />} />
+                        <Route path='/jobs/new' element={<JobPostingForm />} />
                         <Route
                           path='/jobs/:id/edit'
-                          element={<JobPostingPage />}
+                          element={<JobPostingForm />}
                         />
                         <Route path='/jobs/:id' element={<JobDetailPage />} />
                         <Route path='/jobs/:id/bids' element={<BidsPage />} />

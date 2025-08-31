@@ -29,7 +29,7 @@ export const createJob: RequestHandler = async (req, res, next) => {
         budget: jobData.budget,
         budgetType: jobData.budgetType || 'FIXED',
         location,
-        // images: [], // Temporarily removed due to type issues
+        images: jobData.images || [],
         category: jobData.category,
         subcategory: jobData.subcategory || null,
         street: jobData.street || null,
@@ -43,6 +43,10 @@ export const createJob: RequestHandler = async (req, res, next) => {
         contactPreference: jobData.contactPreference || null,
         tags: jobData.tags || [],
         requirements: jobData.requirements || [],
+        estimatedDuration: jobData.estimatedDuration || null,
+        urgency: jobData.urgency || 'MEDIUM',
+        priority: jobData.priority || 'MEDIUM',
+        isRemote: jobData.isRemote || false,
         customerId: jobData.customerId,
       },
       include: {
@@ -727,6 +731,7 @@ export const updateJob: RequestHandler = async (req, res, next) => {
         tags: true,
         requirements: true,
         priority: true,
+        urgency: true,
         deadline: true,
         isRemote: true,
       },
@@ -774,7 +779,7 @@ export const updateJob: RequestHandler = async (req, res, next) => {
           jobData.budget !== undefined ? jobData.budget : existingJob.budget,
         budgetType: jobData.budgetType || existingJob.budgetType,
         location,
-        images: [],
+        images: jobData.images || [],
         category: jobData.category || existingJob.category,
         subcategory:
           jobData.subcategory !== undefined
@@ -792,6 +797,8 @@ export const updateJob: RequestHandler = async (req, res, next) => {
         additionalRequests: jobData.additionalRequests,
         contactPreference: jobData.contactPreference,
         priority: jobData.priority || existingJob.priority,
+        estimatedDuration: jobData.estimatedDuration,
+        urgency: jobData.urgency || existingJob.urgency,
         deadline: jobData.deadline
           ? new Date(jobData.deadline)
           : existingJob.deadline,
