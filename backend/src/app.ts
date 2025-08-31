@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth.routes';
 import adminRouter from './routes/admin.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
+import vendorRouter from './routes/vendor.routes';
 // Temporarily commented out due to TypeScript compilation issues
 // import { paymentRouter } from './routes/payment.routes';
 // import { serviceRouter } from './routes/service.routes';
@@ -67,6 +68,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/jobs', jobRouter); // Customer side needs this
 app.use('/api/dashboard', dashboardRouter); // Customer side needs this
+app.use('/api/vendor', vendorRouter); // Vendor dashboard routes
 // Temporarily commented out due to TypeScript compilation issues
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);

@@ -222,6 +222,29 @@ export const validateSearch = () => {
 //   };
 // };
 
+// Role validation middleware
+export const validateRole = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user as any;
+
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      if (!user.role || !allowedRoles.includes(user.role)) {
+        return res.status(403).json({
+          message: 'Access denied. Insufficient permissions.',
+        });
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 // Sanitize input data (basic XSS protection)
 export const sanitizeInput = () => {
   return (req: Request, res: Response, next: NextFunction) => {

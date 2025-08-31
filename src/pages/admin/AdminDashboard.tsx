@@ -88,20 +88,20 @@ const AdminDashboard = () => {
             getAllVendors('', '', 1, 5),
             getAllCustomers('', '', 1, 5),
           ]);
-          setVendors(vendorsData.data);
-          setCustomers(customersData.data);
+          setVendors(vendorsData.data.vendors || []);
+          setCustomers(customersData.data.customers || []);
           break;
         case 'jobs':
-          const jobsData = await getAllJobs('', '', 1, 5);
-          setJobs(jobsData.data);
+          const jobsData = await getAllJobs({ page: 1, limit: 5 });
+          setJobs(jobsData.data.jobs || []);
           break;
         case 'payments':
-          const paymentsData = await getAllPayments('', 1, 5);
-          setPayments(paymentsData.data);
+          const paymentsData = await getAllPayments('', '', 1, 5);
+          setPayments(paymentsData.data.jobs || []);
           break;
         case 'system':
           const ticketsData = await getAllSupportTickets('', '', '', 1, 5);
-          setTickets(ticketsData.data);
+          setTickets(ticketsData.data.jobs || []);
           break;
       }
     } catch (error) {
@@ -122,6 +122,8 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    // Fetch initial tab data for the default tab
+    fetchTabData('users');
   }, []);
 
   const getStatusBadge = (status: string) => {
@@ -392,43 +394,47 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className='space-y-3'>
-                  {vendors.length > 0 || customers.length > 0 ? (
-                    [...vendors.slice(0, 2), ...customers.slice(0, 2)].map(
-                      (user, index) => (
-                        <div
-                          key={user.id || index}
-                          className='flex items-center justify-between p-3 rounded-lg border'
-                        >
-                          <div className='flex items-center space-x-3'>
-                            <div className='w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center'>
-                              <span className='text-sm font-medium text-gray-600'>
-                                {user.firstName?.charAt(0) || 'U'}
-                              </span>
-                            </div>
-                            <div>
-                              <p className='text-sm font-medium'>
-                                {user.firstName} {user.lastName}
-                              </p>
-                              <p className='text-xs text-gray-500'>
-                                {user.email}
-                              </p>
-                            </div>
+                  {(vendors && vendors.length > 0) ||
+                  (customers && customers.length > 0) ? (
+                    [
+                      ...(vendors || []).slice(0, 2),
+                      ...(customers || []).slice(0, 2),
+                    ].map((user, index) => (
+                      <div
+                        key={user.id || index}
+                        className='flex items-center justify-between p-3 rounded-lg border'
+                      >
+                        <div className='flex items-center space-x-3'>
+                          <div className='w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center'>
+                            <span className='text-sm font-medium text-gray-600'>
+                              {user.firstName?.charAt(0) || 'U'}
+                            </span>
                           </div>
-                          <div className='flex items-center space-x-2'>
-                            <Badge
-                              className={
-                                vendors.includes(user)
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-purple-100 text-purple-800'
-                              }
-                            >
-                              {vendors.includes(user) ? 'Vendor' : 'Customer'}
-                            </Badge>
-                            {getStatusBadge(user.status)}
+                          <div>
+                            <p className='text-sm font-medium'>
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className='text-xs text-gray-500'>
+                              {user.email}
+                            </p>
                           </div>
                         </div>
-                      )
-                    )
+                        <div className='flex items-center space-x-2'>
+                          <Badge
+                            className={
+                              (vendors || []).includes(user)
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-purple-100 text-purple-800'
+                            }
+                          >
+                            {(vendors || []).includes(user)
+                              ? 'Vendor'
+                              : 'Customer'}
+                          </Badge>
+                          {getStatusBadge(user.status)}
+                        </div>
+                      </div>
+                    ))
                   ) : (
                     <div className='text-center py-4 text-gray-500'>
                       No recent users available
@@ -454,8 +460,8 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className='space-y-3'>
-                  {jobs.length > 0 ? (
-                    jobs.slice(0, 4).map((job) => (
+                  {jobs && jobs.length > 0 ? (
+                    (jobs || []).slice(0, 4).map((job) => (
                       <div
                         key={job.id}
                         className='flex items-center justify-between p-3 rounded-lg border'
@@ -525,7 +531,7 @@ const AdminDashboard = () => {
               <div className='space-y-4'>
                 <h3 className='text-lg font-semibold'>Recent Users</h3>
                 <div className='space-y-2'>
-                  {vendors.slice(0, 3).map((vendor) => (
+                  {(vendors || []).slice(0, 3).map((vendor) => (
                     <div
                       key={vendor.id}
                       className='flex items-center justify-between p-3 border rounded-lg'
@@ -549,7 +555,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                       <div className='flex items-center space-x-2'>
-                        {getRoleBadge(vendor.role)}
+                        {getRoleBadge('VENDOR')}
                         {getStatusBadge(vendor.status)}
                       </div>
                     </div>
@@ -592,7 +598,7 @@ const AdminDashboard = () => {
               <div className='space-y-4'>
                 <h3 className='text-lg font-semibold'>Recent Jobs</h3>
                 <div className='space-y-2'>
-                  {jobs.slice(0, 3).map((job) => (
+                  {(jobs || []).slice(0, 3).map((job) => (
                     <div
                       key={job.id}
                       className='flex items-center justify-between p-3 border rounded-lg'
@@ -659,8 +665,8 @@ const AdminDashboard = () => {
               <div className='space-y-4'>
                 <h3 className='text-lg font-semibold'>Recent Payments</h3>
                 <div className='space-y-2'>
-                  {payments.length > 0 ? (
-                    payments.slice(0, 3).map((payment) => (
+                  {payments && payments.length > 0 ? (
+                    (payments || []).slice(0, 3).map((payment) => (
                       <div
                         key={payment.id}
                         className='flex items-center justify-between p-3 border rounded-lg'

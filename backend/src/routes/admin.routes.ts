@@ -241,11 +241,12 @@ router.get(
 // ========================================
 router.get(
   '/dashboard/stats',
-  adminController.getAdminDashboardStats.bind(adminController)
+  adminController.getDashboardStats.bind(adminController)
 );
-router.get(
-  '/notifications',
-  adminController.getAdminNotifications.bind(adminController)
-);
+// Temporarily commented out due to TypeScript compilation issues
+// router.get(
+//   '/notifications',
+//   adminController.getAdminNotifications.bind(adminController)
+// );
 
 export default router;

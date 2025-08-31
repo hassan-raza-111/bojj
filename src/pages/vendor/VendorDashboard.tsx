@@ -11,85 +11,111 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
-import { DollarSign, MessageSquare, Search, Star, Clock } from 'lucide-react';
+import {
+  DollarSign,
+  MessageSquare,
+  Search,
+  Star,
+  Clock,
+  RefreshCw,
+  AlertCircle,
+} from 'lucide-react';
+import { useVendorDashboard } from '@/hooks/useVendorDashboard';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('available');
   const { theme } = useTheme();
 
-  // Mock data for available jobs
-  const availableJobs = [
-    {
-      id: 'job-1',
-      title: 'Kitchen Renovation',
-      description:
-        'Complete renovation of kitchen including cabinets, countertops, and appliances.',
-      location: 'Chicago, IL',
-      postedDate: '2023-04-25',
-      budget: '$8,000 - $12,000',
-      category: 'Home Renovation',
-      distance: '3.2 miles away',
-    },
-    {
-      id: 'job-2',
-      title: 'Bathroom Remodel',
-      description: 'Full bathroom remodel with new fixtures, tile, and vanity.',
-      location: 'Evanston, IL',
-      postedDate: '2023-04-23',
-      budget: '$5,000 - $7,500',
-      category: 'Home Renovation',
-      distance: '5.1 miles away',
-    },
-    {
-      id: 'job-3',
-      title: 'Deck Construction',
-      description: "Build a 12' x 14' wooden deck in the backyard.",
-      location: 'Oak Park, IL',
-      postedDate: '2023-04-21',
-      budget: '$3,000 - $4,500',
-      category: 'Carpentry',
-      distance: '4.3 miles away',
-    },
-  ];
+  const {
+    dashboardSummary,
+    availableJobs,
+    activeBids,
+    awardedJobs,
+    earnings,
+    submitBid,
+    submitBidLoading,
+    refreshAll,
+    isLoading,
+    isError,
+  } = useVendorDashboard();
 
-  // Mock data for active bids
-  const activeBids = [
-    {
-      id: 'bid-1',
-      jobId: 'job-4',
-      jobTitle: 'Basement Finishing',
-      bidAmount: '$15,800',
-      bidDate: '2023-04-20',
-      status: 'Pending',
-      customerName: 'Robert Johnson',
-      notes:
-        'Includes all materials and labor for complete basement finishing.',
-    },
-    {
-      id: 'bid-2',
-      jobId: 'job-5',
-      jobTitle: 'Roof Repair',
-      bidAmount: '$2,400',
-      bidDate: '2023-04-18',
-      status: 'Under Review',
-      customerName: 'Jennifer Davis',
-      notes: 'Repair of damaged shingles and flashing around chimney.',
-    },
-  ];
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+      {[1, 2, 3, 4].map((i) => (
+        <Card key={i} className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+          <CardHeader>
+            <Skeleton className='h-6 w-3/4' />
+            <Skeleton className='h-4 w-1/2' />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className='h-4 w-full mb-2' />
+            <Skeleton className='h-4 w-3/4 mb-4' />
+            <div className='flex space-x-3'>
+              <Skeleton className='h-10 flex-1' />
+              <Skeleton className='h-10 flex-1' />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
-  // Mock data for awarded jobs
-  const awardedJobs = [
-    {
-      id: 'awarded-1',
-      jobId: 'job-6',
-      jobTitle: 'Kitchen Backsplash Installation',
-      bidAmount: '$850',
-      startDate: '2023-05-02',
-      customerName: 'Michael Thompson',
-      status: 'In Progress',
-      paymentStatus: 'Deposit Received',
-    },
-  ];
+  // Error component
+  const ErrorComponent = () => (
+    <div className='flex flex-col items-center justify-center py-12'>
+      <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
+      <h3 className='text-lg font-semibold mb-2'>Something went wrong</h3>
+      <p className='text-gray-600 dark:text-gray-400 mb-4'>
+        Failed to load dashboard data. Please try again.
+      </p>
+      <Button onClick={refreshAll} variant='outline'>
+        <RefreshCw className='mr-2 h-4 w-4' />
+        Retry
+      </Button>
+    </div>
+  );
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  // Get budget display text
+  const getBudgetDisplay = (budget?: number, budgetType?: string) => {
+    if (!budget) return 'Negotiable';
+    return `${formatCurrency(budget)} (${budgetType || 'Fixed'})`;
+  };
+
+  // Get status badge variant
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'accepted':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  if (isError) {
+    return <ErrorComponent />;
+  }
 
   return (
     <div
@@ -100,12 +126,20 @@ const VendorDashboard = () => {
       {/* Header */}
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-xl font-semibold'>Vendor Dashboard</h2>
-        <Link to='/vendor-dashboard/jobs/search'>
-          <Button className='bg-bojj-primary hover:bg-bojj-primary/90'>
-            <Search className='mr-2 h-4 w-4' />
-            Find Jobs
+        <div className='flex space-x-3'>
+          <Button onClick={refreshAll} variant='outline' disabled={isLoading}>
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+            />
+            Refresh
           </Button>
-        </Link>
+          <Link to='/vendor-dashboard/jobs/search'>
+            <Button className='bg-bojj-primary hover:bg-bojj-primary/90'>
+              <Search className='mr-2 h-4 w-4' />
+              Find Jobs
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -126,13 +160,17 @@ const VendorDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p
-              className={`text-3xl font-bold ${
-                theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
-              }`}
-            >
-              {availableJobs.length}
-            </p>
+            {dashboardSummary.isLoading ? (
+              <Skeleton className='h-8 w-16' />
+            ) : (
+              <p
+                className={`text-3xl font-bold ${
+                  theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+                }`}
+              >
+                {dashboardSummary.data?.availableJobs || 0}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -152,13 +190,17 @@ const VendorDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p
-              className={`text-3xl font-bold ${
-                theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-              }`}
-            >
-              {activeBids.length}
-            </p>
+            {dashboardSummary.isLoading ? (
+              <Skeleton className='h-8 w-16' />
+            ) : (
+              <p
+                className={`text-3xl font-bold ${
+                  theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                }`}
+              >
+                {dashboardSummary.data?.activeBids || 0}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -178,13 +220,17 @@ const VendorDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p
-              className={`text-3xl font-bold ${
-                theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-              }`}
-            >
-              {awardedJobs.length}
-            </p>
+            {dashboardSummary.isLoading ? (
+              <Skeleton className='h-8 w-16' />
+            ) : (
+              <p
+                className={`text-3xl font-bold ${
+                  theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
+                }`}
+              >
+                {dashboardSummary.data?.awardedJobs || 0}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -231,342 +277,351 @@ const VendorDashboard = () => {
         </TabsList>
 
         <TabsContent value='available' className='mt-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
-            {availableJobs.map((job) => (
-              <Card
-                key={job.id}
-                className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-              >
-                <CardHeader className='pb-3'>
-                  <div className='flex justify-between items-start'>
-                    <div className='min-w-0'>
-                      <CardTitle
-                        className={
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }
-                      >
-                        {job.title}
-                      </CardTitle>
-                      <CardDescription
-                        className={`mt-1 ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          {availableJobs.isLoading ? (
+            <LoadingSkeleton />
+          ) : availableJobs.data?.jobs?.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-500 dark:text-gray-400'>
+                No available jobs found.
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+              {availableJobs.data?.jobs?.map((job) => (
+                <Card
+                  key={job.id}
+                  className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+                >
+                  <CardHeader className='pb-3'>
+                    <div className='flex justify-between items-start'>
+                      <div className='min-w-0'>
+                        <CardTitle
+                          className={
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }
+                        >
+                          {job.title}
+                        </CardTitle>
+                        <CardDescription
+                          className={`mt-1 ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                          }`}
+                        >
+                          {job.city && job.state
+                            ? `${job.city}, ${job.state}`
+                            : job.location || 'Location not specified'}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant='outline'
+                        className={`${
+                          theme === 'dark'
+                            ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         }`}
                       >
-                        {job.location} • {job.distance}
-                      </CardDescription>
+                        {job.category}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant='outline'
-                      className={`${
-                        theme === 'dark'
-                          ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  </CardHeader>
+
+                  <CardContent>
+                    <p
+                      className={`mb-4 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                       }`}
                     >
-                      {job.category}
-                    </Badge>
-                  </div>
-                </CardHeader>
+                      {job.description}
+                    </p>
 
-                <CardContent>
-                  <p
-                    className={`mb-4 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}
-                  >
-                    {job.description}
-                  </p>
-
-                  <div className='grid grid-cols-2 gap-4 mb-4'>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Budget
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {job.budget}
-                      </p>
+                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Budget
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {getBudgetDisplay(job.budget, job.budgetType)}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Posted
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {formatDate(job.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
+
+                    <div className='flex space-x-3 mt-4'>
+                      <Link
+                        to={`/vendor-dashboard/jobs/${job.id}/details`}
+                        className='flex-1 min-w-0'
                       >
-                        Posted On
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
+                        <Button variant='outline' className='w-full'>
+                          View Details
+                        </Button>
+                      </Link>
+
+                      <Link
+                        to={`/vendor-dashboard/jobs/${job.id}/bid`}
+                        className='flex-1 min-w-0'
                       >
-                        {job.postedDate}
-                      </p>
+                        <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
+                          Submit Bid
+                        </Button>
+                      </Link>
                     </div>
-                  </div>
-
-                  <div className='flex space-x-3 mt-4'>
-                    <Link
-                      to={`/vendor-dashboard/bids/${job.id}/view`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button variant='outline' className='w-full'>
-                        View Details
-                      </Button>
-                    </Link>
-
-                    <Link
-                      to={`/vendor-dashboard/jobs/${job.id}/bid`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
-                        Submit Bid
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value='bids' className='mt-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
-            {activeBids.map((bid) => (
-              <Card
-                key={bid.id}
-                className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-              >
-                <CardHeader className='pb-3'>
-                  <div className='flex justify-between items-start'>
-                    <div className='min-w-0'>
-                      <CardTitle
-                        className={
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }
+          {activeBids.isLoading ? (
+            <LoadingSkeleton />
+          ) : activeBids.data?.bids?.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-500 dark:text-gray-400'>
+                No active bids found.
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+              {activeBids.data?.bids?.map((bid) => (
+                <Card
+                  key={bid.id}
+                  className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+                >
+                  <CardHeader className='pb-3'>
+                    <div className='flex justify-between items-start'>
+                      <div className='min-w-0'>
+                        <CardTitle
+                          className={
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }
+                        >
+                          {bid.job.title}
+                        </CardTitle>
+                        <CardDescription
+                          className={`mt-1 ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                          }`}
+                        >
+                          Bid submitted {formatDate(bid.createdAt)}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant='outline'
+                        className={getStatusBadge(bid.status)}
                       >
-                        {bid.jobTitle}
-                      </CardTitle>
-                      <CardDescription
-                        className={`mt-1 ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                        }`}
-                      >
-                        Bid submitted on {bid.bidDate}
-                      </CardDescription>
+                        {bid.status}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant='outline'
-                      className={
-                        bid.status === 'Under Review'
-                          ? theme === 'dark'
-                            ? 'bg-blue-900/20 text-blue-300 border-blue-700'
-                            : 'bg-blue-50 text-blue-700 border-blue-200'
-                          : theme === 'dark'
-                          ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
-                          : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                      }
-                    >
-                      {bid.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent>
-                  <div className='grid grid-cols-2 gap-4 mb-4'>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Bid Amount
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {bid.bidAmount}
-                      </p>
+                  <CardContent>
+                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Bid Amount
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {formatCurrency(bid.amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Customer
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {bid.job.customer.firstName}{' '}
+                          {bid.job.customer.lastName}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
+
+                    <p
+                      className={`mb-4 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`}
+                    >
+                      {bid.description}
+                    </p>
+
+                    <div className='flex space-x-3 mt-4'>
+                      <Link
+                        to={`/vendor-dashboard/bids/${bid.id}/view`}
+                        className='flex-1 min-w-0'
                       >
-                        Customer
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
+                        <Button variant='outline' className='w-full'>
+                          View Details
+                        </Button>
+                      </Link>
+
+                      <Link
+                        to={`/vendor-dashboard/messages?jobId=${
+                          bid.job.id
+                        }&client=${encodeURIComponent(
+                          `${bid.job.customer.firstName} ${bid.job.customer.lastName}`
+                        )}`}
+                        className='flex-1 min-w-0'
                       >
-                        {bid.customerName}
-                      </p>
+                        <Button className='w-full'>
+                          <MessageSquare className='mr-2 h-4 w-4' />
+                          Message Client
+                        </Button>
+                      </Link>
                     </div>
-                  </div>
-
-                  <p
-                    className={`mb-4 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}
-                  >
-                    {bid.notes}
-                  </p>
-
-                  <div className='flex space-x-3 mt-4'>
-                    <Link
-                      to={`/vendor-dashboard/bids/${bid.id}/view`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button variant='outline' className='w-full'>
-                        View Details
-                      </Button>
-                    </Link>
-
-                    <Link
-                      to={`/vendor-dashboard/messages?jobId=${
-                        bid.jobId
-                      }&client=${encodeURIComponent(bid.customerName)}`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button className='w-full'>
-                        <MessageSquare className='mr-2 h-4 w-4' />
-                        Message Client
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value='awarded' className='mt-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
-            {awardedJobs.map((job) => (
-              <Card
-                key={job.id}
-                className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
-              >
-                <CardHeader className='pb-3'>
-                  <div className='flex justify-between items-start'>
-                    <div className='min-w-0'>
-                      <CardTitle
-                        className={
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }
+          {awardedJobs.isLoading ? (
+            <LoadingSkeleton />
+          ) : awardedJobs.data?.jobs?.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-gray-500 dark:text-gray-400'>
+                No awarded jobs found.
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+              {awardedJobs.data?.jobs?.map((job) => (
+                <Card
+                  key={job.id}
+                  className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+                >
+                  <CardHeader className='pb-3'>
+                    <div className='flex justify-between items-start'>
+                      <div className='min-w-0'>
+                        <CardTitle
+                          className={
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }
+                        >
+                          {job.title}
+                        </CardTitle>
+                        <CardDescription
+                          className={`mt-1 ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                          }`}
+                        >
+                          Started {formatDate(job.createdAt)}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant='outline'
+                        className={getStatusBadge(job.status)}
                       >
-                        {job.jobTitle}
-                      </CardTitle>
-                      <CardDescription
-                        className={`mt-1 ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                        }`}
-                      >
-                        Starting on {job.startDate}
-                      </CardDescription>
+                        {job.status.replace('_', ' ')}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant='outline'
-                      className={`${
-                        theme === 'dark'
-                          ? 'bg-purple-900/20 text-purple-300 border-purple-700'
-                          : 'bg-purple-50 text-purple-700 border-purple-200'
-                      }`}
-                    >
-                      {job.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent>
-                  <div className='grid grid-cols-2 gap-4 mb-4'>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Contract Amount
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {job.bidAmount}
-                      </p>
+                  <CardContent>
+                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Status
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {job.status.replace('_', ' ')}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Customer
+                        </p>
+                        <p
+                          className={`font-medium ${
+                            theme === 'dark' ? 'text-white' : 'text-gray-900'
+                          }`}
+                        >
+                          {job.customer.firstName} {job.customer.lastName}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Customer
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {job.customerName}
-                      </p>
-                    </div>
-                    <div>
-                      <p
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Payment Status
-                      </p>
-                      <p
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {job.paymentStatus}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className='flex space-x-3 mt-4'>
-                    <Link
-                      to={`/vendor-dashboard/bids/${job.id}/view`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button variant='outline' className='w-full'>
-                        View Details
-                      </Button>
-                    </Link>
+                    <div className='flex space-x-3 mt-4'>
+                      <Link
+                        to={`/vendor-dashboard/jobs/${job.id}/details`}
+                        className='flex-1 min-w-0'
+                      >
+                        <Button variant='outline' className='w-full'>
+                          View Details
+                        </Button>
+                      </Link>
 
-                    <Link
-                      to={`/vendor-dashboard/messages?jobId=${
-                        job.jobId
-                      }&client=${encodeURIComponent(job.customerName)}`}
-                      className='flex-1 min-w-0'
-                    >
-                      <Button className='w-full'>
-                        <MessageSquare className='mr-2 h-4 w-4' />
-                        Message Client
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <Link
+                        to={`/vendor-dashboard/messages?jobId=${
+                          job.id
+                        }&client=${encodeURIComponent(
+                          `${job.customer.firstName} ${job.customer.lastName}`
+                        )}`}
+                        className='flex-1 min-w-0'
+                      >
+                        <Button className='w-full'>
+                          <MessageSquare className='mr-2 h-4 w-4' />
+                          Message Client
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -599,85 +654,99 @@ const VendorDashboard = () => {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-            <div className='flex items-center gap-4'>
-              <div
-                className={`p-3 rounded-full ${
-                  theme === 'dark' ? 'bg-emerald-900/40' : 'bg-emerald-100'
-                }`}
-              >
-                <DollarSign className='h-6 w-6 text-emerald-600' />
-              </div>
-              <div>
-                <p
-                  className={`text-sm ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                >
-                  This Month
-                </p>
-                <p
-                  className={`text-2xl font-bold ${
-                    theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
-                  }`}
-                >
-                  $3,850
-                </p>
-              </div>
+          {earnings.isLoading ? (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className='flex items-center gap-4'>
+                  <Skeleton className='h-12 w-12 rounded-full' />
+                  <div>
+                    <Skeleton className='h-4 w-20 mb-2' />
+                    <Skeleton className='h-8 w-24' />
+                  </div>
+                </div>
+              ))}
             </div>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
+              <div className='flex items-center gap-4'>
+                <div
+                  className={`p-3 rounded-full ${
+                    theme === 'dark' ? 'bg-emerald-900/40' : 'bg-emerald-100'
+                  }`}
+                >
+                  <DollarSign className='h-6 w-6 text-emerald-600' />
+                </div>
+                <div>
+                  <p
+                    className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}
+                  >
+                    This Month
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+                    }`}
+                  >
+                    {formatCurrency(earnings.data?.totalEarnings || 0)}
+                  </p>
+                </div>
+              </div>
 
-            <div className='flex items-center gap-4'>
-              <div
-                className={`p-3 rounded-full ${
-                  theme === 'dark' ? 'bg-blue-900/40' : 'bg-blue-100'
-                }`}
-              >
-                <Clock className='h-6 w-6 text-blue-600' />
-              </div>
-              <div>
-                <p
-                  className={`text-sm ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              <div className='flex items-center gap-4'>
+                <div
+                  className={`p-3 rounded-full ${
+                    theme === 'dark' ? 'bg-blue-900/40' : 'bg-blue-100'
                   }`}
                 >
-                  Pending
-                </p>
-                <p
-                  className={`text-2xl font-bold ${
-                    theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                  }`}
-                >
-                  $1,200
-                </p>
+                  <Clock className='h-6 w-6 text-blue-600' />
+                </div>
+                <div>
+                  <p
+                    className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}
+                  >
+                    Pending
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                    }`}
+                  >
+                    {formatCurrency(earnings.data?.pendingPayments || 0)}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className='flex items-center gap-4'>
-              <div
-                className={`p-3 rounded-full ${
-                  theme === 'dark' ? 'bg-purple-900/40' : 'bg-purple-100'
-                }`}
-              >
-                <Star className='h-6 w-6 text-purple-600' />
-              </div>
-              <div>
-                <p
-                  className={`text-sm ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              <div className='flex items-center gap-4'>
+                <div
+                  className={`p-3 rounded-full ${
+                    theme === 'dark' ? 'bg-purple-900/40' : 'bg-purple-100'
                   }`}
                 >
-                  Rating
-                </p>
-                <p
-                  className={`text-2xl font-bold ${
-                    theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-                  }`}
-                >
-                  4.8/5
-                </p>
+                  <Star className='h-6 w-6 text-purple-600' />
+                </div>
+                <div>
+                  <p
+                    className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}
+                  >
+                    Rating
+                  </p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
+                    }`}
+                  >
+                    {dashboardSummary.data?.rating?.toFixed(1) || '0.0'}/5
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
