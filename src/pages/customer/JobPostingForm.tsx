@@ -214,7 +214,16 @@ const JobPostingForm = () => {
   }, [id, isEditing]);
 
   const handleChange = (field: keyof JobFormData, value: any) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData((prevData) => {
+      const newData = { ...prevData, [field]: value };
+      console.log('🔍 After update - newData:', newData);
+      return newData;
+    });
+
+    // Force a re-render by updating a different field temporarily
+    setTimeout(() => {
+      console.log('🔍 After timeout - current formData:', formData);
+    }, 100);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -418,24 +427,33 @@ const JobPostingForm = () => {
                 <Label htmlFor='category' className='text-base font-medium'>
                   Service Category *
                 </Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => {
-                    handleChange('category', value);
-                    handleChange('subcategory', '');
-                  }}
-                >
-                  <SelectTrigger className='mt-2'>
-                    <SelectValue placeholder='Select a category' />
-                  </SelectTrigger>
-                  <SelectContent>
+
+                {/* Working HTML select with UI styling */}
+                <div className='relative mt-2'>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => {
+                      console.log('🔍 Category selected:', e.target.value);
+                      handleChange('category', e.target.value);
+                      handleChange('subcategory', '');
+                    }}
+                    className='w-full h-10 px-3 py-2 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none cursor-pointer'
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: 'right 0.5rem center',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.5rem',
+                    }}
+                  >
+                    <option value=''>Select a category</option>
                     {Object.keys(serviceCategories).map((category) => (
-                      <SelectItem key={category} value={category}>
+                      <option key={category} value={category}>
                         {category}
-                      </SelectItem>
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                </div>
               </div>
 
               {formData.category && (
