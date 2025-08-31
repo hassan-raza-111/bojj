@@ -32,8 +32,20 @@ interface Job {
     lastName: string;
     vendorProfile?: {
       rating?: number;
+      companyName?: string;
     };
   };
+  analytics?: {
+    timeToFirstBid?: number;
+    totalBidCount?: number;
+    averageBidAmount?: number;
+    uniqueViewers?: number;
+  };
+  estimatedDuration?: string;
+  urgency?: string;
+  customerRating?: number;
+  customerFeedback?: string;
+  completionDate?: string;
 }
 
 interface Bid {
@@ -61,10 +73,65 @@ interface CustomerStats {
   pendingPayments: number;
 }
 
+interface PerformanceMetrics {
+  averageResponseTime: string;
+  jobSuccessRate: number;
+  averageJobRating: number;
+  budgetEfficiency: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  updatedAt: string;
+  bids: number;
+  payments: number;
+}
+
+interface TopCategory {
+  category: string;
+  count: number;
+}
+
+interface BudgetUtilization {
+  totalBudget: number;
+  averageBudget: number;
+  spentPercentage: number;
+}
+
+interface JobAnalytics {
+  bidStats: {
+    total: number;
+    average: number;
+    lowest: number;
+    highest: number;
+    accepted: number;
+    pending: number;
+  };
+  engagementMetrics: {
+    viewCount: number;
+    savedCount: number;
+    shareCount: number;
+    responseTime: string;
+  };
+  performanceMetrics: {
+    timeToCompletion: string;
+    customerSatisfaction: number;
+    rehireLikelihood: number;
+    budgetEfficiency: number;
+  };
+}
+
 interface CustomerContextType {
   // State
   jobs: Job[];
   stats: CustomerStats | null;
+  performance: PerformanceMetrics | null;
+  recentActivity: RecentActivity[];
+  topCategories: TopCategory[];
+  budgetUtilization: BudgetUtilization | null;
   loading: boolean;
   error: string | null;
 
@@ -77,6 +144,7 @@ interface CustomerContextType {
   fetchJobBids: (jobId: string) => Promise<Bid[]>;
   acceptBid: (jobId: string, bidId: string) => Promise<boolean>;
   rejectBid: (jobId: string, bidId: string) => Promise<boolean>;
+  fetchJobAnalytics: (jobId: string) => Promise<JobAnalytics | null>;
 
   // Utilities
   getJobById: (jobId: string) => Job | undefined;
@@ -108,6 +176,13 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState<CustomerStats | null>(null);
+  const [performance, setPerformance] = useState<PerformanceMetrics | null>(
+    null
+  );
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [topCategories, setTopCategories] = useState<TopCategory[]>([]);
+  const [budgetUtilization, setBudgetUtilization] =
+    useState<BudgetUtilization | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -133,6 +208,10 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
         console.log('Dashboard response:', response);
         setStats(response.data.stats);
         setJobs(response.data.recentJobs || []);
+        setPerformance(response.data.performance || null);
+        setRecentActivity(response.data.recentActivity || []);
+        setTopCategories(response.data.topCategories || []);
+        setBudgetUtilization(response.data.budgetUtilization || null);
       } else {
         throw new Error(response.message || 'Failed to fetch dashboard data');
       }
@@ -399,6 +478,30 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
     return jobs.filter((job) => job.status === 'COMPLETED');
   };
 
+  // Fetch job analytics
+  const fetchJobAnalytics = async (
+    jobId: string
+  ): Promise<JobAnalytics | null> => {
+    if (!isAuthenticated || user?.role !== 'CUSTOMER' || !user?.id) return null;
+
+    try {
+      const response = await customerAPI.getJobAnalytics(jobId);
+
+      if (response.success) {
+        return response.data.analytics;
+      }
+      return null;
+    } catch (err: any) {
+      console.error('Error fetching job analytics:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch job analytics',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   // Auto-fetch dashboard when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user?.role === 'CUSTOMER' && user?.id) {
@@ -411,6 +514,10 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
     // State
     jobs,
     stats,
+    performance,
+    recentActivity,
+    topCategories,
+    budgetUtilization,
     loading,
     error,
 
@@ -423,6 +530,7 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
     fetchJobBids,
     acceptBid,
     rejectBid,
+    fetchJobAnalytics,
 
     // Utilities
     getJobById,

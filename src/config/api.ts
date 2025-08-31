@@ -67,6 +67,8 @@ export const API_CONFIG = {
       CUSTOMER: '/api/dashboard/customer',
       VENDOR: '/api/dashboard/vendor',
       ADMIN: '/api/dashboard/admin',
+      JOB_ANALYTICS: (jobId: string) =>
+        `/api/dashboard/customer/job/${jobId}/analytics`,
     },
   },
 

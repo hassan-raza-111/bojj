@@ -3,6 +3,7 @@ import {
   getCustomerDashboard,
   getVendorDashboard,
   getAdminDashboard,
+  getJobAnalytics,
 } from '../controllers/dashboard.controller';
 import {
   authenticateToken,
@@ -21,6 +22,9 @@ router.use(authenticateToken);
 router.get('/customer', requireCustomer, getCustomerDashboard);
 router.get('/vendor', requireVendor, getVendorDashboard);
 router.get('/admin', requireAdmin, getAdminDashboard);
+
+// Job analytics (Customer only)
+router.get('/customer/job/:jobId/analytics', requireCustomer, getJobAnalytics);
 
 // User profile statistics (any authenticated user)
 // router.get("/profile", requireAuthenticated, getUserProfileStats);

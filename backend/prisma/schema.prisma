@@ -126,10 +126,18 @@ model Job {
   deletedAt   DateTime?
   deletedBy   String?
   
+  // Enhanced dashboard fields
+  estimatedDuration String?  // e.g., "2-3 days", "1 week"
+  urgency          String?   // e.g., "Low", "Medium", "High"
+  customerRating   Float?     // Rating given by customer after completion
+  customerFeedback String?    // Feedback from customer
+  completionDate   DateTime?  // When job was actually completed
+  
   // Relations
   bids        Bid[]
   payments    Payment[]
   reviews     Review[]
+  analytics   JobAnalytics?
   
   // Timestamps
   createdAt   DateTime  @default(now())
@@ -281,6 +289,35 @@ model AdminActionLog {
   admin       User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
 
   @@map("admin_action_logs")
+}
+
+model JobAnalytics {
+  id                String   @id @default(uuid())
+  jobId             String   @unique
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  // Performance metrics
+  timeToFirstBid    Int?     // Minutes from posting to first bid
+  totalBidCount     Int       @default(0)
+  averageBidAmount  Float?
+  highestBidAmount  Float?
+  lowestBidAmount   Float?
+  
+  // Engagement metrics
+  uniqueViewers     Int       @default(0)
+  savedCount        Int       @default(0)
+  shareCount        Int       @default(0)
+  
+  // Completion metrics
+  timeToCompletion  Int?     // Days from posting to completion
+  customerSatisfaction Float? // 1-5 rating
+  rehireLikelihood  Float?   // 0-100 percentage
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@map("job_analytics")
 }
 
 enum Role {

@@ -30,7 +30,17 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { jobs, stats, loading, error, fetchDashboard } = useCustomer();
+  const {
+    jobs,
+    stats,
+    performance,
+    recentActivity,
+    topCategories,
+    budgetUtilization,
+    loading,
+    error,
+    fetchDashboard,
+  } = useCustomer();
   const { user } = useAuth();
   const { theme } = useTheme();
 
@@ -132,6 +142,15 @@ const CustomerDashboard = () => {
                     Post Your First Job
                   </Button>
                 </Link>
+                <Button
+                  variant='outline'
+                  onClick={fetchDashboard}
+                  className='hover:border-purple-300 hover:text-purple-600 transition-colors'
+                  disabled={loading}
+                >
+                  <TrendingUp className='mr-2 h-4 w-4' />
+                  {loading ? 'Refreshing...' : 'Refresh Data'}
+                </Button>
                 <Link to='/customer/support'>
                   <Button
                     variant='outline'
@@ -205,18 +224,76 @@ const CustomerDashboard = () => {
                   There was an issue loading your dashboard data
                 </p>
               </div>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={fetchDashboard}
-                className={`${
-                  theme === 'dark'
-                    ? 'border-red-700 text-red-300 hover:bg-red-900/40'
-                    : 'border-red-200 text-red-700 hover:bg-red-100'
-                }`}
-              >
-                Retry
-              </Button>
+              <div className='flex gap-2'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={fetchDashboard}
+                  className={`${
+                    theme === 'dark'
+                      ? 'border-red-700 text-red-300 hover:bg-red-900/40'
+                      : 'border-red-200 text-red-700 hover:bg-red-100'
+                  }`}
+                >
+                  Retry
+                </Button>
+                <Button
+                  size='sm'
+                  onClick={() => window.location.reload()}
+                  className='bg-red-600 hover:bg-red-700 text-white'
+                >
+                  Refresh Page
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Performance Metrics Section */}
+      {performance && (
+        <Card className='border-0 shadow-lg'>
+          <CardHeader>
+            <div className='flex items-center gap-3'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                <TrendingUp className='h-5 w-5' />
+              </div>
+              <div>
+                <CardTitle className='text-xl'>Performance Overview</CardTitle>
+                <CardDescription>
+                  Your platform performance metrics
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+              <div className='text-center p-3 rounded-lg bg-blue-50'>
+                <p className='text-sm text-blue-600 mb-1'>Response Time</p>
+                <p className='text-lg font-bold text-blue-900'>
+                  {performance.averageResponseTime}
+                </p>
+              </div>
+              <div className='text-center p-3 rounded-lg bg-emerald-50'>
+                <p className='text-sm text-emerald-600 mb-1'>Success Rate</p>
+                <p className='text-lg font-bold text-emerald-900'>
+                  {performance.jobSuccessRate}%
+                </p>
+              </div>
+              <div className='text-center p-3 rounded-lg bg-purple-50'>
+                <p className='text-sm text-purple-600 mb-1'>Avg Rating</p>
+                <p className='text-lg font-bold text-purple-900'>
+                  {performance.averageJobRating.toFixed(1)}
+                </p>
+              </div>
+              <div className='text-center p-3 rounded-lg bg-indigo-50'>
+                <p className='text-sm text-indigo-600 mb-1'>
+                  Budget Efficiency
+                </p>
+                <p className='text-lg font-bold text-indigo-900'>
+                  {performance.budgetEfficiency}%
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -504,10 +581,18 @@ const CustomerDashboard = () => {
                             <span className='text-gray-900 font-medium'>
                               {formatBudget(job.budget)}
                             </span>
-                            <span className='text-gray-500 flex items-center gap-1'>
-                              <MessageSquare className='h-4 w-4' />
-                              {job._count?.bids || 0} bids
-                            </span>
+                            <div className='flex items-center gap-3 text-gray-500'>
+                              <span className='flex items-center gap-1'>
+                                <MessageSquare className='h-4 w-4' />
+                                {job._count?.bids || 0} bids
+                              </span>
+                              {job.analytics?.uniqueViewers && (
+                                <span className='flex items-center gap-1'>
+                                  <Users className='h-4 w-4' />
+                                  {job.analytics.uniqueViewers} views
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -962,6 +1047,92 @@ const CustomerDashboard = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Top Categories & Budget Utilization */}
+      <div className='grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8'>
+        {/* Top Job Categories */}
+        {topCategories.length > 0 && (
+          <Card className='border-0 shadow-lg'>
+            <CardHeader>
+              <div className='flex items-center gap-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white'>
+                  <Briefcase className='h-5 w-5' />
+                </div>
+                <div>
+                  <CardTitle className='text-xl'>Top Categories</CardTitle>
+                  <CardDescription>Your most posted job types</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-3'>
+                {topCategories.map((category, index) => (
+                  <div
+                    key={category.category}
+                    className='flex items-center justify-between p-3 rounded-lg bg-gray-50'
+                  >
+                    <div className='flex items-center gap-3'>
+                      <div className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-sm font-bold'>
+                        {index + 1}
+                      </div>
+                      <span className='font-medium text-gray-900'>
+                        {category.category}
+                      </span>
+                    </div>
+                    <Badge
+                      variant='secondary'
+                      className='bg-blue-100 text-blue-700'
+                    >
+                      {category.count} jobs
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Budget Utilization */}
+        {budgetUtilization && (
+          <Card className='border-0 shadow-lg'>
+            <CardHeader>
+              <div className='flex items-center gap-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white'>
+                  <DollarSign className='h-5 w-5' />
+                </div>
+                <div>
+                  <CardTitle className='text-xl'>Budget Overview</CardTitle>
+                  <CardDescription>
+                    Your spending and budget allocation
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-4'>
+                <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                  <span className='text-sm text-gray-600'>Total Budget</span>
+                  <span className='font-semibold text-gray-900'>
+                    {formatBudget(budgetUtilization.totalBudget)}
+                  </span>
+                </div>
+                <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                  <span className='text-sm text-gray-600'>Average Budget</span>
+                  <span className='font-semibold text-gray-900'>
+                    {formatBudget(budgetUtilization.averageBudget)}
+                  </span>
+                </div>
+                <div className='flex items-center justify-between p-3 rounded-lg bg-gray-50'>
+                  <span className='text-sm text-gray-600'>Spent</span>
+                  <span className='font-semibold text-emerald-600'>
+                    {budgetUtilization.spentPercentage}%
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
       {/* Recent Activity & Tips Section */}
       <div className='grid grid-cols-1 xl:grid-cols-3 gap-6'>
         {/* Recent Activity */}
@@ -981,45 +1152,41 @@ const CustomerDashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {jobs.length === 0 ? (
+              {recentActivity.length === 0 ? (
                 <div className='text-center py-8'>
                   <p className='text-gray-500 text-base'>No recent activity</p>
                 </div>
               ) : (
                 <ul className='space-y-4'>
-                  {activeJobs.slice(0, 3).map((job) => (
+                  {recentActivity.slice(0, 5).map((activity) => (
                     <li
-                      key={job.id}
+                      key={activity.id}
                       className='flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors'
                     >
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 flex-shrink-0'>
-                        <Briefcase className='h-5 w-5 text-purple-600' />
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${
+                          activity.status === 'COMPLETED'
+                            ? 'bg-emerald-100'
+                            : activity.status === 'IN_PROGRESS'
+                            ? 'bg-blue-100'
+                            : 'bg-purple-100'
+                        }`}
+                      >
+                        {activity.status === 'COMPLETED' ? (
+                          <CheckCircle className='h-5 w-5 text-emerald-600' />
+                        ) : activity.status === 'IN_PROGRESS' ? (
+                          <Clock className='h-5 w-5 text-blue-600' />
+                        ) : (
+                          <Briefcase className='h-5 w-5 text-purple-600' />
+                        )}
                       </div>
                       <div className='flex-1 min-w-0'>
                         <p className='font-medium text-gray-900 text-base'>
-                          Job "{job.title}" is active
+                          Job "{activity.title}" {activity.status.toLowerCase()}
                         </p>
                         <p className='text-sm text-gray-500 mt-1'>
-                          {job._count?.bids || 0} bids received • Posted{' '}
-                          {formatDate(job.createdAt)}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                  {completedJobs.slice(0, 2).map((job) => (
-                    <li
-                      key={job.id}
-                      className='flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors'
-                    >
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0'>
-                        <CheckCircle className='h-5 w-5 text-emerald-600' />
-                      </div>
-                      <div className='flex-1 min-w-0'>
-                        <p className='font-medium text-gray-900 text-base'>
-                          Job "{job.title}" completed
-                        </p>
-                        <p className='text-sm text-gray-500 mt-1'>
-                          Completed on {formatDate(job.updatedAt)}
+                          {activity.bids} bids • {activity.payments} payments •{' '}
+                          {formatDate(activity.updatedAt)}
                         </p>
                       </div>
                     </li>

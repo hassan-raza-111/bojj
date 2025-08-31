@@ -28,6 +28,14 @@ export const customerAPI = {
     );
   },
 
+  getJobAnalytics: async (jobId: string) => {
+    return apiCall(
+      API_CONFIG.ENDPOINTS.DASHBOARD.JOB_ANALYTICS(jobId),
+      { method: 'GET' },
+      true
+    );
+  },
+
   createJob: async (jobData: any) => {
     return apiCall(
       API_CONFIG.ENDPOINTS.JOBS.CREATE,
