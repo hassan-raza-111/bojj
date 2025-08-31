@@ -103,7 +103,10 @@ router.get('/vendors', adminController.getAllVendors.bind(adminController));
 router.get('/vendors/stats', (req, res) =>
   adminController.getVendorStats(req, res)
 );
-router.get('/vendors/pending', adminController.getPendingVendors.bind(adminController));
+router.get(
+  '/vendors/pending',
+  adminController.getPendingVendors.bind(adminController)
+);
 router.get('/vendors/:vendorId', (req, res) =>
   adminController.getVendorDetails(req, res)
 );
@@ -133,9 +136,27 @@ router.get('/vendors/export', (req, res) =>
 // CUSTOMER MANAGEMENT
 // ========================================
 router.get('/customers', adminController.getAllCustomers.bind(adminController));
+router.get('/customers/stats', (req, res) =>
+  adminController.getCustomerStats(req, res)
+);
+router.get('/customers/:customerId', (req, res) =>
+  adminController.getCustomerDetails(req, res)
+);
 router.patch(
   '/customers/:customerId/status',
   adminController.toggleCustomerStatus.bind(adminController)
+);
+router.patch('/customers/bulk/status', (req, res) =>
+  adminController.bulkUpdateCustomerStatus(req, res)
+);
+router.delete('/customers/bulk', (req, res) =>
+  adminController.bulkDeleteCustomers(req, res)
+);
+router.get('/customers/spending/:spending', (req, res) =>
+  adminController.getCustomersBySpending(req, res)
+);
+router.get('/customers/export', (req, res) =>
+  adminController.exportCustomers(req, res)
 );
 
 // ========================================

@@ -59,7 +59,16 @@ export interface Customer {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  location?: string;
   status: string;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  lastLoginAt?: string;
+  lastActive?: string;
+  totalReviews?: number;
+  averageRating?: number;
+  recentActivity?: string;
   customerProfile?: {
     preferredCategories: string[];
     budgetRange?: string;
@@ -67,6 +76,41 @@ export interface Customer {
     totalSpent: number;
   };
   createdAt: string;
+}
+
+export interface CustomerStats {
+  success: boolean;
+  data: {
+    totalCustomers: number;
+    activeCustomers: number;
+    suspendedCustomers: number;
+    deletedCustomers: number;
+    newCustomersThisMonth: number;
+    customerGrowth: string;
+    activePercentage: string;
+    totalRevenue: number;
+    averageOrderValue: number;
+    highValueCustomers: number;
+    mediumValueCustomers: number;
+    lowValueCustomers: number;
+  };
+}
+
+export interface CustomerDetails extends Customer {
+  jobs: {
+    id: string;
+    title: string;
+    status: string;
+    budget: number;
+    createdAt: string;
+  }[];
+  customerPayments: {
+    id: string;
+    amount: number;
+    status: string;
+    method: string;
+    createdAt: string;
+  }[];
 }
 
 export interface Payment {
@@ -125,6 +169,7 @@ export interface PaginatedResponse<T> {
     users?: T[];
     jobs?: T[];
     vendors?: T[];
+    customers?: T[];
     pagination: {
       page: number;
       limit: number;
@@ -517,18 +562,101 @@ export const getAllCustomers = async (
   return response;
 };
 
+export const getCustomerStats = async (): Promise<CustomerStats> => {
+  const response = await apiCall(
+    '/api/admin/customers/stats',
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const getCustomerDetails = async (
+  customerId: string
+): Promise<CustomerDetails> => {
+  const response = await apiCall(
+    `/api/admin/customers/${customerId}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
 export const toggleCustomerStatus = async (
   customerId: string,
-  status: string
+  status: string,
+  reason?: string
 ): Promise<void> => {
   await apiCall(
     `/api/admin/customers/${customerId}/status`,
     {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reason }),
     },
     true
   );
+};
+
+export const bulkUpdateCustomerStatus = async (
+  customerIds: string[],
+  status: string,
+  reason?: string
+): Promise<void> => {
+  await apiCall(
+    '/api/admin/customers/bulk/status',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ customerIds, status, reason }),
+    },
+    true
+  );
+};
+
+export const bulkDeleteCustomers = async (
+  customerIds: string[],
+  reason?: string
+): Promise<void> => {
+  await apiCall(
+    '/api/admin/customers/bulk',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ customerIds, reason }),
+    },
+    true
+  );
+};
+
+export const getCustomersBySpending = async (
+  spending: 'high' | 'medium' | 'low',
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedResponse<Customer>> => {
+  const response = await apiCall(
+    `/api/admin/customers/spending/${spending}?page=${page}&limit=${limit}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
+};
+
+export const exportCustomers = async (
+  format: 'csv' | 'json' = 'csv',
+  status?: string,
+  spending?: string,
+  search?: string
+): Promise<Blob> => {
+  const params = new URLSearchParams();
+  params.append('format', format);
+  if (status) params.append('status', status);
+  if (spending) params.append('spending', spending);
+  if (search) params.append('search', search);
+
+  const response = await apiCall(
+    `/api/admin/customers/export?${params.toString()}`,
+    { method: 'GET' },
+    true
+  );
+  return response;
 };
 
 // ========================================

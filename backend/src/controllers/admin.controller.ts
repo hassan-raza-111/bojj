@@ -32,6 +32,30 @@ export class AdminController {
     }
   }
 
+  private formatTimeAgo(date: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds} seconds ago`;
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 31536000) {
+      const months = Math.floor(diffInSeconds / 2592000);
+      return `${months} month${months > 1 ? 's' : ''} ago`;
+    } else {
+      const years = Math.floor(diffInSeconds / 31536000);
+      return `${years} year${years > 1 ? 's' : ''} ago`;
+    }
+  }
+
   // ========================================
   // DASHBOARD OVERVIEW & STATISTICS
   // ========================================
@@ -843,10 +867,59 @@ export class AdminController {
   // CUSTOMER MANAGEMENT
   // ========================================
 
+  // Test endpoint to check database connection and basic queries
+  async testDatabaseConnection(req: Request, res: Response) {
+    try {
+      console.log('🧪 Testing database connection...');
+      
+      // Test basic connection
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ Database connection successful');
+      
+      // Test if users table exists and has data
+      const userCount = await prisma.user.count();
+      console.log('✅ Users table accessible, count:', userCount);
+      
+      // Test if customer profiles table exists
+      const profileCount = await prisma.customerProfile.count();
+      console.log('✅ Customer profiles table accessible, count:', profileCount);
+      
+      // Test if jobs table exists
+      const jobCount = await prisma.job.count();
+      console.log('✅ Jobs table accessible, count:', jobCount);
+      
+      // Test if reviews table exists
+      const reviewCount = await prisma.review.count();
+      console.log('✅ Reviews table accessible, count:', reviewCount);
+      
+      res.json({
+        success: true,
+        message: 'Database connection test successful',
+        data: {
+          userCount,
+          profileCount,
+          jobCount,
+          reviewCount,
+        }
+      });
+    } catch (error) {
+      console.error('❌ Database connection test failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Database connection test failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+    }
+  }
+
   async getAllCustomers(req: Request, res: Response) {
     try {
-      const { search, status, page = 1, limit = 10 } = req.query;
+      console.log('🔍 Starting getAllCustomers...');
+      const { search, status, spending, page = 1, limit = 10 } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
+
+      console.log('🔍 Query params:', { search, status, spending, page, limit });
 
       const where: any = { role: 'CUSTOMER' };
 
@@ -858,33 +931,160 @@ export class AdminController {
         ];
       }
 
-      if (status) {
+      if (status && status !== 'all') {
         where.status = status;
       }
 
-      const [customers, total] = await Promise.all([
-        prisma.user.findMany({
-          where,
-          include: {
-            customerProfile: {
-              select: {
-                preferredCategories: true,
-                budgetRange: true,
-                totalJobsPosted: true,
-                totalSpent: true,
-              },
-            },
+      // Add spending filter
+      if (spending && spending !== 'all') {
+        if (spending === 'high') {
+          where.customerProfile = { totalSpent: { gte: 5000 } };
+        } else if (spending === 'medium') {
+          where.customerProfile = {
+            totalSpent: { gte: 2000, lt: 5000 },
+          };
+        } else if (spending === 'low') {
+          where.customerProfile = { totalSpent: { lt: 2000 } };
+        }
+      }
+
+      console.log('🔍 Where clause:', JSON.stringify(where, null, 2));
+
+      // First, let's test if we can get basic customer data without complex includes
+      console.log('🔍 Testing basic customer query...');
+      const basicCustomers = await prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          location: true,
+          status: true,
+          emailVerified: true,
+          phoneVerified: true,
+          createdAt: true,
+          lastLoginAt: true,
+        },
+        skip,
+        take: Number(limit),
+        orderBy: { createdAt: 'desc' },
+      });
+
+      console.log('✅ Basic customers query successful, found:', basicCustomers.length);
+
+      // Now let's get the total count
+      const total = await prisma.user.count({ where });
+      console.log('✅ Total count query successful:', total);
+
+      // Try to get customer profiles separately to avoid complex join issues
+      const customerIds = basicCustomers.map(c => c.id);
+      console.log('🔍 Fetching customer profiles for IDs:', customerIds);
+
+      const customerProfiles = await prisma.customerProfile.findMany({
+        where: { userId: { in: customerIds } },
+        select: {
+          userId: true,
+          preferredCategories: true,
+          budgetRange: true,
+          totalJobsPosted: true,
+          totalSpent: true,
+        },
+      });
+
+      console.log('✅ Customer profiles query successful, found:', customerProfiles.length);
+
+      // Create a map for easy lookup
+      const profileMap = new Map(
+        customerProfiles.map(profile => [profile.userId, profile])
+      );
+
+      // Try to get recent jobs for activity tracking
+      console.log('🔍 Fetching recent jobs...');
+      const recentJobs = await prisma.job.findMany({
+        where: { customerId: { in: customerIds } },
+        select: {
+          customerId: true,
+          id: true,
+          title: true,
+          status: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      console.log('✅ Recent jobs query successful, found:', recentJobs.length);
+
+      // Group jobs by customer
+      const jobsMap = new Map();
+      recentJobs.forEach(job => {
+        if (!jobsMap.has(job.customerId)) {
+          jobsMap.set(job.customerId, []);
+        }
+        jobsMap.get(job.customerId).push(job);
+      });
+
+      // Try to get reviews for rating calculation
+      console.log('🔍 Fetching reviews...');
+      const reviews = await prisma.review.findMany({
+        where: { reviewerId: { in: customerIds } },
+        select: {
+          reviewerId: true,
+          rating: true,
+        },
+      });
+
+      console.log('✅ Reviews query successful, found:', reviews.length);
+
+      // Group reviews by customer
+      const reviewsMap = new Map();
+      reviews.forEach(review => {
+        if (!reviewsMap.has(review.reviewerId)) {
+          reviewsMap.set(review.reviewerId, []);
+        }
+        reviewsMap.get(review.reviewerId).push(review);
+      });
+
+      // Enhance customer data with calculated fields
+      console.log('🔍 Enhancing customer data...');
+      const enhancedCustomers = basicCustomers.map(customer => {
+        const profile = profileMap.get(customer.id);
+        const customerJobs = jobsMap.get(customer.id) || [];
+        const customerReviews = reviewsMap.get(customer.id) || [];
+
+        const totalReviews = customerReviews.length;
+                     const averageRating = totalReviews > 0
+               ? customerReviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / totalReviews
+               : 0;
+        
+        const lastJob = customerJobs[0];
+        const lastActive = lastJob ? this.formatTimeAgo(lastJob.createdAt) : 'Never';
+        
+        const recentActivity = lastJob 
+          ? `Posted job: ${lastJob.title}` 
+          : 'No recent activity';
+
+        return {
+          ...customer,
+          customerProfile: profile || {
+            preferredCategories: [],
+            budgetRange: null,
+            totalJobsPosted: 0,
+            totalSpent: 0,
           },
-          skip,
-          take: Number(limit),
-          orderBy: { createdAt: 'desc' },
-        }),
-        prisma.user.count({ where }),
-      ]);
+          totalReviews,
+          averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+          lastActive,
+          recentActivity,
+        };
+      });
+
+      console.log('✅ Customer data enhancement successful');
 
       res.json({
         success: true,
-        data: customers,
+        data: enhancedCustomers,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -892,11 +1092,168 @@ export class AdminController {
           pages: Math.ceil(total / Number(limit)),
         },
       });
+
+      console.log('✅ getAllCustomers completed successfully');
     } catch (error) {
+      console.error('❌ Error in getAllCustomers:', error);
       logger.error('Error fetching customers:', error);
-      res
-        .status(500)
-        .json({ success: false, message: 'Failed to fetch customers' });
+      
+      // Send more detailed error information for debugging
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch customers',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+    }
+  }
+
+  async getCustomerStats(req: Request, res: Response) {
+    try {
+      const [
+        totalCustomers,
+        activeCustomers,
+        suspendedCustomers,
+        deletedCustomers,
+        newCustomersThisMonth,
+        totalRevenue,
+        averageOrderValue,
+        highValueCustomers,
+        mediumValueCustomers,
+        lowValueCustomers,
+      ] = await Promise.all([
+        prisma.user.count({ where: { role: 'CUSTOMER' } }),
+        prisma.user.count({ where: { role: 'CUSTOMER', status: 'ACTIVE' } }),
+        prisma.user.count({ where: { role: 'CUSTOMER', status: 'SUSPENDED' } }),
+        prisma.user.count({ where: { role: 'CUSTOMER', status: 'DELETED' } }),
+        prisma.user.count({
+          where: {
+            role: 'CUSTOMER',
+            createdAt: {
+              gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            },
+          },
+        }),
+        prisma.customerProfile.aggregate({
+          _sum: { totalSpent: true },
+        }),
+        prisma.customerProfile.aggregate({
+          where: { totalSpent: { gt: 0 } },
+          _avg: { totalSpent: true },
+        }),
+        prisma.user.count({
+          where: {
+            role: 'CUSTOMER',
+            customerProfile: { totalSpent: { gte: 5000 } },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            role: 'CUSTOMER',
+            customerProfile: {
+              totalSpent: { gte: 2000, lt: 5000 },
+            },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            role: 'CUSTOMER',
+            customerProfile: { totalSpent: { lt: 2000 } },
+          },
+        }),
+      ]);
+
+      const customerGrowth =
+        totalCustomers > 0
+          ? ((newCustomersThisMonth / totalCustomers) * 100).toFixed(1)
+          : '0.0';
+
+      const activePercentage =
+        totalCustomers > 0
+          ? ((activeCustomers / totalCustomers) * 100).toFixed(1)
+          : '0.0';
+
+      res.json({
+        success: true,
+        data: {
+          totalCustomers,
+          activeCustomers,
+          suspendedCustomers,
+          deletedCustomers,
+          newCustomersThisMonth,
+          customerGrowth: `${customerGrowth}%`,
+          activePercentage: `${activePercentage}%`,
+          totalRevenue: totalRevenue._sum.totalSpent || 0,
+          averageOrderValue: averageOrderValue._avg.totalSpent || 0,
+          highValueCustomers,
+          mediumValueCustomers,
+          lowValueCustomers,
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to get customer stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getCustomerDetails(req: Request, res: Response) {
+    try {
+      const { customerId } = req.params;
+
+      const customer = await prisma.user.findUnique({
+        where: { id: customerId, role: 'CUSTOMER' },
+        include: {
+          customerProfile: {
+            select: {
+              preferredCategories: true,
+              budgetRange: true,
+              totalJobsPosted: true,
+              totalSpent: true,
+            },
+          },
+          jobs: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              budget: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          },
+          customerPayments: {
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              method: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          },
+        },
+      });
+
+      if (!customer) {
+        return res
+          .status(404)
+          .json({ success: false, message: 'Customer not found' });
+      }
+
+      res.json({ success: true, data: customer });
+    } catch (error) {
+      logger.error('Failed to get customer details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
@@ -904,6 +1261,7 @@ export class AdminController {
     try {
       const { customerId } = req.params;
       const { status, reason } = req.body;
+      const adminId = (req as any).user.id;
 
       const customer = await prisma.user.findUnique({
         where: { id: customerId },
@@ -921,6 +1279,20 @@ export class AdminController {
         data: { status: status as any },
       });
 
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'UPDATE_CUSTOMER_STATUS',
+        'CUSTOMER',
+        customerId,
+        {
+          customerEmail: customer.email,
+          oldStatus: customer.status,
+          newStatus: status,
+          reason,
+        }
+      );
+
       logger.info(`Customer ${customerId} status updated to ${status}`);
       res.json({
         success: true,
@@ -931,6 +1303,298 @@ export class AdminController {
       res
         .status(500)
         .json({ success: false, message: 'Failed to update customer status' });
+    }
+  }
+
+  async bulkUpdateCustomerStatus(req: Request, res: Response) {
+    try {
+      const { customerIds, status, reason } = req.body;
+      const adminId = (req as any).user.id;
+
+      if (
+        !customerIds ||
+        !Array.isArray(customerIds) ||
+        customerIds.length === 0
+      ) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Customer IDs are required' });
+      }
+
+      const updatedCustomers = await prisma.user.updateMany({
+        where: {
+          id: { in: customerIds },
+          role: 'CUSTOMER',
+        },
+        data: { status: status as any },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'BULK_UPDATE_CUSTOMER_STATUS',
+        'CUSTOMER',
+        customerIds.join(','),
+        {
+          customerIds,
+          status,
+          reason,
+          count: updatedCustomers.count,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Status updated for ${updatedCustomers.count} customers`,
+        data: { updatedCustomers: updatedCustomers.count },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk update customer status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk update customer status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async bulkDeleteCustomers(req: Request, res: Response) {
+    try {
+      const { customerIds, reason } = req.body;
+      const adminId = (req as any).user.id;
+
+      if (
+        !customerIds ||
+        !Array.isArray(customerIds) ||
+        customerIds.length === 0
+      ) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Customer IDs are required' });
+      }
+
+      const deletedCustomers = await prisma.user.updateMany({
+        where: {
+          id: { in: customerIds },
+          role: 'CUSTOMER',
+        },
+        data: { status: 'DELETED' },
+      });
+
+      // Log admin action
+      await this.logAdminAction(
+        adminId,
+        'BULK_DELETE_CUSTOMERS',
+        'CUSTOMER',
+        customerIds.join(','),
+        {
+          customerIds,
+          reason,
+          count: deletedCustomers.count,
+        }
+      );
+
+      res.json({
+        success: true,
+        message: `Successfully deleted ${deletedCustomers.count} customers`,
+        data: { deletedCustomers: deletedCustomers.count },
+      });
+    } catch (error) {
+      logger.error('Failed to bulk delete customers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk delete customers',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getCustomersBySpending(req: Request, res: Response) {
+    try {
+      const { spending, page = 1, limit = 10 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const where: any = { role: 'CUSTOMER' };
+
+      if (spending === 'high') {
+        where.customerProfile = { totalSpent: { gte: 5000 } };
+      } else if (spending === 'medium') {
+        where.customerProfile = {
+          totalSpent: { gte: 2000, lt: 5000 },
+        };
+      } else if (spending === 'low') {
+        where.customerProfile = { totalSpent: { lt: 2000 } };
+      }
+
+      const [customers, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          include: {
+            customerProfile: {
+              select: {
+                preferredCategories: true,
+                budgetRange: true,
+                totalJobsPosted: true,
+                totalSpent: true,
+              },
+            },
+            jobs: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+                createdAt: true,
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+            reviews: {
+              select: {
+                rating: true,
+              },
+            },
+          },
+          skip,
+          take: Number(limit),
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.user.count({ where }),
+      ]);
+
+      // Enhance customer data with calculated fields
+      const enhancedCustomers = customers.map(customer => {
+        const totalReviews = customer.reviews.length;
+        const averageRating = totalReviews > 0 
+          ? customer.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+          : 0;
+        
+        const lastJob = customer.jobs[0];
+        const lastActive = lastJob ? this.formatTimeAgo(lastJob.createdAt) : 'Never';
+        
+        const recentActivity = lastJob 
+          ? `Posted job: ${lastJob.title}` 
+          : 'No recent activity';
+
+        return {
+          ...customer,
+          totalReviews,
+          averageRating: Math.round(averageRating * 10) / 10,
+          lastActive,
+          recentActivity,
+          reviews: undefined,
+          jobs: undefined,
+        };
+      });
+
+      res.json({
+        success: true,
+        data: enhancedCustomers,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit)),
+        },
+      });
+    } catch (error) {
+      logger.error('Error fetching customers by spending:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customers by spending',
+      });
+    }
+  }
+
+  async exportCustomers(req: Request, res: Response) {
+    try {
+      const { format = 'csv', status, spending, search } = req.query;
+
+      const where: any = { role: 'CUSTOMER' };
+
+      if (status && status !== 'all') {
+        where.status = status;
+      }
+
+      if (spending && spending !== 'all') {
+        if (spending === 'high') {
+          where.customerProfile = { totalSpent: { gte: 5000 } };
+        } else if (spending === 'medium') {
+          where.customerProfile = {
+            totalSpent: { gte: 2000, lt: 5000 },
+          };
+        } else if (spending === 'low') {
+          where.customerProfile = { totalSpent: { lt: 2000 } };
+        }
+      }
+
+      if (search) {
+        where.OR = [
+          { firstName: { contains: String(search), mode: 'insensitive' } },
+          { lastName: { contains: String(search), mode: 'insensitive' } },
+          { email: { contains: String(search), mode: 'insensitive' } },
+        ];
+      }
+
+      const customers = await prisma.user.findMany({
+        where,
+        include: {
+          customerProfile: {
+            select: {
+              preferredCategories: true,
+              budgetRange: true,
+              totalJobsPosted: true,
+              totalSpent: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (format === 'csv') {
+        const csvData = customers.map((customer) => ({
+          'Customer ID': customer.id,
+          'First Name': customer.firstName,
+          'Last Name': customer.lastName,
+          Email: customer.email,
+          Phone: customer.phone || 'N/A',
+          Status: customer.status,
+          Location: customer.location || 'N/A',
+          'Total Jobs Posted': customer.customerProfile?.totalJobsPosted || 0,
+          'Total Spent': customer.customerProfile?.totalSpent || 0,
+          'Budget Range': customer.customerProfile?.budgetRange || 'N/A',
+          'Preferred Categories':
+            customer.customerProfile?.preferredCategories?.join(', ') || 'N/A',
+          'Email Verified': customer.emailVerified ? 'Yes' : 'No',
+          'Phone Verified': customer.phoneVerified ? 'Yes' : 'No',
+          'Joined Date': customer.createdAt,
+          'Last Active': customer.lastLoginAt || 'N/A',
+        }));
+
+        const csv = this.convertToCSV(csvData);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename=customers_export_${new Date().toISOString().split('T')[0]}.csv`
+        );
+        res.send(csv);
+      } else {
+        res.json({
+          success: true,
+          data: customers,
+          exportInfo: {
+            totalCustomers: customers.length,
+            exportDate: new Date().toISOString(),
+            filters: { status, spending, search },
+          },
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to export customers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to export customers',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 
