@@ -38,7 +38,7 @@ export interface AvailableJob {
       totalJobsPosted: number;
     };
   };
-  bids: Array<{ 
+  bids: Array<{
     id: string;
     amount: number;
     status: string;
@@ -51,7 +51,10 @@ export interface ActiveBid {
   description: string;
   timeline: string;
   status: string;
+  notes?: string;
+  milestones?: any;
   createdAt: string;
+  updatedAt: string;
   job: {
     id: string;
     title: string;
@@ -61,6 +64,42 @@ export interface ActiveBid {
     customer: {
       firstName: string;
       lastName: string;
+    };
+  };
+}
+
+export interface VendorBid {
+  id: string;
+  amount: number;
+  description: string;
+  timeline: string;
+  status: string;
+  notes?: string;
+  milestones?: any;
+  createdAt: string;
+  updatedAt: string;
+  job: {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    subcategory?: string;
+    budget?: number;
+    budgetType: string;
+    location?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    deadline?: string;
+    status: string;
+    customer: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      location?: string;
+      customerProfile?: {
+        totalJobsPosted: number;
+      };
     };
   };
 }
@@ -126,7 +165,11 @@ export interface JobDetails {
 export const vendorApi = {
   // Get dashboard summary
   getDashboardSummary: async (): Promise<VendorDashboardSummary> => {
-    const response = await apiCall('/api/vendor/dashboard/summary', { method: 'GET' }, true);
+    const response = await apiCall(
+      '/api/vendor/dashboard/summary',
+      { method: 'GET' },
+      true
+    );
     return response;
   },
 
@@ -159,14 +202,84 @@ export const vendorApi = {
 
   // Get active bids
   getActiveBids: async (params?: { page?: number; limit?: number }) => {
-    const queryString = params
-      ? `?${new URLSearchParams(params as any).toString()}`
-      : '';
+    // Filter out undefined values and build query string
+    const cleanParams: Record<string, string | number> = {};
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          cleanParams[key] = value;
+        }
+      });
+    }
+
+    const queryString =
+      Object.keys(cleanParams).length > 0
+        ? `?${new URLSearchParams(cleanParams as any).toString()}`
+        : '';
+
     return apiCall(
       `/api/vendor/bids/active${queryString}`,
       { method: 'GET' },
       true
     );
+  },
+
+  // Get all bids with filtering
+  getAllBids: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }) => {
+    // Filter out undefined values and build query string
+    const cleanParams: Record<string, string | number> = {};
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          cleanParams[key] = value;
+        }
+      });
+    }
+
+    const queryString =
+      Object.keys(cleanParams).length > 0
+        ? `?${new URLSearchParams(cleanParams as any).toString()}`
+        : '';
+
+    return apiCall(`/api/vendor/bids${queryString}`, { method: 'GET' }, true);
+  },
+
+  // Get bid details
+  getBidDetails: async (bidId: string) => {
+    return apiCall(`/api/vendor/bids/${bidId}`, { method: 'GET' }, true);
+  },
+
+  // Update bid
+  updateBid: async (
+    bidId: string,
+    bidData: {
+      amount?: number;
+      description?: string;
+      timeline?: string;
+      notes?: string;
+      milestones?: any;
+    }
+  ) => {
+    return apiCall(
+      `/api/vendor/bids/${bidId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(bidData),
+      },
+      true
+    );
+  },
+
+  // Withdraw bid
+  withdrawBid: async (bidId: string) => {
+    return apiCall(`/api/vendor/bids/${bidId}`, { method: 'DELETE' }, true);
   },
 
   // Get awarded jobs

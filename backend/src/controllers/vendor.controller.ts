@@ -329,6 +329,254 @@ export class VendorController {
     }
   }
 
+  // Get all vendor bids with filtering
+  static async getAllBids(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { page = 1, limit = 20, status, search } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Build where clause
+      const whereClause: any = {
+        vendorId: vendorId,
+      };
+
+      if (status && status !== 'all') {
+        whereClause.status = (status as string).toUpperCase();
+      }
+
+      if (search) {
+        whereClause.OR = [
+          {
+            job: {
+              title: {
+                contains: search as string,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            job: {
+              description: {
+                contains: search as string,
+                mode: 'insensitive',
+              },
+            },
+          },
+        ];
+      }
+
+      const bids = await prisma.bid.findMany({
+        where: whereClause,
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              category: true,
+              subcategory: true,
+              budget: true,
+              budgetType: true,
+              location: true,
+              city: true,
+              state: true,
+              zipCode: true,
+              deadline: true,
+              status: true,
+              customer: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  location: true,
+                  customerProfile: {
+                    select: {
+                      totalJobsPosted: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: Number(limit),
+      });
+
+      const total = await prisma.bid.count({
+        where: whereClause,
+      });
+
+      res.json({
+        bids,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit)),
+        },
+      });
+    } catch (error) {
+      logger.error('Error getting all bids:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Get bid details
+  static async getBidDetails(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      const { bidId } = req.params;
+
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const bid = await prisma.bid.findFirst({
+        where: {
+          id: bidId,
+          vendorId: vendorId,
+        },
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              category: true,
+              subcategory: true,
+              budget: true,
+              budgetType: true,
+              location: true,
+              city: true,
+              state: true,
+              zipCode: true,
+              deadline: true,
+              status: true,
+              requirements: true,
+              timeline: true,
+              additionalRequests: true,
+              images: true,
+              customer: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  location: true,
+                  phone: true,
+                  customerProfile: {
+                    select: {
+                      totalJobsPosted: true,
+                      totalSpent: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!bid) {
+        return res.status(404).json({ message: 'Bid not found' });
+      }
+
+      res.json(bid);
+    } catch (error) {
+      logger.error('Error getting bid details:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Update bid
+  static async updateBid(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      const { bidId } = req.params;
+      const { amount, description, timeline, notes, milestones } = req.body;
+
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Check if bid exists and belongs to vendor
+      const existingBid = await prisma.bid.findFirst({
+        where: {
+          id: bidId,
+          vendorId: vendorId,
+          status: 'PENDING', // Only pending bids can be updated
+        },
+      });
+
+      if (!existingBid) {
+        return res.status(404).json({ message: 'Bid not found or cannot be updated' });
+      }
+
+      const updatedBid = await prisma.bid.update({
+        where: { id: bidId },
+        data: {
+          amount: amount ? parseFloat(amount) : undefined,
+          description: description || undefined,
+          timeline: timeline || undefined,
+          notes: notes || undefined,
+          milestones: milestones || undefined,
+          updatedAt: new Date(),
+        },
+      });
+
+      res.json(updatedBid);
+    } catch (error) {
+      logger.error('Error updating bid:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Withdraw bid
+  static async withdrawBid(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      const { bidId } = req.params;
+
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Check if bid exists and belongs to vendor
+      const existingBid = await prisma.bid.findFirst({
+        where: {
+          id: bidId,
+          vendorId: vendorId,
+          status: 'PENDING', // Only pending bids can be withdrawn
+        },
+      });
+
+      if (!existingBid) {
+        return res.status(404).json({ message: 'Bid not found or cannot be withdrawn' });
+      }
+
+      const updatedBid = await prisma.bid.update({
+        where: { id: bidId },
+        data: {
+          status: 'WITHDRAWN',
+          updatedAt: new Date(),
+        },
+      });
+
+      res.json(updatedBid);
+    } catch (error) {
+      logger.error('Error withdrawing bid:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
   // Get awarded jobs
   static async getAwardedJobs(req: Request, res: Response) {
     try {

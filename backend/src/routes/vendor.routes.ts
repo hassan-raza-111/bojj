@@ -37,6 +37,18 @@ router.get('/jobs/:jobId/details', VendorController.getJobDetails);
 // Active bids
 router.get('/bids/active', VendorController.getActiveBids);
 
+// All bids with filtering
+router.get('/bids', VendorController.getAllBids);
+
+// Get bid details
+router.get('/bids/:bidId', VendorController.getBidDetails);
+
+// Update bid
+router.put('/bids/:bidId', VendorController.updateBid);
+
+// Withdraw bid
+router.delete('/bids/:bidId', VendorController.withdrawBid);
+
 // Awarded jobs
 router.get('/jobs/awarded', VendorController.getAwardedJobs);
 

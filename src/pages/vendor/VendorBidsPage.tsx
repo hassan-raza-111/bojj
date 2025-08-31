@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,8 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useVendorBids } from '@/hooks/useVendorBids';
+import { VendorBid } from '@/config/vendorApi';
+import BidEditModal from '@/components/vendor/BidEditModal';
+import BidDetailsModal from '@/components/vendor/BidDetailsModal';
 import {
   DollarSign,
   MessageSquare,
@@ -21,132 +25,61 @@ import {
   Eye,
   Edit,
   Trash2,
+  Search,
+  Filter,
+  RefreshCw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const VendorBidsPage = () => {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBid, setSelectedBid] = useState<VendorBid | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Mock data for vendor bids
-  const allBids = [
-    {
-      id: 'bid-1',
-      jobId: 'job-4',
-      jobTitle: 'Basement Finishing',
-      bidAmount: '$15,800',
-      bidDate: '2023-04-20',
-      status: 'Pending',
-      customerName: 'Robert Johnson',
-      customerRating: 4.8,
-      notes:
-        'Includes all materials and labor for complete basement finishing. Will complete within 3 weeks.',
-      jobBudget: '$12,000 - $18,000',
-      jobLocation: 'Chicago, IL',
-      jobCategory: 'Home Renovation',
-      lastUpdated: '2023-04-22',
-      isFavorite: true,
-    },
-    {
-      id: 'bid-2',
-      jobId: 'job-5',
-      jobTitle: 'Roof Repair',
-      bidAmount: '$2,400',
-      bidDate: '2023-04-18',
-      status: 'Under Review',
-      customerName: 'Jennifer Davis',
-      customerRating: 4.6,
-      notes:
-        'Repair of damaged shingles and flashing around chimney. Can start next week.',
-      jobBudget: '$2,000 - $3,000',
-      jobLocation: 'Evanston, IL',
-      jobCategory: 'Roofing',
-      lastUpdated: '2023-04-21',
-      isFavorite: false,
-    },
-    {
-      id: 'bid-3',
-      jobId: 'job-6',
-      jobTitle: 'Kitchen Backsplash Installation',
-      bidAmount: '$850',
-      bidDate: '2023-04-15',
-      status: 'Accepted',
-      customerName: 'Michael Thompson',
-      customerRating: 4.9,
-      notes:
-        'Installation of ceramic tile backsplash. Will provide all materials.',
-      jobBudget: '$600 - $1,000',
-      jobLocation: 'Oak Park, IL',
-      jobCategory: 'Home Renovation',
-      lastUpdated: '2023-04-19',
-      isFavorite: true,
-    },
-    {
-      id: 'bid-4',
-      jobId: 'job-7',
-      jobTitle: 'Deck Painting',
-      bidAmount: '$1,200',
-      bidDate: '2023-04-12',
-      status: 'Rejected',
-      customerName: 'Sarah Wilson',
-      customerRating: 4.4,
-      notes: 'Paint and seal wooden deck. Will use weather-resistant paint.',
-      jobBudget: '$800 - $1,500',
-      jobLocation: 'Arlington Heights, IL',
-      jobCategory: 'Painting',
-      lastUpdated: '2023-04-16',
-      isFavorite: false,
-    },
-    {
-      id: 'bid-5',
-      jobId: 'job-8',
-      jobTitle: 'Electrical Panel Upgrade',
-      bidAmount: '$3,500',
-      bidDate: '2023-04-10',
-      status: 'Pending',
-      customerName: 'David Brown',
-      customerRating: 4.7,
-      notes:
-        'Upgrade electrical panel from 100A to 200A. Licensed electrician.',
-      jobBudget: '$3,000 - $4,000',
-      jobLocation: 'Naperville, IL',
-      jobCategory: 'Electrical',
-      lastUpdated: '2023-04-14',
-      isFavorite: true,
-    },
-    {
-      id: 'bid-6',
-      jobId: 'job-9',
-      jobTitle: 'Landscape Design',
-      bidAmount: '$4,800',
-      bidDate: '2023-04-08',
-      status: 'Under Review',
-      customerName: 'Lisa Garcia',
-      customerRating: 4.5,
-      notes:
-        'Complete landscape design including plants, irrigation, and hardscaping.',
-      jobBudget: '$4,000 - $6,000',
-      jobLocation: 'Wheaton, IL',
-      jobCategory: 'Landscaping',
-      lastUpdated: '2023-04-12',
-      isFavorite: false,
-    },
-  ];
+  const {
+    getAllBids,
+    updateBid,
+    withdrawBid,
+    updateBidLoading,
+    withdrawBidLoading,
+    refreshBids,
+  } = useVendorBids();
+
+  // Get bids based on current filters
+  const {
+    data: bidsData,
+    isLoading,
+    error,
+    refetch,
+  } = getAllBids({
+    page: currentPage,
+    limit: 20,
+    status: activeTab === 'all' ? undefined : activeTab,
+    search: searchTerm || undefined,
+  });
+
+  const bids = bidsData?.bids || [];
+  const pagination = bidsData?.pagination;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Accepted':
+      case 'ACCEPTED':
         return theme === 'dark'
           ? 'bg-green-900/20 text-green-300 border-green-700'
           : 'bg-green-50 text-green-700 border-green-200';
-      case 'Rejected':
+      case 'REJECTED':
         return theme === 'dark'
           ? 'bg-red-900/20 text-red-300 border-red-700'
           : 'bg-red-50 text-red-700 border-red-200';
-      case 'Under Review':
+      case 'WITHDRAWN':
         return theme === 'dark'
-          ? 'bg-blue-900/20 text-blue-300 border-blue-700'
-          : 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Pending':
+          ? 'bg-gray-900/20 text-gray-300 border-gray-700'
+          : 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'PENDING':
         return theme === 'dark'
           ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
           : 'bg-yellow-50 text-yellow-700 border-yellow-200';
@@ -159,39 +92,137 @@ const VendorBidsPage = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Accepted':
+      case 'ACCEPTED':
         return <CheckCircle className='h-4 w-4 text-green-500' />;
-      case 'Rejected':
+      case 'REJECTED':
         return <XCircle className='h-4 w-4 text-red-500' />;
-      case 'Under Review':
-        return <Clock className='h-4 w-4 text-blue-500' />;
-      case 'Pending':
+      case 'WITHDRAWN':
+        return <XCircle className='h-4 w-4 text-gray-500' />;
+      case 'PENDING':
         return <AlertCircle className='h-4 w-4 text-yellow-500' />;
       default:
         return <Clock className='h-4 w-4 text-gray-500' />;
     }
   };
 
-  const filteredBids =
-    activeTab === 'all'
-      ? allBids
-      : allBids.filter(
-          (bid) => bid.status.toLowerCase() === activeTab.toLowerCase()
-        );
-
   const getStats = () => {
-    const total = allBids.length;
-    const accepted = allBids.filter((bid) => bid.status === 'Accepted').length;
-    const pending = allBids.filter((bid) => bid.status === 'Pending').length;
-    const underReview = allBids.filter(
-      (bid) => bid.status === 'Under Review'
-    ).length;
-    const rejected = allBids.filter((bid) => bid.status === 'Rejected').length;
+    if (!bidsData?.bids)
+      return { total: 0, accepted: 0, pending: 0, rejected: 0, withdrawn: 0 };
 
-    return { total, accepted, pending, underReview, rejected };
+    const allBids = bidsData.bids;
+    const total = allBids.length;
+    const accepted = allBids.filter((bid) => bid.status === 'ACCEPTED').length;
+    const pending = allBids.filter((bid) => bid.status === 'PENDING').length;
+    const rejected = allBids.filter((bid) => bid.status === 'REJECTED').length;
+    const withdrawn = allBids.filter(
+      (bid) => bid.status === 'WITHDRAWN'
+    ).length;
+
+    return { total, accepted, pending, rejected, withdrawn };
   };
 
   const stats = getStats();
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleViewBid = (bid: VendorBid) => {
+    setSelectedBid(bid);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditBid = (bid: VendorBid) => {
+    setSelectedBid(bid);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateBid = (bidData: {
+    amount?: number;
+    description?: string;
+    timeline?: string;
+    notes?: string;
+    milestones?: any;
+  }) => {
+    if (selectedBid) {
+      updateBid({
+        bidId: selectedBid.id,
+        bidData,
+      });
+      setIsEditModalOpen(false);
+      setSelectedBid(null);
+    }
+  };
+
+  const handleWithdrawBid = (bid: VendorBid) => {
+    if (
+      confirm(
+        'Are you sure you want to withdraw this bid? This action cannot be undone.'
+      )
+    ) {
+      withdrawBid(bid.id);
+    }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    refreshBids();
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (error) {
+    return (
+      <div
+        className={`p-4 md:p-8 min-h-screen ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+        }`}
+      >
+        <div className='text-center py-12'>
+          <div className='mb-4'>
+            <AlertCircle className='h-12 w-12 mx-auto text-red-400' />
+          </div>
+          <h3
+            className={`text-lg font-medium mb-2 ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}
+          >
+            Error loading bids
+          </h3>
+          <p
+            className={`${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
+            {error.message || 'Failed to load your bids. Please try again.'}
+          </p>
+          <Button onClick={handleRefresh} className='mt-4'>
+            <RefreshCw className='mr-2 h-4 w-4' />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -201,18 +232,54 @@ const VendorBidsPage = () => {
     >
       {/* Header */}
       <div className='mb-8'>
-        <h1
-          className={`text-3xl font-bold mb-2 ${
-            theme === 'dark' ? 'text-white' : 'text-gray-900'
-          }`}
-        >
-          My Bids
-        </h1>
-        <p
-          className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
-        >
-          Track and manage all your submitted bids
-        </p>
+        <div className='flex justify-between items-start mb-4'>
+          <div>
+            <h1
+              className={`text-3xl font-bold mb-2 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}
+            >
+              My Bids
+            </h1>
+            <p
+              className={`${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}
+            >
+              Track and manage all your submitted bids
+            </p>
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='outline'
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+              />
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {/* Search and Filter */}
+        <div className='flex flex-col sm:flex-row gap-4'>
+          <div className='relative flex-1'>
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+            <Input
+              placeholder='Search jobs by title or description...'
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className={`pl-10 ${
+                theme === 'dark'
+                  ? 'bg-gray-800 border-gray-600 text-white'
+                  : 'bg-white border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -268,21 +335,6 @@ const VendorBidsPage = () => {
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
           <CardContent className='p-4 text-center'>
-            <p className={`text-2xl font-bold text-blue-600`}>
-              {stats.underReview}
-            </p>
-            <p
-              className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}
-            >
-              Under Review
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
             <p className={`text-2xl font-bold text-red-600`}>
               {stats.rejected}
             </p>
@@ -295,10 +347,25 @@ const VendorBidsPage = () => {
             </p>
           </CardContent>
         </Card>
+
+        <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+          <CardContent className='p-4 text-center'>
+            <p className={`text-2xl font-bold text-gray-600`}>
+              {stats.withdrawn}
+            </p>
+            <p
+              className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`}
+            >
+              Withdrawn
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue='all' onValueChange={setActiveTab} className='mb-6'>
+      <Tabs defaultValue='all' onValueChange={handleTabChange} className='mb-6'>
         <TabsList
           className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
         >
@@ -323,16 +390,6 @@ const VendorBidsPage = () => {
             Pending ({stats.pending})
           </TabsTrigger>
           <TabsTrigger
-            value='under review'
-            className={`${
-              theme === 'dark'
-                ? 'data-[state=active]:bg-gray-700'
-                : 'data-[state=active]:bg-white'
-            }`}
-          >
-            Under Review ({stats.underReview})
-          </TabsTrigger>
-          <TabsTrigger
             value='accepted'
             className={`${
               theme === 'dark'
@@ -352,226 +409,332 @@ const VendorBidsPage = () => {
           >
             Rejected ({stats.rejected})
           </TabsTrigger>
+          <TabsTrigger
+            value='withdrawn'
+            className={`${
+              theme === 'dark'
+                ? 'data-[state=active]:bg-gray-700'
+                : 'data-[state=active]:bg-white'
+            }`}
+          >
+            Withdrawn ({stats.withdrawn})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className='mt-6'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            {filteredBids.map((bid) => (
-              <Card
-                key={bid.id}
-                className={`${
-                  theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                } hover:shadow-lg transition-shadow duration-200`}
-              >
-                <CardHeader className='pb-3'>
-                  <div className='flex justify-between items-start mb-3'>
-                    <div className='min-w-0 flex-1'>
-                      <CardTitle
-                        className={`text-xl ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {bid.jobTitle}
-                      </CardTitle>
-                      <div className='flex items-center gap-2 mt-1'>
-                        <span
-                          className={`text-sm ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                          }`}
-                        >
-                          {bid.jobLocation} • {bid.jobCategory}
-                        </span>
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <Badge
-                        variant='outline'
-                        className={getStatusColor(bid.status)}
-                      >
-                        {getStatusIcon(bid.status)}
-                        <span className='ml-1'>{bid.status}</span>
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-4'>
-                      <div className='flex items-center gap-1'>
-                        <span
-                          className={`text-sm ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`}
-                        >
-                          Customer Rating:
-                        </span>
-                        <span
-                          className={`font-medium ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}
-                        >
-                          {bid.customerRating}/5
-                        </span>
-                      </div>
-                      <span
-                        className={`text-sm ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                      >
-                        Posted: {bid.bidDate}
-                      </span>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <div className='grid grid-cols-2 gap-4 mb-4'>
-                    <div className='flex items-center gap-2'>
-                      <DollarSign className='h-4 w-4 text-green-500' />
-                      <div>
-                        <p
-                          className={`text-sm ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`}
-                        >
-                          Your Bid
-                        </p>
-                        <p
-                          className={`font-semibold ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}
-                        >
-                          {bid.bidAmount}
-                        </p>
-                      </div>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <DollarSign className='h-4 w-4 text-blue-500' />
-                      <div>
-                        <p
-                          className={`text-sm ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`}
-                        >
-                          Job Budget
-                        </p>
-                        <p
-                          className={`font-semibold ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                          }`}
-                        >
-                          {bid.jobBudget}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='mb-4'>
-                    <p
-                      className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}
-                    >
-                      Customer:{' '}
-                      <span
-                        className={`font-medium ${
-                          theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {bid.customerName}
-                      </span>
-                    </p>
-                  </div>
-
-                  <p
-                    className={`mb-4 line-clamp-3 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}
-                  >
-                    {bid.notes}
-                  </p>
-
-                  <div className='flex items-center justify-between'>
-                    <span
-                      className={`text-xs ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}
-                    >
-                      Last updated: {bid.lastUpdated}
-                    </span>
-
-                    <div className='flex space-x-2'>
-                      <Link
-                        to={`/vendor-dashboard/bids/${bid.id}/view`}
-                        className='flex-1 min-w-0'
-                      >
-                        <Button variant='outline' size='sm'>
-                          <Eye className='mr-1 h-3 w-3' />
-                          View
-                        </Button>
-                      </Link>
-
-                      {bid.status === 'Pending' && (
-                        <>
-                          <Button variant='outline' size='sm'>
-                            <Edit className='mr-1 h-3 w-3' />
-                            Edit
-                          </Button>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='text-red-600 hover:text-red-700'
-                          >
-                            <Trash2 className='mr-1 h-3 w-3' />
-                            Withdraw
-                          </Button>
-                        </>
-                      )}
-
-                      {bid.status === 'Accepted' && (
-                        <Link
-                          to={`/vendor-dashboard/messages?jobId=${
-                            bid.jobId
-                          }&client=${encodeURIComponent(bid.customerName)}`}
-                        >
-                          <Button size='sm'>
-                            <MessageSquare className='mr-1 h-3 w-3' />
-                            Message
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* No Results */}
-          {filteredBids.length === 0 && (
+          {isLoading ? (
             <div className='text-center py-12'>
               <div className='mb-4'>
-                <Clock className='h-12 w-12 mx-auto text-gray-400' />
+                <RefreshCw className='h-12 w-12 mx-auto text-gray-400 animate-spin' />
               </div>
-              <h3
-                className={`text-lg font-medium mb-2 ${
-                  theme === 'dark' ? 'text-white' : 'text-gray-900'
-                }`}
-              >
-                No bids found
-              </h3>
               <p
                 className={`${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                 }`}
               >
-                {activeTab === 'all'
-                  ? "You haven't submitted any bids yet. Start bidding on available jobs to see them here."
-                  : `No ${activeTab.toLowerCase()} bids found.`}
+                Loading your bids...
               </p>
             </div>
+          ) : (
+            <>
+              <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                {bids.map((bid) => (
+                  <Card
+                    key={bid.id}
+                    className={`${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                    } hover:shadow-lg transition-shadow duration-200`}
+                  >
+                    <CardHeader className='pb-3'>
+                      <div className='flex justify-between items-start mb-3'>
+                        <div className='min-w-0 flex-1'>
+                          <CardTitle
+                            className={`text-xl ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {bid.job.title}
+                          </CardTitle>
+                          <div className='flex items-center gap-2 mt-1'>
+                            <span
+                              className={`text-sm ${
+                                theme === 'dark'
+                                  ? 'text-gray-300'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {bid.job.location ||
+                                `${bid.job.city || ''} ${
+                                  bid.job.state || ''
+                                }`.trim()}{' '}
+                              • {bid.job.category}
+                            </span>
+                          </div>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                          <Badge
+                            variant='outline'
+                            className={getStatusColor(bid.status)}
+                          >
+                            {getStatusIcon(bid.status)}
+                            <span className='ml-1'>{bid.status}</span>
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className='flex items-center justify-between'>
+                        <div className='flex items-center gap-4'>
+                          <span
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            Posted: {formatDate(bid.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent>
+                      <div className='grid grid-cols-2 gap-4 mb-4'>
+                        <div className='flex items-center gap-2'>
+                          <DollarSign className='h-4 w-4 text-green-500' />
+                          <div>
+                            <p
+                              className={`text-sm ${
+                                theme === 'dark'
+                                  ? 'text-gray-400'
+                                  : 'text-gray-500'
+                              }`}
+                            >
+                              Your Bid
+                            </p>
+                            <p
+                              className={`font-semibold ${
+                                theme === 'dark'
+                                  ? 'text-white'
+                                  : 'text-gray-900'
+                              }`}
+                            >
+                              {formatCurrency(bid.amount)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                          <Clock className='h-4 w-4 text-blue-500' />
+                          <div>
+                            <p
+                              className={`text-sm ${
+                                theme === 'dark'
+                                  ? 'text-gray-400'
+                                  : 'text-gray-500'
+                              }`}
+                            >
+                              Timeline
+                            </p>
+                            <p
+                              className={`font-semibold ${
+                                theme === 'dark'
+                                  ? 'text-white'
+                                  : 'text-gray-900'
+                              }`}
+                            >
+                              {bid.timeline}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className='mb-4'>
+                        <p
+                          className={`text-sm ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Customer:{' '}
+                          <span
+                            className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {bid.job.customer.firstName}{' '}
+                            {bid.job.customer.lastName}
+                          </span>
+                        </p>
+                      </div>
+
+                      <p
+                        className={`mb-4 line-clamp-3 ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        {bid.description}
+                      </p>
+
+                      {bid.notes && (
+                        <div className='mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md'>
+                          <p
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-300'
+                                : 'text-gray-600'
+                            }`}
+                          >
+                            <strong>Notes:</strong> {bid.notes}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className='flex items-center justify-between'>
+                        <span
+                          className={`text-xs ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                        >
+                          Last updated: {formatDate(bid.updatedAt)}
+                        </span>
+
+                        <div className='flex space-x-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => handleViewBid(bid)}
+                          >
+                            <Eye className='mr-1 h-3 w-3' />
+                            View
+                          </Button>
+
+                          {bid.status === 'PENDING' && (
+                            <>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => handleEditBid(bid)}
+                              >
+                                <Edit className='mr-1 h-3 w-3' />
+                                Edit
+                              </Button>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='text-red-600 hover:text-red-700'
+                                onClick={() => handleWithdrawBid(bid)}
+                                disabled={withdrawBidLoading}
+                              >
+                                <Trash2 className='mr-1 h-3 w-3' />
+                                Withdraw
+                              </Button>
+                            </>
+                          )}
+
+                          {bid.status === 'ACCEPTED' && (
+                            <Button size='sm'>
+                              <MessageSquare className='mr-1 h-3 w-3' />
+                              Message
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination && pagination.pages > 1 && (
+                <div className='flex justify-center items-center gap-2 mt-8'>
+                  <Button
+                    variant='outline'
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+
+                  <span
+                    className={`px-3 py-2 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    Page {currentPage} of {pagination.pages}
+                  </span>
+
+                  <Button
+                    variant='outline'
+                    onClick={() =>
+                      setCurrentPage(
+                        Math.min(pagination.pages, currentPage + 1)
+                      )
+                    }
+                    disabled={currentPage === pagination.pages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+
+              {/* No Results */}
+              {bids.length === 0 && !isLoading && (
+                <div className='text-center py-12'>
+                  <div className='mb-4'>
+                    <Clock className='h-12 w-12 mx-auto text-gray-400' />
+                  </div>
+                  <h3
+                    className={`text-lg font-medium mb-2 ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    No bids found
+                  </h3>
+                  <p
+                    className={`${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    {activeTab === 'all'
+                      ? "You haven't submitted any bids yet. Start bidding on available jobs to see them here."
+                      : `No ${activeTab.toLowerCase()} bids found.`}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Modals */}
+      <BidEditModal
+        bid={selectedBid}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedBid(null);
+        }}
+        onSave={handleUpdateBid}
+        isLoading={updateBidLoading}
+      />
+
+      <BidDetailsModal
+        bid={selectedBid}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedBid(null);
+        }}
+        onEdit={() => {
+          setIsDetailsModalOpen(false);
+          setIsEditModalOpen(true);
+        }}
+        onWithdraw={() => {
+          if (selectedBid) {
+            handleWithdrawBid(selectedBid);
+            setIsDetailsModalOpen(false);
+            setSelectedBid(null);
+          }
+        }}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 // Main React Query hooks - Clean and organized
 export * from './useApiHooks';
+export * from './useVendorBids';
 
 // Utility hooks for common patterns
 export * from './useQueryUtils';
