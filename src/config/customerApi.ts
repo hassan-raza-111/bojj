@@ -28,6 +28,22 @@ export const customerAPI = {
     );
   },
 
+  getJobDetails: async (jobId: string, customerId: string) => {
+    console.log('🔧 CustomerAPI.getJobDetails called');
+    console.log('Job ID:', jobId);
+    console.log('Customer ID:', customerId);
+    console.log('URL:', `${API_CONFIG.ENDPOINTS.JOBS.GET_BY_ID(jobId)}`);
+
+    const response = await apiCall(
+      `${API_CONFIG.ENDPOINTS.JOBS.GET_BY_ID(jobId)}`,
+      { method: 'GET' },
+      true
+    );
+
+    console.log('🔧 CustomerAPI.getJobDetails response:', response);
+    return response;
+  },
+
   getJobAnalytics: async (jobId: string) => {
     return apiCall(
       API_CONFIG.ENDPOINTS.DASHBOARD.JOB_ANALYTICS(jobId),
@@ -75,18 +91,24 @@ export const customerAPI = {
     );
   },
 
-  acceptBid: async (jobId: string, bidId: string) => {
+  acceptBid: async (jobId: string, bidId: string, customerId: string) => {
     return apiCall(
       API_CONFIG.ENDPOINTS.JOBS.ACCEPT_BID(jobId, bidId),
-      { method: 'POST' },
+      {
+        method: 'POST',
+        body: JSON.stringify({ customerId }),
+      },
       true
     );
   },
 
-  rejectBid: async (jobId: string, bidId: string) => {
+  rejectBid: async (jobId: string, bidId: string, customerId: string) => {
     return apiCall(
       API_CONFIG.ENDPOINTS.JOBS.REJECT_BID(jobId, bidId),
-      { method: 'POST' },
+      {
+        method: 'POST',
+        body: JSON.stringify({ customerId }),
+      },
       true
     );
   },

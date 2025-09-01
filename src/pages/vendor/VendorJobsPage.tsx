@@ -35,10 +35,12 @@ import { useAvailableJobs, JobFilters } from '@/hooks/useAvailableJobs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import BidModal from '@/components/vendor/BidModal';
+import { vendorApi } from '@/config/vendorApi';
 
 const VendorJobsPage = () => {
   const { theme } = useTheme();
-  
+
   // State for filters
   const [filters, setFilters] = useState<JobFilters>({
     category: 'all',
@@ -47,6 +49,10 @@ const VendorJobsPage = () => {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
+
+  // Bid modal state
+  const [isBidModalOpen, setIsBidModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
 
   // Debounced search
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,6 +69,12 @@ const VendorJobsPage = () => {
     refreshFilters,
   } = useAvailableJobs(filters);
 
+  // Debug logging
+  console.log('🔍 VendorJobsPage - jobs:', jobs);
+  console.log('🔍 VendorJobsPage - isLoading:', isLoading);
+  console.log('🔍 VendorJobsPage - isError:', isError);
+  console.log('🔍 VendorJobsPage - pagination:', pagination);
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,7 +86,7 @@ const VendorJobsPage = () => {
 
   // Update filters when search changes
   useEffect(() => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       search: debouncedSearchTerm,
     }));
@@ -82,7 +94,7 @@ const VendorJobsPage = () => {
 
   // Handle filter changes
   const handleFilterChange = (key: keyof JobFilters, value: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
@@ -90,7 +102,7 @@ const VendorJobsPage = () => {
 
   // Handle sort change
   const handleSortChange = (sortBy: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       sortBy,
       sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
@@ -136,6 +148,38 @@ const VendorJobsPage = () => {
           ? 'bg-gray-900/20 text-gray-300 border-gray-700'
           : 'bg-gray-50 text-gray-700 border-gray-200';
     }
+  };
+
+  // Handle bid submission
+  const handleSubmitBid = async (bidData: {
+    jobId: string;
+    amount: number;
+    description: string;
+    timeline: string;
+    milestones?: string;
+  }) => {
+    try {
+      await vendorApi.submitBid(bidData);
+      toast.success('Bid submitted successfully!');
+      // Refresh jobs to update bid count
+      refreshJobs();
+    } catch (error) {
+      console.error('Error submitting bid:', error);
+      toast.error('Failed to submit bid. Please try again.');
+      throw error;
+    }
+  };
+
+  // Open bid modal
+  const openBidModal = (job: any) => {
+    setSelectedJob(job);
+    setIsBidModalOpen(true);
+  };
+
+  // Close bid modal
+  const closeBidModal = () => {
+    setIsBidModalOpen(false);
+    setSelectedJob(null);
   };
 
   // Loading skeleton component
@@ -221,9 +265,9 @@ const VendorJobsPage = () => {
               className='pl-10'
             />
           </div>
-          
-          <Select 
-            value={filters.category} 
+
+          <Select
+            value={filters.category}
             onValueChange={(value) => handleFilterChange('category', value)}
           >
             <SelectTrigger className='w-full sm:w-48'>
@@ -238,9 +282,9 @@ const VendorJobsPage = () => {
               ))}
             </SelectContent>
           </Select>
-          
-          <Select 
-            value={filters.location} 
+
+          <Select
+            value={filters.location}
             onValueChange={(value) => handleFilterChange('location', value)}
           >
             <SelectTrigger className='w-full sm:w-48'>
@@ -259,7 +303,11 @@ const VendorJobsPage = () => {
 
         {/* Sort Options */}
         <div className='flex items-center gap-4'>
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+          <span
+            className={`text-sm ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
             Sort by:
           </span>
           <div className='flex gap-2'>
@@ -270,7 +318,9 @@ const VendorJobsPage = () => {
             ].map((sortOption) => (
               <Button
                 key={sortOption.key}
-                variant={filters.sortBy === sortOption.key ? 'default' : 'outline'}
+                variant={
+                  filters.sortBy === sortOption.key ? 'default' : 'outline'
+                }
                 size='sm'
                 onClick={() => handleSortChange(sortOption.key)}
                 className='text-xs'
@@ -292,13 +342,100 @@ const VendorJobsPage = () => {
         <p
           className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
         >
-          {isLoading ? 'Loading...' : `Showing ${jobs.length} of ${pagination?.total || 0} available jobs`}
+          {isLoading
+            ? 'Loading...'
+            : `Showing ${jobs.length} of ${
+                pagination?.total || 0
+              } available jobs`}
         </p>
-        <Button onClick={refreshJobs} variant='outline' size='sm' disabled={isLoading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        <Button
+          onClick={refreshJobs}
+          variant='outline'
+          size='sm'
+          disabled={isLoading}
+        >
+          <RefreshCw
+            className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+          />
           Refresh
         </Button>
       </div>
+
+      {/* Stats Summary */}
+      {!isLoading && jobs.length > 0 && (
+        <Card
+          className={`mb-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+        >
+          <CardContent className='p-6'>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+              <div>
+                <div
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
+                  }`}
+                >
+                  {jobs.length}
+                </div>
+                <div
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  Total Jobs
+                </div>
+              </div>
+              <div>
+                <div
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                  }`}
+                >
+                  {jobs.filter((job) => job.budget && job.budget > 1000).length}
+                </div>
+                <div
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  High Budget Jobs
+                </div>
+              </div>
+              <div>
+                <div
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'
+                  }`}
+                >
+                  {jobs.filter((job) => job.priority === 'HIGH').length}
+                </div>
+                <div
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  Urgent Jobs
+                </div>
+              </div>
+              <div>
+                <div
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
+                  }`}
+                >
+                  {jobs.reduce((total, job) => total + (job.totalBids || 0), 0)}
+                </div>
+                <div
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  Total Bids
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Jobs Grid */}
       {isLoading ? (
@@ -320,7 +457,8 @@ const VendorJobsPage = () => {
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
             }`}
           >
-            Try adjusting your search criteria or check back later for new opportunities.
+            Try adjusting your search criteria or check back later for new
+            opportunities.
           </p>
         </div>
       ) : (
@@ -477,7 +615,9 @@ const VendorJobsPage = () => {
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
                       }`}
                     >
-                      {job.averageBidAmount > 0 ? formatCurrency(job.averageBidAmount) : 'N/A'}
+                      {job.averageBidAmount > 0
+                        ? formatCurrency(job.averageBidAmount)
+                        : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -492,14 +632,12 @@ const VendorJobsPage = () => {
                     </Button>
                   </Link>
 
-                  <Link
-                    to={`/vendor-dashboard/jobs/${job.id}/bid`}
-                    className='flex-1 min-w-0'
+                  <Button
+                    onClick={() => openBidModal(job)}
+                    className='flex-1 bg-bojj-primary hover:bg-bojj-primary/90'
                   >
-                    <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
-                      Submit Bid
-                    </Button>
-                  </Link>
+                    Submit Bid
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -521,11 +659,15 @@ const VendorJobsPage = () => {
             <ChevronLeft className='h-4 w-4' />
             Previous
           </Button>
-          
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+
+          <span
+            className={`text-sm ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
             Page {pagination.page} of {pagination.pages}
           </span>
-          
+
           <Button
             variant='outline'
             size='sm'
@@ -539,6 +681,14 @@ const VendorJobsPage = () => {
           </Button>
         </div>
       )}
+
+      {/* Bid Modal */}
+      <BidModal
+        isOpen={isBidModalOpen}
+        onClose={closeBidModal}
+        job={selectedJob}
+        onSubmitBid={handleSubmitBid}
+      />
     </div>
   );
 };

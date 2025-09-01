@@ -41,6 +41,7 @@ import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerJobsPage from './pages/customer/CustomerJobsPage';
 import JobPostingForm from './pages/customer/JobPostingForm';
 import JobDetailPage from './pages/customer/JobDetailPage';
+import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
 import JobCRUD from './pages/customer/JobCRUD';
 import CustomerPaymentPage from './pages/customer/customerpaymentpage';
@@ -113,6 +114,52 @@ const App = () => {
                         <Route path='/' element={<CustomerDashboard />} />
                         <Route path='/jobs' element={<CustomerJobsPage />} />
                         <Route path='/jobs/post' element={<JobPostingForm />} />
+                        <Route
+                          path='/jobs/:id/details'
+                          element={<JobDetailsPage />}
+                        />
+                        <Route path='/messages' element={<MessagesPage />} />
+                        <Route
+                          path='/payments'
+                          element={<CustomerPaymentPage />}
+                        />
+                        <Route path='/support' element={<SupportPage />} />
+                        <Route path='/jobs/new' element={<JobPostingForm />} />
+                        <Route
+                          path='/jobs/:id/edit'
+                          element={<JobPostingForm />}
+                        />
+                        <Route path='/jobs/:id' element={<JobDetailPage />} />
+                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
+                        <Route
+                          path='/jobs/:id/bid'
+                          element={<SubmitBidPage />}
+                        />
+                        <Route
+                          path='/profile'
+                          element={<CustomerDashboard />}
+                        />
+                      </Routes>
+                    </CustomerLayout>
+                  </CustomerProvider>
+                }
+              />
+            </Route>
+
+            <Route element={<ProtectedRoute />}>
+              <Route
+                path='/customer-dashboard/*'
+                element={
+                  <CustomerProvider>
+                    <CustomerLayout>
+                      <Routes>
+                        <Route path='/' element={<CustomerDashboard />} />
+                        <Route path='/jobs' element={<CustomerJobsPage />} />
+                        <Route path='/jobs/post' element={<JobPostingForm />} />
+                        <Route
+                          path='/jobs/:id/details'
+                          element={<JobDetailsPage />}
+                        />
                         <Route path='/messages' element={<MessagesPage />} />
                         <Route
                           path='/payments'

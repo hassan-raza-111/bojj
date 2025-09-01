@@ -32,17 +32,22 @@ export const useAvailableJobs = (filters: JobFilters) => {
   // Get available jobs with filters
   const availableJobs = useQuery({
     queryKey: ['vendor', 'jobs', 'available', filters],
-    queryFn: () => vendorApi.getAvailableJobs({
-      page: 1,
-      limit: 20,
-      category: filters.category === 'all' ? undefined : filters.category,
-      location: filters.location === 'all' ? undefined : filters.location,
-      search: filters.search || undefined,
-      sortBy: filters.sortBy,
-      sortOrder: filters.sortOrder,
-      budgetMin: filters.budgetMin,
-      budgetMax: filters.budgetMax,
-    }),
+    queryFn: async () => {
+      console.log('🔍 Fetching available jobs with filters:', filters);
+      const response = await vendorApi.getAvailableJobs({
+        page: 1,
+        limit: 20,
+        category: filters.category === 'all' ? undefined : filters.category,
+        location: filters.location === 'all' ? undefined : filters.location,
+        search: filters.search || undefined,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+        budgetMin: filters.budgetMin,
+        budgetMax: filters.budgetMax,
+      });
+      console.log('🔍 Available jobs response:', response);
+      return response;
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
@@ -55,7 +60,9 @@ export const useAvailableJobs = (filters: JobFilters) => {
 
   // Refresh jobs data
   const refreshJobs = () => {
-    queryClient.invalidateQueries({ queryKey: ['vendor', 'jobs', 'available'] });
+    queryClient.invalidateQueries({
+      queryKey: ['vendor', 'jobs', 'available'],
+    });
   };
 
   // Refresh filters data
@@ -67,15 +74,15 @@ export const useAvailableJobs = (filters: JobFilters) => {
     // Queries
     availableJobs,
     availableFilters,
-    
+
     // Functions
     refreshJobs,
     refreshFilters,
-    
+
     // Loading states
     isLoading: availableJobs.isLoading || availableFilters.isLoading,
     isError: availableJobs.isError || availableFilters.isError,
-    
+
     // Data
     jobs: availableJobs.data?.data?.jobs || [],
     pagination: availableJobs.data?.data?.pagination,

@@ -23,10 +23,17 @@ import {
 import { useVendorDashboard } from '@/hooks/useVendorDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
+import BidModal from '@/components/vendor/BidModal';
+import { vendorApi } from '@/config/vendorApi';
+import { toast } from 'sonner';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('available');
   const { theme } = useTheme();
+
+  // Bid modal state
+  const [isBidModalOpen, setIsBidModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
 
   const {
     dashboardSummary,
@@ -111,6 +118,38 @@ const VendorDashboard = () => {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  // Handle bid submission
+  const handleSubmitBid = async (bidData: {
+    jobId: string;
+    amount: number;
+    description: string;
+    timeline: string;
+    milestones?: string;
+  }) => {
+    try {
+      await vendorApi.submitBid(bidData);
+      toast.success('Bid submitted successfully!');
+      // Refresh dashboard data
+      refreshAll();
+    } catch (error) {
+      console.error('Error submitting bid:', error);
+      toast.error('Failed to submit bid. Please try again.');
+      throw error;
+    }
+  };
+
+  // Open bid modal
+  const openBidModal = (job: any) => {
+    setSelectedJob(job);
+    setIsBidModalOpen(true);
+  };
+
+  // Close bid modal
+  const closeBidModal = () => {
+    setIsBidModalOpen(false);
+    setSelectedJob(null);
   };
 
   if (isError) {
@@ -279,7 +318,7 @@ const VendorDashboard = () => {
         <TabsContent value='available' className='mt-4'>
           {availableJobs.isLoading ? (
             <LoadingSkeleton />
-          ) : availableJobs.data?.jobs?.length === 0 ? (
+          ) : availableJobs.data?.data?.jobs?.length === 0 ? (
             <div className='text-center py-12'>
               <p className='text-gray-500 dark:text-gray-400'>
                 No available jobs found.
@@ -287,7 +326,7 @@ const VendorDashboard = () => {
             </div>
           ) : (
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
-              {availableJobs.data?.jobs?.map((job) => (
+              {availableJobs.data?.data?.jobs?.map((job) => (
                 <Card
                   key={job.id}
                   className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
@@ -379,14 +418,12 @@ const VendorDashboard = () => {
                         </Button>
                       </Link>
 
-                      <Link
-                        to={`/vendor-dashboard/jobs/${job.id}/bid`}
-                        className='flex-1 min-w-0'
+                      <Button
+                        onClick={() => openBidModal(job)}
+                        className='flex-1 bg-bojj-primary hover:bg-bojj-primary/90'
                       >
-                        <Button className='w-full bg-bojj-primary hover:bg-bojj-primary/90'>
-                          Submit Bid
-                        </Button>
-                      </Link>
+                        Submit Bid
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -749,6 +786,14 @@ const VendorDashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Bid Modal */}
+      <BidModal
+        isOpen={isBidModalOpen}
+        onClose={closeBidModal}
+        job={selectedJob}
+        onSubmitBid={handleSubmitBid}
+      />
     </div>
   );
 };

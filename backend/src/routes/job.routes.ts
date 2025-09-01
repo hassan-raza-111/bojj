@@ -8,10 +8,12 @@ import {
   submitBid,
   getJobBids,
   acceptBid,
+  rejectBid,
   completeJob,
   getCustomerJobs,
   getAllJobs,
   getVendorJobs,
+  getJobDetails,
 } from '../controllers/job.controller';
 import {
   authenticateToken,
@@ -71,11 +73,18 @@ router.post(
 router.get('/:id/bids', authenticateToken, requireCustomerOrVendor, getJobBids);
 
 // Job workflow (Customer and Vendor)
+router.get('/:id/details', authenticateToken, requireCustomer, getJobDetails);
 router.post(
   '/:id/accept-bid/:bidId',
   authenticateToken,
   requireCustomer,
   acceptBid
+);
+router.post(
+  '/:id/reject-bid/:bidId',
+  authenticateToken,
+  requireCustomer,
+  rejectBid
 );
 router.post('/:id/complete', authenticateToken, requireVendor, completeJob);
 

@@ -1,0 +1,822 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  ArrowLeft,
+  MapPin,
+  DollarSign,
+  Calendar,
+  Star,
+  User,
+  Clock,
+  CheckCircle,
+  XCircle,
+  MessageSquare,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
+import { customerAPI } from '@/config/customerApi';
+
+interface Bid {
+  id: string;
+  amount: number;
+  description: string;
+  timeline: string;
+  status: string;
+  createdAt: string;
+  vendor: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    vendorProfile?: {
+      rating: number;
+      completedJobs: number;
+      experience: number;
+      skills: string[];
+    };
+  };
+}
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  budget: number;
+  budgetType: string;
+  location: string;
+  status: string;
+  createdAt: string;
+  bids: Bid[];
+}
+
+const JobDetailsPage = () => {
+  const { id: jobId } = useParams();
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { user } = useAuth();
+  const [job, setJob] = useState<Job | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
+  // Debug URL and params
+  console.log('🔍 Current URL:', window.location.href);
+  console.log('🔍 Pathname:', window.location.pathname);
+  console.log('🔍 useParams result:', useParams());
+  console.log('🔍 jobId from params:', jobId);
+  console.log('🔍 user from auth:', user);
+
+  // Fetch job details think backend me
+  
+  useEffect(() => {
+    const fetchJobDetails = async () => {
+      try {
+        setIsLoading(true);
+        console.log('🔍 Fetching job details...');
+        console.log('Job ID:', jobId);
+        console.log('User ID:', user?.id);
+
+        if (!jobId || !user?.id) {
+          console.log('❌ Missing jobId or user.id');
+          return;
+        }
+
+        console.log('📡 Making API call...');
+        const response = await customerAPI.getJobDetails(jobId, user.id);
+        console.log('📥 API Response:', response);
+
+        if (response.success) {
+          console.log('✅ Job data received:', response.data.job);
+          setJob(response.data.job);
+        } else {
+          console.log('❌ API Error:', response.message);
+          throw new Error(response.message || 'Failed to fetch job details');
+        }
+      } catch (error) {
+        console.error('💥 Error fetching job details:', error);
+        setIsError(true);
+        toast.error('Failed to load job details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobDetails();
+  }, [jobId, user?.id]);
+
+  // Handle bid actions
+  const handleAcceptBid = async (bidId: string) => {
+    try {
+      if (!jobId || !user?.id) return;
+
+      const response = await customerAPI.acceptBid(jobId, bidId, user.id);
+      if (response.success) {
+        toast.success('Bid accepted successfully!');
+        // Refresh job details
+        window.location.reload();
+      } else {
+        throw new Error(response.message || 'Failed to accept bid');
+      }
+    } catch (error) {
+      console.error('Error accepting bid:', error);
+      toast.error('Failed to accept bid');
+    }
+  };
+
+  const handleRejectBid = async (bidId: string) => {
+    try {
+      if (!jobId || !user?.id) return;
+
+      const response = await customerAPI.rejectBid(jobId, bidId, user.id);
+      if (response.success) {
+        toast.success('Bid rejected');
+        // Refresh job details
+        window.location.reload();
+      } else {
+        throw new Error(response.message || 'Failed to reject bid');
+      }
+    } catch (error) {
+      console.error('Error rejecting bid:', error);
+      toast.error('Failed to reject bid');
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getBidStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'accepted':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div
+        className={`p-4 md:p-8 min-h-screen ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+        }`}
+      >
+        <div className='max-w-6xl mx-auto'>
+          <div className='mb-6'>
+            <Skeleton className='h-8 w-48 mb-2' />
+            <Skeleton className='h-4 w-32' />
+          </div>
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            <div className='lg:col-span-2'>
+              <Skeleton className='h-64 w-full mb-4' />
+              <Skeleton className='h-32 w-full' />
+            </div>
+            <div>
+              <Skeleton className='h-48 w-full' />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !job) {
+    return (
+      <div
+        className={`p-4 md:p-8 min-h-screen ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+        }`}
+      >
+        <div className='max-w-6xl mx-auto'>
+          <div className='flex flex-col items-center justify-center py-12'>
+            <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
+            <h3 className='text-lg font-semibold mb-2'>Job not found</h3>
+            <p className='text-gray-600 dark:text-gray-400 mb-4'>
+              The job you're looking for doesn't exist or has been removed.
+            </p>
+            <Button
+              onClick={() => navigate('/customer-dashboard/jobs')}
+              variant='outline'
+            >
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              Back to Jobs
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`p-4 md:p-8 min-h-screen ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+      }`}
+    >
+      <div className='max-w-6xl mx-auto'>
+        {/* Header */}
+        <div className='mb-6'>
+          <Button
+            onClick={() => navigate('/customer-dashboard/jobs')}
+            variant='ghost'
+            className='mb-4'
+          >
+            <ArrowLeft className='mr-2 h-4 w-4' />
+            Back to Jobs
+          </Button>
+
+          <div className='flex justify-between items-start'>
+            <div>
+              <h1
+                className={`text-3xl font-bold mb-2 ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
+              >
+                {job.title}
+              </h1>
+              <div className='flex items-center gap-4'>
+                <Badge variant='outline' className={getStatusBadge(job.status)}>
+                  {job.status.replace('_', ' ')}
+                </Badge>
+                <span
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  Posted {formatDate(job.createdAt)}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => window.location.reload()}
+              variant='outline'
+              size='sm'
+            >
+              <RefreshCw className='mr-2 h-4 w-4' />
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+          {/* Main Content */}
+          <div className='lg:col-span-2'>
+            <Tabs defaultValue='details' className='w-full'>
+              <TabsList
+                className={`${
+                  theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+                }`}
+              >
+                <TabsTrigger value='details'>Job Details</TabsTrigger>
+                <TabsTrigger value='bids'>Bids ({job.bids.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value='details' className='mt-4'>
+                <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+                  <CardHeader>
+                    <CardTitle
+                      className={
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }
+                    >
+                      Job Description
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p
+                      className={`mb-6 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`}
+                    >
+                      {job.description}
+                    </p>
+
+                    <div className='grid grid-cols-2 gap-4'>
+                      <div className='flex items-center gap-2'>
+                        <DollarSign className='h-4 w-4 text-green-500' />
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            Budget
+                          </p>
+                          <p
+                            className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {formatCurrency(job.budget)} ({job.budgetType})
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className='flex items-center gap-2'>
+                        <MapPin className='h-4 w-4 text-blue-500' />
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            Location
+                          </p>
+                          <p
+                            className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {job.location}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className='flex items-center gap-2'>
+                        <Calendar className='h-4 w-4 text-purple-500' />
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            Category
+                          </p>
+                          <p
+                            className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {job.category}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className='flex items-center gap-2'>
+                        <Clock className='h-4 w-4 text-orange-500' />
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              theme === 'dark'
+                                ? 'text-gray-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            Posted
+                          </p>
+                          <p
+                            className={`font-medium ${
+                              theme === 'dark' ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {formatDate(job.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value='bids' className='mt-4'>
+                {job.bids.length === 0 ? (
+                  <Card
+                    className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}
+                  >
+                    <CardContent className='text-center py-12'>
+                      <div className='mb-4'>
+                        <User className='h-12 w-12 mx-auto text-gray-400' />
+                      </div>
+                      <h3
+                        className={`text-lg font-medium mb-2 ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        No bids yet
+                      </h3>
+                      <p
+                        className={`${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        Vendors will start submitting bids soon. Check back
+                        later!
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className='space-y-4'>
+                    {job.bids.map((bid) => (
+                      <Card
+                        key={bid.id}
+                        className={
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                        }
+                      >
+                        <CardHeader className='pb-3'>
+                          <div className='flex justify-between items-start'>
+                            <div className='flex items-center gap-3'>
+                              <div className='flex items-center gap-2'>
+                                <User className='h-5 w-5 text-blue-500' />
+                                <span
+                                  className={`font-medium ${
+                                    theme === 'dark'
+                                      ? 'text-white'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {bid.vendor.firstName} {bid.vendor.lastName}
+                                </span>
+                              </div>
+                              <Badge
+                                variant='outline'
+                                className={getBidStatusBadge(bid.status)}
+                              >
+                                {bid.status}
+                              </Badge>
+                            </div>
+                            <div className='text-right'>
+                              <p
+                                className={`text-2xl font-bold ${
+                                  theme === 'dark'
+                                    ? 'text-green-400'
+                                    : 'text-green-600'
+                                }`}
+                              >
+                                {formatCurrency(bid.amount)}
+                              </p>
+                              <p
+                                className={`text-sm ${
+                                  theme === 'dark'
+                                    ? 'text-gray-400'
+                                    : 'text-gray-500'
+                                }`}
+                              >
+                                Timeline: {bid.timeline}
+                              </p>
+                            </div>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent>
+                          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-4'>
+                            <div className='flex items-center gap-2'>
+                              <Star className='h-4 w-4 text-yellow-500' />
+                              <div>
+                                <p
+                                  className={`text-sm ${
+                                    theme === 'dark'
+                                      ? 'text-gray-400'
+                                      : 'text-gray-500'
+                                  }`}
+                                >
+                                  Rating
+                                </p>
+                                <p
+                                  className={`font-medium ${
+                                    theme === 'dark'
+                                      ? 'text-white'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {bid.vendor.vendorProfile?.rating?.toFixed(
+                                    1
+                                  ) || 'N/A'}
+                                  /5
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                              <CheckCircle className='h-4 w-4 text-green-500' />
+                              <div>
+                                <p
+                                  className={`text-sm ${
+                                    theme === 'dark'
+                                      ? 'text-gray-400'
+                                      : 'text-gray-500'
+                                  }`}
+                                >
+                                  Jobs Completed
+                                </p>
+                                <p
+                                  className={`font-medium ${
+                                    theme === 'dark'
+                                      ? 'text-white'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {bid.vendor.vendorProfile?.completedJobs || 0}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                              <User className='h-4 w-4 text-purple-500' />
+                              <div>
+                                <p
+                                  className={`text-sm ${
+                                    theme === 'dark'
+                                      ? 'text-gray-400'
+                                      : 'text-gray-500'
+                                  }`}
+                                >
+                                  Experience
+                                </p>
+                                <p
+                                  className={`font-medium ${
+                                    theme === 'dark'
+                                      ? 'text-white'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {bid.vendor.vendorProfile?.experience || 0}{' '}
+                                  years
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                              <Clock className='h-4 w-4 text-blue-500' />
+                              <div>
+                                <p
+                                  className={`text-sm ${
+                                    theme === 'dark'
+                                      ? 'text-gray-400'
+                                      : 'text-gray-500'
+                                  }`}
+                                >
+                                  Bid Submitted
+                                </p>
+                                <p
+                                  className={`font-medium ${
+                                    theme === 'dark'
+                                      ? 'text-white'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {formatDate(bid.createdAt)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className='mb-4'>
+                            <p
+                              className={`text-sm ${
+                                theme === 'dark'
+                                  ? 'text-gray-400'
+                                  : 'text-gray-500'
+                              } mb-2`}
+                            >
+                              Proposal:
+                            </p>
+                            <p
+                              className={`${
+                                theme === 'dark'
+                                  ? 'text-gray-300'
+                                  : 'text-gray-600'
+                              }`}
+                            >
+                              {bid.description}
+                            </p>
+                          </div>
+
+                          {bid.vendor.vendorProfile?.skills && (
+                            <div className='mb-4'>
+                              <p
+                                className={`text-sm ${
+                                  theme === 'dark'
+                                    ? 'text-gray-400'
+                                    : 'text-gray-500'
+                                } mb-2`}
+                              >
+                                Skills:
+                              </p>
+                              <div className='flex flex-wrap gap-2'>
+                                {bid.vendor.vendorProfile.skills.map(
+                                  (skill, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant='secondary'
+                                      className='text-xs'
+                                    >
+                                      {skill}
+                                    </Badge>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className='flex gap-3'>
+                            {bid.status === 'PENDING' && (
+                              <>
+                                <Button
+                                  onClick={() => handleAcceptBid(bid.id)}
+                                  className='flex-1 bg-green-600 hover:bg-green-700'
+                                >
+                                  <CheckCircle className='mr-2 h-4 w-4' />
+                                  Accept Bid
+                                </Button>
+                                <Button
+                                  onClick={() => handleRejectBid(bid.id)}
+                                  variant='outline'
+                                  className='flex-1'
+                                >
+                                  <XCircle className='mr-2 h-4 w-4' />
+                                  Reject Bid
+                                </Button>
+                              </>
+                            )}
+
+                            <Button variant='outline' className='flex-1'>
+                              <MessageSquare className='mr-2 h-4 w-4' />
+                              Message Vendor
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className='space-y-6'>
+            {/* Job Summary */}
+            <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle
+                  className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+                >
+                  Job Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <div className='flex justify-between'>
+                  <span
+                    className={`${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    Total Bids
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {job.bids.length}
+                  </span>
+                </div>
+
+                <div className='flex justify-between'>
+                  <span
+                    className={`${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    Average Bid
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {job.bids.length > 0
+                      ? formatCurrency(
+                          job.bids.reduce((sum, bid) => sum + bid.amount, 0) /
+                            job.bids.length
+                        )
+                      : 'N/A'}
+                  </span>
+                </div>
+
+                <div className='flex justify-between'>
+                  <span
+                    className={`${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    Lowest Bid
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {job.bids.length > 0
+                      ? formatCurrency(
+                          Math.min(...job.bids.map((bid) => bid.amount))
+                        )
+                      : 'N/A'}
+                  </span>
+                </div>
+
+                <div className='flex justify-between'>
+                  <span
+                    className={`${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    Highest Bid
+                  </span>
+                  <span
+                    className={`font-semibold ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {job.bids.length > 0
+                      ? formatCurrency(
+                          Math.max(...job.bids.map((bid) => bid.amount))
+                        )
+                      : 'N/A'}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle
+                  className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+                >
+                  Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-3'>
+                <Button className='w-full' variant='outline'>
+                  <MessageSquare className='mr-2 h-4 w-4' />
+                  Contact Support
+                </Button>
+
+                <Button className='w-full' variant='outline'>
+                  <RefreshCw className='mr-2 h-4 w-4' />
+                  Extend Deadline
+                </Button>
+
+                <Button className='w-full' variant='outline'>
+                  <XCircle className='mr-2 h-4 w-4' />
+                  Cancel Job
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default JobDetailsPage;

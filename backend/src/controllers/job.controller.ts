@@ -369,67 +369,51 @@ export const getJobBids: RequestHandler = async (req, res, next) => {
 // Accept a bid (Customer only)
 export const acceptBid: RequestHandler = async (req, res, next) => {
   try {
-    const { id, bidId } = req.params;
+    const { bidId } = req.params;
     const { customerId } = req.body;
 
-    if (!customerId) {
-      res.status(400).json({
+    if (!bidId || !customerId) {
+      return res.status(400).json({
         success: false,
-        message: 'Customer ID is required',
+        message: 'Bid ID and Customer ID are required',
       });
-      return;
     }
 
-    // Check if job exists and belongs to customer
-    const job = await prisma.job.findUnique({
-      where: { id },
-      select: { id: true, customerId: true, status: true },
-    });
-
-    if (!job) {
-      res.status(404).json({
-        success: false,
-        message: 'Job not found',
-      });
-      return;
-    }
-
-    if (job.customerId !== customerId) {
-      res.status(403).json({
-        success: false,
-        message: 'You can only accept bids on your own jobs',
-      });
-      return;
-    }
-
-    if (job.status !== 'OPEN') {
-      res.status(400).json({
-        success: false,
-        message: 'Job is not open for bidding',
-      });
-      return;
-    }
-
-    // Check if bid exists
+    // Get the bid with job details
     const bid = await prisma.bid.findUnique({
       where: { id: bidId },
-      select: { id: true, jobId: true, vendorId: true, status: true },
+      include: {
+        job: {
+          select: {
+            id: true,
+            customerId: true,
+            status: true,
+          },
+        },
+      },
     });
 
-    if (!bid || bid.jobId !== id) {
-      res.status(404).json({
+    if (!bid) {
+      return res.status(404).json({
         success: false,
         message: 'Bid not found',
       });
-      return;
     }
 
-    if (bid.status !== 'PENDING') {
-      res.status(400).json({
+    // Verify customer owns this job
+    if (bid.job.customerId !== customerId) {
+      return res.status(403).json({
         success: false,
-        message: 'Bid is not pending',
+        message: 'Access denied. You can only accept bids for your own jobs.',
       });
-      return;
+    }
+
+    // Check if job is still open
+    if (bid.job.status !== 'OPEN') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot accept bid. Job is no longer open.',
+      });
     }
 
     // Update bid status to accepted
@@ -438,42 +422,99 @@ export const acceptBid: RequestHandler = async (req, res, next) => {
       data: { status: 'ACCEPTED' },
     });
 
-    // Update job status and assign vendor
+    // Update job status to in progress
     await prisma.job.update({
-      where: { id },
+      where: { id: bid.job.id },
       data: {
         status: 'IN_PROGRESS',
         assignedVendorId: bid.vendorId,
       },
     });
 
-    // Reject all other bids
+    // Reject all other bids for this job
     await prisma.bid.updateMany({
       where: {
-        jobId: id,
+        jobId: bid.job.id,
         id: { not: bidId },
-        status: 'PENDING',
       },
       data: { status: 'REJECTED' },
     });
 
-    logger.info(
-      `Bid accepted: ${bidId} for job: ${id} by customer: ${customerId}`
-    );
-    res.json({
+    logger.info(`Bid accepted: ${bidId} for job: ${bid.job.id}`);
+    res.status(200).json({
       success: true,
       message: 'Bid accepted successfully',
     });
-    return;
   } catch (error) {
     logger.error('Error accepting bid:', error);
     next(error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to accept bid',
-      error: error instanceof Error ? error.message : 'Unknown error',
+  }
+};
+
+// Reject a bid (Customer only)
+export const rejectBid: RequestHandler = async (req, res, next) => {
+  try {
+    const { bidId } = req.params;
+    const { customerId } = req.body;
+
+    if (!bidId || !customerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bid ID and Customer ID are required',
+      });
+    }
+
+    // Get the bid with job details
+    const bid = await prisma.bid.findUnique({
+      where: { id: bidId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            customerId: true,
+            status: true,
+          },
+        },
+      },
     });
-    return;
+
+    if (!bid) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bid not found',
+      });
+    }
+
+    // Verify customer owns this job
+    if (bid.job.customerId !== customerId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only reject bids for your own jobs.',
+      });
+    }
+
+    // Check if job is still open
+    if (bid.job.status !== 'OPEN') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot reject bid. Job is no longer open.',
+      });
+    }
+
+    // Update bid status to rejected
+    await prisma.bid.update({
+      where: { id: bidId },
+      data: { status: 'REJECTED' },
+    });
+
+    logger.info(`Bid rejected: ${bidId} for job: ${bid.job.id}`);
+    res.status(200).json({
+      success: true,
+      message: 'Bid rejected successfully',
+    });
+  } catch (error) {
+    logger.error('Error rejecting bid:', error);
+    next(error);
   }
 };
 
@@ -962,6 +1003,96 @@ export const getAllJobs: RequestHandler = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve jobs',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return;
+  }
+};
+
+// Get job details with bids (Customer only)
+export const getJobDetails: RequestHandler = async (req, res, next) => {
+  try {
+    const { jobId } = req.params;
+    const { customerId } = req.query;
+
+    if (!customerId) {
+      res.status(400).json({
+        success: false,
+        message: 'Customer ID is required',
+      });
+      return;
+    }
+
+    // Find the job with bids and vendor information
+    const job = await prisma.job.findFirst({
+      where: {
+        id: jobId,
+        customerId: customerId as string, // Verify ownership
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        assignedVendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        bids: {
+          include: {
+            vendor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                vendorProfile: {
+                  select: {
+                    rating: true,
+                    experience: true,
+                    completedJobs: true,
+                    skills: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+        _count: {
+          select: { bids: true },
+        },
+      },
+    });
+
+    if (!job) {
+      res.status(404).json({
+        success: false,
+        message: 'Job not found or you do not have access to it',
+      });
+      return;
+    }
+
+    logger.info(`Job details fetched: ${jobId} by customer: ${customerId}`);
+    res.json({
+      success: true,
+      data: { job },
+    });
+    return;
+  } catch (error) {
+    logger.error('Error fetching job details:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch job details',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
     return;

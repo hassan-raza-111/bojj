@@ -517,7 +517,9 @@ export class VendorController {
       });
 
       if (!existingBid) {
-        return res.status(404).json({ message: 'Bid not found or cannot be updated' });
+        return res
+          .status(404)
+          .json({ message: 'Bid not found or cannot be updated' });
       }
 
       const updatedBid = await prisma.bid.update({
@@ -559,7 +561,9 @@ export class VendorController {
       });
 
       if (!existingBid) {
-        return res.status(404).json({ message: 'Bid not found or cannot be withdrawn' });
+        return res
+          .status(404)
+          .json({ message: 'Bid not found or cannot be withdrawn' });
       }
 
       const updatedBid = await prisma.bid.update({
