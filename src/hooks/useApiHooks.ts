@@ -177,10 +177,11 @@ export const useJobById = (id: string, options?: UseQueryOptions) => {
   });
 };
 
-export const useCustomerJobs = (options?: UseQueryOptions) => {
+export const useCustomerJobs = (customerId: string, options?: UseQueryOptions) => {
   return useQuery({
-    queryKey: queryKeys.jobs.customer,
-    queryFn: apiService.jobs.getCustomerJobs,
+    queryKey: [...queryKeys.jobs.customer, customerId],
+    queryFn: () => apiService.jobs.getCustomerJobs(customerId),
+    enabled: !!customerId,
     ...options,
   });
 };

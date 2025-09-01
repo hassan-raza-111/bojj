@@ -129,13 +129,43 @@ const CustomerJobsPage = () => {
     enabled: !!user?.id,
   });
 
-  // Extract jobs array from response
-  const jobs = jobsResponse?.data || [];
+  // Extract jobs array from response with better error handling
+  let jobs: Job[] = [];
+
+  if (jobsResponse) {
+    console.log('🔍 Full jobsResponse:', jobsResponse);
+
+    // Handle different response formats
+    if (Array.isArray(jobsResponse)) {
+      // Direct array response
+      jobs = jobsResponse;
+      console.log('🔍 Direct array response, jobs count:', jobs.length);
+    } else if (
+      jobsResponse.data?.jobs &&
+      Array.isArray(jobsResponse.data.jobs)
+    ) {
+      // Backend format: { success: true, data: { jobs: [...] } }
+      jobs = jobsResponse.data.jobs;
+      console.log('🔍 Backend data.jobs format, jobs count:', jobs.length);
+    } else if (jobsResponse.data && Array.isArray(jobsResponse.data)) {
+      // Nested data array
+      jobs = jobsResponse.data;
+      console.log('🔍 Nested data array, jobs count:', jobs.length);
+    } else if (jobsResponse.jobs && Array.isArray(jobsResponse.jobs)) {
+      // Nested jobs array
+      jobs = jobsResponse.jobs;
+      console.log('🔍 Nested jobs array, jobs count:', jobs.length);
+    } else {
+      console.warn('⚠️ Unexpected response format:', jobsResponse);
+      jobs = [];
+    }
+  }
 
   // Debug logging
   console.log('🔍 Jobs Response:', jobsResponse);
   console.log('🔍 Jobs Array:', jobs);
   console.log('🔍 Is Array:', Array.isArray(jobs));
+  console.log('🔍 Jobs Length:', jobs.length);
 
   // Delete job mutation
   const deleteJobMutation = useMutation({
@@ -262,7 +292,7 @@ const CustomerJobsPage = () => {
   }
 
   // Check if jobs data is in expected format
-  if (!jobsResponse?.success || !Array.isArray(jobs)) {
+  if (!jobsResponse?.success) {
     console.warn('⚠️ Jobs data format issue:', {
       success: jobsResponse?.success,
       isArray: Array.isArray(jobs),
@@ -303,6 +333,54 @@ const CustomerJobsPage = () => {
           Post New Job
         </Button>
       </div>
+
+      {/* Stats Summary - Moved to top */}
+      {filteredJobs.length > 0 && (
+        <Card className='mb-6'>
+          <CardContent className='p-6'>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+              <div>
+                <div className='text-2xl font-bold text-blue-600'>
+                  {filteredJobs.filter((j) => j.status === 'OPEN').length}
+                </div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                  Open Jobs
+                </div>
+              </div>
+              <div>
+                <div className='text-2xl font-bold text-yellow-600'>
+                  {
+                    filteredJobs.filter((j) => j.status === 'IN_PROGRESS')
+                      .length
+                  }
+                </div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                  In Progress
+                </div>
+              </div>
+              <div>
+                <div className='text-2xl font-bold text-green-600'>
+                  {filteredJobs.filter((j) => j.status === 'COMPLETED').length}
+                </div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                  Completed
+                </div>
+              </div>
+              <div>
+                <div className='text-2xl font-bold text-gray-600'>
+                  {filteredJobs.reduce(
+                    (sum, job) => sum + (job.bidCount || 0),
+                    0
+                  )}
+                </div>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                  Total Bids
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters and Search */}
       <Card className='mb-6'>
@@ -511,54 +589,6 @@ const CustomerJobsPage = () => {
               </Button>
             )}
         </div>
-      )}
-
-      {/* Stats Summary */}
-      {filteredJobs.length > 0 && (
-        <Card className='mt-8'>
-          <CardContent className='p-6'>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
-              <div>
-                <div className='text-2xl font-bold text-blue-600'>
-                  {filteredJobs.filter((j) => j.status === 'OPEN').length}
-                </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
-                  Open Jobs
-                </div>
-              </div>
-              <div>
-                <div className='text-2xl font-bold text-yellow-600'>
-                  {
-                    filteredJobs.filter((j) => j.status === 'IN_PROGRESS')
-                      .length
-                  }
-                </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
-                  In Progress
-                </div>
-              </div>
-              <div>
-                <div className='text-2xl font-bold text-green-600'>
-                  {filteredJobs.filter((j) => j.status === 'COMPLETED').length}
-                </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
-                  Completed
-                </div>
-              </div>
-              <div>
-                <div className='text-2xl font-bold text-gray-600'>
-                  {filteredJobs.reduce(
-                    (sum, job) => sum + (job.bidCount || 0),
-                    0
-                  )}
-                </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
-                  Total Bids
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

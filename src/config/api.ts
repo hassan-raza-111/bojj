@@ -124,9 +124,17 @@ export const apiCall = async (
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ API Error:', errorData);
-      throw new Error(
+
+      // Create a custom error object that preserves the API response details
+      const customError = new Error(
         errorData.message || `HTTP error! status: ${response.status}`
       );
+      (customError as any).details = errorData.details;
+      (customError as any).statusCode = errorData.statusCode;
+      (customError as any).success = errorData.success;
+      (customError as any).apiResponse = errorData;
+
+      throw customError;
     }
 
     const data = await response.json();

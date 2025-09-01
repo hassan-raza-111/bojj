@@ -102,8 +102,8 @@ export const apiService = {
       }, true);
     },
 
-    getCustomerJobs: async () => {
-      return API_CONFIG.apiCall(API_CONFIG.ENDPOINTS.JOBS.GET_CUSTOMER_JOBS, {
+    getCustomerJobs: async (customerId: string) => {
+      return API_CONFIG.apiCall(`${API_CONFIG.ENDPOINTS.JOBS.GET_CUSTOMER_JOBS}?customerId=${customerId}`, {
         method: 'GET',
       }, true);
     },

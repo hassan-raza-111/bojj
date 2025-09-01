@@ -14,6 +14,7 @@ import { useCustomerJobs, useDeleteJob } from '../../hooks/useApi';
 import { useQueryWithLoading } from '../../hooks/useQueryUtils';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface JobData {
   id: string;
@@ -45,9 +46,15 @@ export interface JobData {
 
 const JobCRUDWithReactQuery = () => {
   const [search, setSearch] = useState('');
+  const { user } = useAuth();
 
   // React Query hooks
-  const { data: jobs = [], isLoading, error, refetch } = useCustomerJobs();
+  const {
+    data: jobs = [],
+    isLoading,
+    error,
+    refetch,
+  } = useCustomerJobs(user?.id || '');
 
   const deleteJob = useDeleteJob();
 

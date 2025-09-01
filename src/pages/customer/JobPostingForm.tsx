@@ -75,6 +75,10 @@ const JobPostingForm = () => {
   const [images, setImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [newRequirement, setNewRequirement] = useState('');
+  const [backendErrors, setBackendErrors] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serviceCategories: Record<string, string[]> = {
     'Home Maintenance and Repairs': [
@@ -168,14 +172,77 @@ const JobPostingForm = () => {
           : 'Your job has been posted and is now visible to vendors.',
       });
       queryClient.invalidateQueries({ queryKey: ['customerJobs'] });
+      setIsSubmitting(false);
+      setBackendErrors({});
       navigate('/customer/jobs');
     },
     onError: (error: any) => {
+      console.log('🔍 Full error object:', error);
+      console.log('🔍 Error details:', error.details);
+      console.log('🔍 Error message:', error.message);
+      console.log('🔍 Error status:', error.statusCode);
+      console.log('🔍 Error apiResponse:', error.apiResponse);
+
+      // Clear previous errors
+      setBackendErrors({});
+      console.log('🔍 Cleared previous errors');
+
+      // Parse backend validation errors - check multiple possible locations
+      let errorDetails = null;
+
+      if (error.details && Array.isArray(error.details)) {
+        errorDetails = error.details;
+        console.log('🔍 Found error.details:', errorDetails);
+      } else if (
+        error.apiResponse &&
+        error.apiResponse.details &&
+        Array.isArray(error.apiResponse.details)
+      ) {
+        errorDetails = error.apiResponse.details;
+        console.log('🔍 Found error.apiResponse.details:', errorDetails);
+      } else if (
+        error.response &&
+        error.response.details &&
+        Array.isArray(error.response.details)
+      ) {
+        errorDetails = error.response.details;
+        console.log('🔍 Found error.response.details:', errorDetails);
+      }
+
+      if (errorDetails) {
+        const newErrors: { [key: string]: string } = {};
+
+        errorDetails.forEach((detail: any) => {
+          console.log('🔍 Processing error detail:', detail);
+          if (detail.field && detail.message) {
+            newErrors[detail.field] = detail.message;
+            console.log(
+              `🔍 Added error for field "${detail.field}": ${detail.message}`
+            );
+          }
+        });
+
+        console.log('🔍 Final newErrors object:', newErrors);
+        setBackendErrors(newErrors);
+        console.log('🔍 Backend validation errors set in state:', newErrors);
+      } else {
+        console.log('🔍 No error details found in any location');
+        console.log('🔍 error.details type:', typeof error.details);
+        console.log('🔍 error.details value:', error.details);
+        console.log('🔍 error.apiResponse:', error.apiResponse);
+      }
+
+      // Show general error toast
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to post job. Please try again.',
+        title: 'Job Submission Failed',
+        description:
+          'Please fix the validation errors shown below and try again.',
         variant: 'destructive',
+        duration: 5000,
       });
+
+      setIsSubmitting(false);
+      console.log('🔍 Set isSubmitting to false');
     },
   });
 
@@ -316,14 +383,109 @@ const JobPostingForm = () => {
       return;
     }
 
-    const jobData = {
-      ...formData,
-      customerId: user?.id,
+    // Clear previous backend errors
+    setBackendErrors({});
+    setIsSubmitting(true);
+
+    // Pre-submission validation and data cleaning
+    const validationErrors = [];
+
+    // Check required fields
+    if (!formData.title?.trim()) validationErrors.push('Job title is required');
+    if (!formData.description?.trim())
+      validationErrors.push('Job description is required');
+    if (!formData.category)
+      validationErrors.push('Service category is required');
+    if (!formData.street?.trim())
+      validationErrors.push('Street address is required');
+    if (!formData.city?.trim()) validationErrors.push('City is required');
+    if (!formData.zipCode?.trim())
+      validationErrors.push('ZIP code is required');
+
+    // Check data types and formats
+    if (formData.budget && isNaN(parseFloat(formData.budget))) {
+      validationErrors.push('Budget must be a valid number');
+    }
+
+    // Check date validation when timeline is "Specific date"
+    if (formData.timeline === 'Specific date') {
+      if (!formData.date || formData.date.trim() === '') {
+        validationErrors.push(
+          'Preferred date is required when selecting specific date'
+        );
+      } else {
+        // Validate date format
+        const selectedDate = new Date(formData.date);
+        if (isNaN(selectedDate.getTime())) {
+          validationErrors.push('Please select a valid date');
+        }
+        // Check if date is in the past
+        if (selectedDate < new Date()) {
+          validationErrors.push('Preferred date cannot be in the past');
+        }
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      toast({
+        title: 'Validation Errors',
+        description: validationErrors.join('\n'),
+        variant: 'destructive',
+        duration: 8000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Create clean job data without date/time fields initially
+    const jobData: any = {
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      subcategory: formData.subcategory,
       budget: formData.budget ? parseFloat(formData.budget) : null,
+      budgetType: formData.budgetType,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      zipCode: formData.zipCode,
+      timeline: formData.timeline,
+      additionalRequests: formData.additionalRequests,
+      contactPreference: formData.contactPreference,
+      requirements: formData.requirements,
+      estimatedDuration: formData.estimatedDuration,
+      urgency: formData.urgency,
+      priority: formData.priority,
+      isRemote: formData.isRemote,
+      customerId: user?.id,
       location: `${formData.street}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
-      tags: [formData.category, formData.subcategory],
+      tags: formData.subcategory
+        ? [formData.category, formData.subcategory]
+        : [formData.category],
       images: imageUrls,
     };
+
+    // Only add date and time if timeline is "Specific date" and they have values
+    if (
+      formData.timeline === 'Specific date' &&
+      formData.date &&
+      formData.date.trim()
+    ) {
+      jobData.date = formData.date;
+      if (formData.time && formData.time.trim()) {
+        jobData.time = formData.time;
+      }
+    }
+
+    console.log('🔍 Submitting job data:', jobData);
+    console.log('🔍 Tags array:', jobData.tags);
+    console.log('🔍 Date and time fields:', {
+      timeline: formData.timeline,
+      date: jobData.date,
+      time: jobData.time,
+      hasDate: 'date' in jobData,
+      hasTime: 'time' in jobData,
+    });
 
     jobMutation.mutate(jobData);
   };
@@ -858,6 +1020,50 @@ const JobPostingForm = () => {
               </div>
             </div>
           )}
+
+          {/* Backend Validation Errors Display */}
+          {Object.keys(backendErrors).length > 0 && (
+            <div className='px-6 pb-4'>
+              <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
+                <div className='flex items-start space-x-3'>
+                  <AlertCircle className='h-5 w-5 text-red-500 mt-0.5 flex-shrink-0' />
+                  <div className='flex-1'>
+                    <h3 className='text-sm font-medium text-red-800 dark:text-red-200'>
+                      Please fix the following validation errors:
+                    </h3>
+                    <div className='mt-2 space-y-1'>
+                      {Object.entries(backendErrors).map(([field, message]) => {
+                        // Convert field names to user-friendly labels
+                        const fieldLabels: { [key: string]: string } = {
+                          budget: 'Budget',
+                          date: 'Date',
+                          title: 'Job Title',
+                          description: 'Job Description',
+                          category: 'Service Category',
+                          street: 'Street Address',
+                          city: 'City',
+                          zipCode: 'ZIP Code',
+                          timeline: 'Timeline',
+                          requirements: 'Requirements',
+                        };
+
+                        const fieldLabel = fieldLabels[field] || field;
+                        return (
+                          <div
+                            key={field}
+                            className='text-sm text-red-700 dark:text-red-300'
+                          >
+                            <span className='font-medium'>• {fieldLabel}:</span>{' '}
+                            {message}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className='flex justify-between p-6'>
@@ -871,10 +1077,10 @@ const JobPostingForm = () => {
 
           <Button
             onClick={handleNextStep}
-            disabled={jobMutation.isPending}
+            disabled={jobMutation.isPending || isSubmitting}
             className='ml-auto'
           >
-            {jobMutation.isPending ? (
+            {jobMutation.isPending || isSubmitting ? (
               <>
                 <Loader2 className='h-4 w-4 animate-spin mr-2' />
                 {isEditing ? 'Updating...' : 'Posting...'}
