@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
@@ -60,11 +62,23 @@ import MessagesPage from './pages/shared/MessagesPage';
 import PaymentsPage from './pages/shared/PaymentsPage';
 
 const App = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes
+        retry: 3,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+
   return (
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Router>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router>
           <Routes>
             {/* Public routes */}
             <Route element={<MainLayout />}>
@@ -227,6 +241,7 @@ const App = () => {
         </Router>
       </TooltipProvider>
     </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useJobDetails } from '@/hooks/useJobDetails';
+import { useBidActions } from '@/hooks/useBidActions';
 import {
   ArrowLeft,
   MapPin,
@@ -29,49 +30,12 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import { customerAPI } from '@/config/customerApi';
-
-interface Bid {
-  id: string;
-  amount: number;
-  description: string;
-  timeline: string;
-  status: string;
-  createdAt: string;
-  vendor: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    vendorProfile?: {
-      rating: number;
-      completedJobs: number;
-      experience: number;
-      skills: string[];
-    };
-  };
-}
-
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  budget: number;
-  budgetType: string;
-  location: string;
-  status: string;
-  createdAt: string;
-  bids: Bid[];
-}
 
 const JobDetailsPage = () => {
   const { id: jobId } = useParams();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { user } = useAuth();
-  const [job, setJob] = useState<Job | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
 
   // Debug URL and params
   console.log('🔍 Current URL:', window.location.href);
@@ -80,80 +44,9 @@ const JobDetailsPage = () => {
   console.log('🔍 jobId from params:', jobId);
   console.log('🔍 user from auth:', user);
 
-  // Fetch job details think backend me
-  
-  useEffect(() => {
-    const fetchJobDetails = async () => {
-      try {
-        setIsLoading(true);
-        console.log('🔍 Fetching job details...');
-        console.log('Job ID:', jobId);
-        console.log('User ID:', user?.id);
-
-        if (!jobId || !user?.id) {
-          console.log('❌ Missing jobId or user.id');
-          return;
-        }
-
-        console.log('📡 Making API call...');
-        const response = await customerAPI.getJobDetails(jobId, user.id);
-        console.log('📥 API Response:', response);
-
-        if (response.success) {
-          console.log('✅ Job data received:', response.data.job);
-          setJob(response.data.job);
-        } else {
-          console.log('❌ API Error:', response.message);
-          throw new Error(response.message || 'Failed to fetch job details');
-        }
-      } catch (error) {
-        console.error('💥 Error fetching job details:', error);
-        setIsError(true);
-        toast.error('Failed to load job details');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchJobDetails();
-  }, [jobId, user?.id]);
-
-  // Handle bid actions
-  const handleAcceptBid = async (bidId: string) => {
-    try {
-      if (!jobId || !user?.id) return;
-
-      const response = await customerAPI.acceptBid(jobId, bidId, user.id);
-      if (response.success) {
-        toast.success('Bid accepted successfully!');
-        // Refresh job details
-        window.location.reload();
-      } else {
-        throw new Error(response.message || 'Failed to accept bid');
-      }
-    } catch (error) {
-      console.error('Error accepting bid:', error);
-      toast.error('Failed to accept bid');
-    }
-  };
-
-  const handleRejectBid = async (bidId: string) => {
-    try {
-      if (!jobId || !user?.id) return;
-
-      const response = await customerAPI.rejectBid(jobId, bidId, user.id);
-      if (response.success) {
-        toast.success('Bid rejected');
-        // Refresh job details
-        window.location.reload();
-      } else {
-        throw new Error(response.message || 'Failed to reject bid');
-      }
-    } catch (error) {
-      console.error('Error rejecting bid:', error);
-      toast.error('Failed to reject bid');
-    }
-  };
+  // React Query hooks
+  const { data: job, isLoading, isError, error, refetch } = useJobDetails(jobId, user?.id);
+  const { acceptBid, rejectBid, isAccepting, isRejecting } = useBidActions(jobId, user?.id);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -232,15 +125,24 @@ const JobDetailsPage = () => {
             <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
             <h3 className='text-lg font-semibold mb-2'>Job not found</h3>
             <p className='text-gray-600 dark:text-gray-400 mb-4'>
-              The job you're looking for doesn't exist or has been removed.
+              {error?.message || 'The job you\'re looking for doesn\'t exist or has been removed.'}
             </p>
-            <Button
-              onClick={() => navigate('/customer-dashboard/jobs')}
-              variant='outline'
-            >
-              <ArrowLeft className='mr-2 h-4 w-4' />
-              Back to Jobs
-            </Button>
+            <div className='flex gap-3'>
+              <Button
+                onClick={() => navigate('/customer-dashboard/jobs')}
+                variant='outline'
+              >
+                <ArrowLeft className='mr-2 h-4 w-4' />
+                Back to Jobs
+              </Button>
+              <Button
+                onClick={() => refetch()}
+                variant='outline'
+              >
+                <RefreshCw className='mr-2 h-4 w-4' />
+                Retry
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -289,7 +191,7 @@ const JobDetailsPage = () => {
             </div>
 
             <Button
-              onClick={() => window.location.reload()}
+              onClick={() => refetch()}
               variant='outline'
               size='sm'
             >
@@ -660,19 +562,29 @@ const JobDetailsPage = () => {
                             {bid.status === 'PENDING' && (
                               <>
                                 <Button
-                                  onClick={() => handleAcceptBid(bid.id)}
+                                  onClick={() => acceptBid(bid.id)}
                                   className='flex-1 bg-green-600 hover:bg-green-700'
+                                  disabled={isAccepting || isRejecting}
                                 >
-                                  <CheckCircle className='mr-2 h-4 w-4' />
-                                  Accept Bid
+                                  {isAccepting ? (
+                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                  ) : (
+                                    <CheckCircle className='mr-2 h-4 w-4' />
+                                  )}
+                                  {isAccepting ? 'Accepting...' : 'Accept Bid'}
                                 </Button>
                                 <Button
-                                  onClick={() => handleRejectBid(bid.id)}
+                                  onClick={() => rejectBid(bid.id)}
                                   variant='outline'
                                   className='flex-1'
+                                  disabled={isAccepting || isRejecting}
                                 >
-                                  <XCircle className='mr-2 h-4 w-4' />
-                                  Reject Bid
+                                  {isRejecting ? (
+                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                  ) : (
+                                    <XCircle className='mr-2 h-4 w-4' />
+                                  )}
+                                  {isRejecting ? 'Rejecting...' : 'Reject Bid'}
                                 </Button>
                               </>
                             )}
