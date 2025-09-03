@@ -3,6 +3,63 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database';
 import { AppError } from './error.middleware';
 import { logger } from '../utils/logger';
+import { Socket } from 'socket.io';
+
+// ... existing code ...
+
+// Socket.IO authentication middleware
+export const authenticateSocket = async (socket: Socket, next: (err?: Error) => void) => {
+  try {
+    const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return next(new Error('Authentication error'));
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+    if (!decoded || !decoded.userId) {
+      return next(new Error('Invalid token'));
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        status: true,
+      },
+    });
+
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    // Check if user is active
+    if (user.status === 'SUSPENDED') {
+      return next(new Error('Account suspended'));
+    }
+
+    // Attach user to socket
+    socket.data.user = user;
+
+    logger.info(`Socket authenticated: ${user.id} (${user.email})`);
+    next();
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      next(new Error('Invalid token'));
+    } else if (error instanceof jwt.TokenExpiredError) {
+      next(new Error('Token expired'));
+    } else {
+      next(new Error('Authentication error'));
+    }
+  }
+};
 
 // Extend Express Request interface to include user
 declare global {

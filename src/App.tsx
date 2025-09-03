@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import CustomerProvider from '@/contexts/CustomerContext';
+import { ChatProvider } from '@/contexts/ChatContext';
 
 // Layout Components
 import MainLayout from './layouts/MainLayout';
@@ -78,169 +79,219 @@ const App = () => {
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
-          <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route element={<MainLayout />}>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/login' element={<LoginPage />} />
-              <Route path='/signup' element={<SignUpPage />} />
-              <Route path='/about' element={<AboutPage />} />
-              <Route path='/faq' element={<FAQPage />} />
-              <Route path='/contact' element={<ContactPage />} />
-              <Route path='/support' element={<SupportPage />} />
-              <Route path='/vendor/:id' element={<VendorProfilePage />} />
-            </Route>
+          <ChatProvider>
+            <Router>
+              <Routes>
+                {/* Public routes */}
+                <Route element={<MainLayout />}>
+                  <Route path='/' element={<HomePage />} />
+                  <Route path='/login' element={<LoginPage />} />
+                  <Route path='/signup' element={<SignUpPage />} />
+                  <Route path='/about' element={<AboutPage />} />
+                  <Route path='/faq' element={<FAQPage />} />
+                  <Route path='/contact' element={<ContactPage />} />
+                  <Route path='/support' element={<SupportPage />} />
+                  <Route path='/vendor/:id' element={<VendorProfilePage />} />
+                </Route>
 
-            {/* Protected Admin routes - Only ADMIN users can access */}
-            <Route element={<AdminProtectedRoute />}>
-              <Route
-                path='/admin/*'
-                element={
-                  <AdminLayout>
-                    <Routes>
-                      <Route path='/' element={<AdminDashboard />} />
-                      <Route path='/users' element={<UserManagement />} />
-                      <Route path='/jobs' element={<JobManagement />} />
-                      <Route path='/vendors' element={<VendorManagement />} />
-                      <Route
-                        path='/customers'
-                        element={<CustomerManagement />}
-                      />
-                      <Route path='/payments' element={<PaymentManagement />} />
-                      <Route path='/analytics' element={<Analytics />} />
-                      <Route path='/settings' element={<Settings />} />
-                      <Route path='/support' element={<SupportTickets />} />
-                    </Routes>
-                  </AdminLayout>
-                }
-              />
-            </Route>
+                {/* Protected Admin routes - Only ADMIN users can access */}
+                <Route element={<AdminProtectedRoute />}>
+                  <Route
+                    path='/admin/*'
+                    element={
+                      <AdminLayout>
+                        <Routes>
+                          <Route path='/' element={<AdminDashboard />} />
+                          <Route path='/users' element={<UserManagement />} />
+                          <Route path='/jobs' element={<JobManagement />} />
+                          <Route
+                            path='/vendors'
+                            element={<VendorManagement />}
+                          />
+                          <Route
+                            path='/customers'
+                            element={<CustomerManagement />}
+                          />
+                          <Route
+                            path='/payments'
+                            element={<PaymentManagement />}
+                          />
+                          <Route path='/analytics' element={<Analytics />} />
+                          <Route path='/settings' element={<Settings />} />
+                          <Route path='/support' element={<SupportTickets />} />
+                        </Routes>
+                      </AdminLayout>
+                    }
+                  />
+                </Route>
 
-            {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
-            <Route element={<ProtectedRoute />}>
-              <Route
-                path='/customer/*'
-                element={
-                  <CustomerProvider>
-                    <CustomerLayout>
-                      <Routes>
-                        <Route path='/' element={<CustomerDashboard />} />
-                        <Route path='/jobs' element={<CustomerJobsPage />} />
-                        <Route path='/jobs/post' element={<JobPostingForm />} />
-                        <Route
-                          path='/jobs/:id/details'
-                          element={<JobDetailsPage />}
-                        />
-                        <Route path='/messages' element={<MessagesPage />} />
-                        <Route
-                          path='/payments'
-                          element={<CustomerPaymentPage />}
-                        />
-                        <Route path='/support' element={<SupportPage />} />
-                        <Route path='/jobs/new' element={<JobPostingForm />} />
-                        <Route
-                          path='/jobs/:id/edit'
-                          element={<JobPostingForm />}
-                        />
-                        <Route path='/jobs/:id' element={<JobDetailPage />} />
-                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                        <Route
-                          path='/jobs/:id/bid'
-                          element={<SubmitBidPage />}
-                        />
-                        <Route
-                          path='/profile'
-                          element={<CustomerDashboard />}
-                        />
-                      </Routes>
-                    </CustomerLayout>
-                  </CustomerProvider>
-                }
-              />
-            </Route>
+                {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path='/customer/*'
+                    element={
+                      <CustomerProvider>
+                        <CustomerLayout>
+                          <Routes>
+                            <Route path='/' element={<CustomerDashboard />} />
+                            <Route
+                              path='/jobs'
+                              element={<CustomerJobsPage />}
+                            />
+                            <Route
+                              path='/jobs/post'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id/details'
+                              element={<JobDetailsPage />}
+                            />
+                            <Route
+                              path='/messages'
+                              element={<MessagesPage />}
+                            />
+                            <Route
+                              path='/payments'
+                              element={<CustomerPaymentPage />}
+                            />
+                            <Route path='/support' element={<SupportPage />} />
+                            <Route
+                              path='/jobs/new'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id/edit'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id'
+                              element={<JobDetailPage />}
+                            />
+                            <Route
+                              path='/jobs/:id/bids'
+                              element={<BidsPage />}
+                            />
+                            <Route
+                              path='/jobs/:id/bid'
+                              element={<SubmitBidPage />}
+                            />
+                            <Route
+                              path='/profile'
+                              element={<CustomerDashboard />}
+                            />
+                          </Routes>
+                        </CustomerLayout>
+                      </CustomerProvider>
+                    }
+                  />
+                </Route>
 
-            <Route element={<ProtectedRoute />}>
-              <Route
-                path='/customer-dashboard/*'
-                element={
-                  <CustomerProvider>
-                    <CustomerLayout>
-                      <Routes>
-                        <Route path='/' element={<CustomerDashboard />} />
-                        <Route path='/jobs' element={<CustomerJobsPage />} />
-                        <Route path='/jobs/post' element={<JobPostingForm />} />
-                        <Route
-                          path='/jobs/:id/details'
-                          element={<JobDetailsPage />}
-                        />
-                        <Route path='/messages' element={<MessagesPage />} />
-                        <Route
-                          path='/payments'
-                          element={<CustomerPaymentPage />}
-                        />
-                        <Route path='/support' element={<SupportPage />} />
-                        <Route path='/jobs/new' element={<JobPostingForm />} />
-                        <Route
-                          path='/jobs/:id/edit'
-                          element={<JobPostingForm />}
-                        />
-                        <Route path='/jobs/:id' element={<JobDetailPage />} />
-                        <Route path='/jobs/:id/bids' element={<BidsPage />} />
-                        <Route
-                          path='/jobs/:id/bid'
-                          element={<SubmitBidPage />}
-                        />
-                        <Route
-                          path='/profile'
-                          element={<CustomerDashboard />}
-                        />
-                      </Routes>
-                    </CustomerLayout>
-                  </CustomerProvider>
-                }
-              />
-            </Route>
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path='/customer-dashboard/*'
+                    element={
+                      <CustomerProvider>
+                        <CustomerLayout>
+                          <Routes>
+                            <Route path='/' element={<CustomerDashboard />} />
+                            <Route
+                              path='/jobs'
+                              element={<CustomerJobsPage />}
+                            />
+                            <Route
+                              path='/jobs/post'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id/details'
+                              element={<JobDetailsPage />}
+                            />
+                            <Route
+                              path='/messages'
+                              element={<MessagesPage />}
+                            />
+                            <Route
+                              path='/payments'
+                              element={<CustomerPaymentPage />}
+                            />
+                            <Route path='/support' element={<SupportPage />} />
+                            <Route
+                              path='/jobs/new'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id/edit'
+                              element={<JobPostingForm />}
+                            />
+                            <Route
+                              path='/jobs/:id'
+                              element={<JobDetailPage />}
+                            />
+                            <Route
+                              path='/jobs/:id/bids'
+                              element={<BidsPage />}
+                            />
+                            <Route
+                              path='/jobs/:id/bid'
+                              element={<SubmitBidPage />}
+                            />
+                            <Route
+                              path='/profile'
+                              element={<CustomerDashboard />}
+                            />
+                          </Routes>
+                        </CustomerLayout>
+                      </CustomerProvider>
+                    }
+                  />
+                </Route>
 
-            {/* Protected vendor routes - Only authenticated VENDOR users can access */}
-            <Route element={<ProtectedRoute />}>
-              <Route
-                path='/vendor-dashboard/*'
-                element={
-                  <VendorLayout>
-                    <Routes>
-                      <Route path='/' element={<VendorDashboard />} />
-                      <Route path='/jobs' element={<VendorJobsPage />} />
-                      <Route path='/jobs/search' element={<VendorJobsPage />} />
-                      <Route path='/bids' element={<VendorBidsPage />} />
-                      <Route
-                        path='/profile'
-                        element={<VendorProfileManagement />}
-                      />
-                      <Route path='/messages' element={<MessagesPage />} />
-                      <Route path='/earnings' element={<PaymentsPage />} />
-                      <Route path='/support' element={<SupportPage />} />
-                      <Route
-                        path='/jobs/:id/view'
-                        element={<JobDetailPage />}
-                      />
-                      <Route path='/jobs/:id/bid' element={<SubmitBidPage />} />
-                      <Route
-                        path='/bids/:id/view'
-                        element={<VendorJobDetailPage />}
-                      />
-                    </Routes>
-                  </VendorLayout>
-                }
-              />
-            </Route>
+                {/* Protected vendor routes - Only authenticated VENDOR users can access */}
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path='/vendor-dashboard/*'
+                    element={
+                      <VendorLayout>
+                        <Routes>
+                          <Route path='/' element={<VendorDashboard />} />
+                          <Route path='/jobs' element={<VendorJobsPage />} />
+                          <Route
+                            path='/jobs/search'
+                            element={<VendorJobsPage />}
+                          />
+                          <Route path='/bids' element={<VendorBidsPage />} />
+                          <Route
+                            path='/profile'
+                            element={<VendorProfileManagement />}
+                          />
+                          <Route path='/messages' element={<MessagesPage />} />
+                          <Route path='/earnings' element={<PaymentsPage />} />
+                          <Route path='/support' element={<SupportPage />} />
+                          <Route
+                            path='/jobs/:id/view'
+                            element={<JobDetailPage />}
+                          />
+                          <Route
+                            path='/jobs/:id/bid'
+                            element={<SubmitBidPage />}
+                          />
+                          <Route
+                            path='/bids/:id/view'
+                            element={<VendorJobDetailPage />}
+                          />
+                        </Routes>
+                      </VendorLayout>
+                    }
+                  />
+                </Route>
 
-            {/* 404 - Catch all unmatched routes */}
-            <Route path='*' element={<NotFound />} />
-          </Routes>
-        </Router>
-      </TooltipProvider>
-    </ThemeProvider>
+                {/* 404 - Catch all unmatched routes */}
+                <Route path='*' element={<NotFound />} />
+              </Routes>
+            </Router>
+          </ChatProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

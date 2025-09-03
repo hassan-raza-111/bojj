@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator, SeparatorHorizontal } from '@/components/ui/separator';
+import { MessageButton } from '@/components/shared/MessageButton';
 import {
   Calendar,
   Clock,
@@ -775,10 +776,13 @@ const JobDetailPage = () => {
                     <Phone className='h-4 w-4 mr-2' />
                     Contact Vendor
                   </Button>
-                  <Button variant='outline' size='sm' className='w-full'>
-                    <Mail className='h-4 w-4 mr-2' />
-                    Send Message
-                  </Button>
+                  <MessageButton
+                    jobId={job.id}
+                    vendorId={job.assignedVendor.id}
+                    variant='outline'
+                    size='sm'
+                    className='w-full'
+                  />
                 </div>
               </CardContent>
             </Card>

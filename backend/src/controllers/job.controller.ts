@@ -440,10 +440,58 @@ export const acceptBid: RequestHandler = async (req, res, next) => {
       data: { status: 'REJECTED' },
     });
 
+    // Create chat room for customer and vendor
+    const chatRoom = await prisma.chatRoom.create({
+      data: {
+        jobId: bid.job.id,
+        customerId: customerId,
+        vendorId: bid.vendorId,
+        status: 'ACTIVE',
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        vendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        job: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    // Send system message to chat room
+    await prisma.chatMessage.create({
+      data: {
+        chatRoomId: chatRoom.id,
+        senderId: customerId,
+        content: 'Chat room created. You can now communicate with your vendor.',
+        messageType: 'SYSTEM',
+      },
+    });
+
     logger.info(`Bid accepted: ${bidId} for job: ${bid.job.id}`);
     res.status(200).json({
       success: true,
       message: 'Bid accepted successfully',
+      data: {
+        vendorId: bid.vendorId,
+        chatRoom: chatRoom,
+      },
     });
   } catch (error) {
     logger.error('Error accepting bid:', error);

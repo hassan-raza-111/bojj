@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useJobDetails } from '@/hooks/useJobDetails';
 import { useBidActions } from '@/hooks/useBidActions';
+import { MessageButton } from '@/components/shared/MessageButton';
 import {
   ArrowLeft,
   MapPin,
@@ -45,8 +46,17 @@ const JobDetailsPage = () => {
   console.log('🔍 user from auth:', user);
 
   // React Query hooks
-  const { data: job, isLoading, isError, error, refetch } = useJobDetails(jobId, user?.id);
-  const { acceptBid, rejectBid, isAccepting, isRejecting } = useBidActions(jobId, user?.id);
+  const {
+    data: job,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useJobDetails(jobId, user?.id);
+  const { acceptBid, rejectBid, isAccepting, isRejecting } = useBidActions(
+    jobId,
+    user?.id
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -125,7 +135,8 @@ const JobDetailsPage = () => {
             <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
             <h3 className='text-lg font-semibold mb-2'>Job not found</h3>
             <p className='text-gray-600 dark:text-gray-400 mb-4'>
-              {error?.message || 'The job you\'re looking for doesn\'t exist or has been removed.'}
+              {error?.message ||
+                "The job you're looking for doesn't exist or has been removed."}
             </p>
             <div className='flex gap-3'>
               <Button
@@ -135,10 +146,7 @@ const JobDetailsPage = () => {
                 <ArrowLeft className='mr-2 h-4 w-4' />
                 Back to Jobs
               </Button>
-              <Button
-                onClick={() => refetch()}
-                variant='outline'
-              >
+              <Button onClick={() => refetch()} variant='outline'>
                 <RefreshCw className='mr-2 h-4 w-4' />
                 Retry
               </Button>
@@ -190,11 +198,7 @@ const JobDetailsPage = () => {
               </div>
             </div>
 
-            <Button
-              onClick={() => refetch()}
-              variant='outline'
-              size='sm'
-            >
+            <Button onClick={() => refetch()} variant='outline' size='sm'>
               <RefreshCw className='mr-2 h-4 w-4' />
               Refresh
             </Button>
@@ -589,10 +593,12 @@ const JobDetailsPage = () => {
                               </>
                             )}
 
-                            <Button variant='outline' className='flex-1'>
-                              <MessageSquare className='mr-2 h-4 w-4' />
-                              Message Vendor
-                            </Button>
+                            <MessageButton
+                              jobId={job.id}
+                              vendorId={bid.vendor.id}
+                              variant='outline'
+                              className='flex-1'
+                            />
                           </div>
                         </CardContent>
                       </Card>

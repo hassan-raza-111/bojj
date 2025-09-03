@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { MessageButton } from '@/components/shared/MessageButton';
 import { Loader2 } from 'lucide-react';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,6 +18,7 @@ import { useToast } from '@/components/ui/use-toast';
 interface Bid {
   id: string;
   vendor: {
+    id: string;
     firstName: string;
     lastName: string;
     rating?: number;
@@ -167,6 +169,12 @@ const BidsPage = () => {
                         </Button>
                       </>
                     )}
+                    <MessageButton
+                      jobId={id || ''}
+                      vendorId={bid.vendor.id}
+                      variant="outline"
+                      size="sm"
+                    />
                   </div>
                 </div>
               ))}

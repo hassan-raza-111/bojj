@@ -402,7 +402,7 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
       return false;
 
     try {
-      const response = await customerAPI.acceptBid(jobId, bidId);
+      const response = await customerAPI.acceptBid(jobId, bidId, user.id);
 
       if (response.success) {
         // Update job status and assigned vendor
@@ -420,7 +420,7 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
 
         toast({
           title: 'Success',
-          description: 'Bid accepted successfully!',
+          description: 'Bid accepted successfully! Chat room has been created.',
         });
 
         return true;
