@@ -185,37 +185,22 @@ export const vendorApi = {
     budgetMin?: number;
     budgetMax?: number;
   }) => {
-    console.log('🔍 vendorApi.getAvailableJobs called with params:', params);
     const queryString = params
       ? `?${new URLSearchParams(params as any).toString()}`
       : '';
     const url = `/api/vendor/jobs/available${queryString}`;
-    console.log('🔍 Making API call to:', url);
-    try {
-      const response = await apiCall(url, { method: 'GET' }, false); // Temporarily set to false for testing
-      console.log('🔍 API response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ API call failed:', error);
-      throw error;
-    }
+    const response = await apiCall(url, { method: 'GET' }, true);
+    return response;
   },
 
   // Get available filters
   getAvailableFilters: async () => {
-    console.log('🔍 vendorApi.getAvailableFilters called');
-    try {
-      const response = await apiCall(
-        '/api/vendor/jobs/filters',
-        { method: 'GET' },
-        false
-      ); // Temporarily set to false for testing
-      console.log('🔍 Filters API response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Filters API call failed:', error);
-      throw error;
-    }
+    const response = await apiCall(
+      '/api/vendor/jobs/filters',
+      { method: 'GET' },
+      true
+    );
+    return response;
   },
 
   // Get active bids
@@ -225,7 +210,7 @@ export const vendorApi = {
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null) {
           cleanParams[key] = value;
         }
       });
@@ -255,7 +240,7 @@ export const vendorApi = {
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null) {
           cleanParams[key] = value;
         }
       });

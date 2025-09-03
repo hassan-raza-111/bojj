@@ -35,10 +35,10 @@ app.use(
   })
 );
 
-// Rate limiting - Fixed to be more secure
+// Rate limiting - Fixed to be more permissive for development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs (was 100000 - too high!)
+  max: 1000, // Increased from 100 to 1000 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
