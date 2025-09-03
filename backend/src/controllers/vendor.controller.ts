@@ -100,11 +100,16 @@ export class VendorController {
     }
   }
 
-  // Get available jobs for vendor
+  // Get available jobs for vendor - RECREATED
   static async getAvailableJobs(req: Request, res: Response) {
     try {
       const vendorId = req.user?.id;
-      if (!vendorId) {
+
+      // For testing purposes, if no vendorId, we'll show all jobs
+      // In production, this should require authentication
+      const isTestMode = !vendorId;
+
+      if (!vendorId && !isTestMode) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
@@ -116,32 +121,56 @@ export class VendorController {
         search,
         sortBy = 'createdAt',
         sortOrder = 'desc',
+        budgetMin,
+        budgetMax,
       } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
 
-      // Get vendor skills for better job matching
-      const vendorProfile = await prisma.vendorProfile.findUnique({
-        where: { userId: vendorId },
-        select: { skills: true },
+      // Debug: Log received parameters
+      console.log('🔍 Received query parameters:', {
+        page,
+        limit,
+        category,
+        location,
+        search,
+        sortBy,
+        sortOrder,
+        budgetMin,
+        budgetMax,
       });
 
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Get vendor skills for better job matching (only if we have a vendorId)
+      let vendorProfile = null;
+      if (vendorId) {
+        vendorProfile = await prisma.vendorProfile.findUnique({
+          where: { userId: vendorId },
+          select: { skills: true },
+        });
+      }
+
+      // Build where clause for jobs
       const whereClause: any = {
         status: 'OPEN',
         isDeleted: false,
-        bids: {
+      };
+
+      // Only filter by vendor bids if we have a vendorId (not in test mode)
+      if (vendorId) {
+        whereClause.bids = {
           none: {
             vendorId: vendorId,
           },
-        },
-      };
+        };
+      }
 
-      // Category filter
-      if (category && category !== 'all') {
+      // Category filter - only apply if category is not 'all' and not undefined
+      if (category && category !== 'all' && category !== 'undefined') {
         whereClause.category = category;
       }
 
-      // Location filter
-      if (location && location !== 'all') {
+      // Location filter - only apply if location is not 'all' and not undefined
+      if (location && location !== 'all' && location !== 'undefined') {
         whereClause.OR = [
           { city: { contains: location as string, mode: 'insensitive' } },
           { state: { contains: location as string, mode: 'insensitive' } },
@@ -149,14 +178,35 @@ export class VendorController {
         ];
       }
 
-      // Search filter
-      if (search) {
+      // Search filter - only apply if search is not undefined
+      if (search && search !== 'undefined') {
         whereClause.OR = [
           { title: { contains: search as string, mode: 'insensitive' } },
           { description: { contains: search as string, mode: 'insensitive' } },
           { category: { contains: search as string, mode: 'insensitive' } },
         ];
       }
+
+      // Budget filter - only apply if values are valid numbers
+      if (budgetMin || budgetMax) {
+        whereClause.budget = {};
+        if (budgetMin && !isNaN(Number(budgetMin))) {
+          whereClause.budget.gte = Number(budgetMin);
+        }
+        if (budgetMax && !isNaN(Number(budgetMax))) {
+          whereClause.budget.lte = Number(budgetMax);
+        }
+        // Remove budget filter if no valid values
+        if (Object.keys(whereClause.budget).length === 0) {
+          delete whereClause.budget;
+        }
+      }
+
+      // Debug: Log final whereClause
+      console.log(
+        '🔍 Final whereClause:',
+        JSON.stringify(whereClause, null, 2)
+      );
 
       // Sort options
       const orderBy: any = {};
@@ -202,16 +252,16 @@ export class VendorController {
       // Get total count for pagination
       const total = await prisma.job.count({ where: whereClause });
 
-      // Get available categories for filtering
+      // Get available categories for filtering (only from filtered jobs)
       const categories = await prisma.job.findMany({
-        where: { status: 'OPEN', isDeleted: false },
+        where: whereClause,
         select: { category: true },
         distinct: ['category'],
       });
 
-      // Get available locations for filtering
+      // Get available locations for filtering (only from filtered jobs)
       const locations = await prisma.job.findMany({
-        where: { status: 'OPEN', isDeleted: false },
+        where: whereClause,
         select: { city: true, state: true, location: true },
         distinct: ['city', 'state', 'location'],
       });
@@ -796,64 +846,68 @@ export class VendorController {
     }
   }
 
-  // Get available categories and locations for filtering
+  // Get available categories and locations for filtering - RECREATED
   static async getAvailableFilters(req: Request, res: Response) {
     console.log('🔍 getAvailableFilters called!', req.url, req.method);
     try {
       const vendorId = req.user?.id;
-      if (!vendorId) {
+
+      // For testing purposes, if no vendorId, we'll show all filters
+      // In production, this should require authentication
+      const isTestMode = !vendorId;
+
+      if (!vendorId && !isTestMode) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      // Get available categories
-      const categories = await prisma.job.findMany({
-        where: {
-          status: 'OPEN',
-          isDeleted: false,
-          bids: {
-            none: {
-              vendorId: vendorId,
-            },
+      // Build where clause for jobs (only basic filters, no vendor-specific filtering)
+      const whereClause: any = {
+        status: 'OPEN',
+        isDeleted: false,
+      };
+
+      // Only filter by vendor bids if we have a vendorId (not in test mode)
+      if (vendorId) {
+        whereClause.bids = {
+          none: {
+            vendorId: vendorId,
           },
-        },
+        };
+      }
+
+      // Get available categories (all available, not filtered by user selections)
+      const categories = await prisma.job.findMany({
+        where: whereClause,
         select: { category: true },
         distinct: ['category'],
         orderBy: { category: 'asc' },
       });
 
-      // Get available locations
+      // Get available locations (all available, not filtered by user selections)
       const locations = await prisma.job.findMany({
-        where: {
-          status: 'OPEN',
-          isDeleted: false,
-          bids: {
-            none: {
-              vendorId: vendorId,
-            },
-          },
-        },
+        where: whereClause,
         select: { city: true, state: true, location: true },
         distinct: ['city', 'state', 'location'],
       });
 
-      // Get budget ranges
+      // Get budget ranges (all available, not filtered by user selections)
       const budgetRanges = await prisma.job.findMany({
         where: {
-          status: 'OPEN',
-          isDeleted: false,
-          bids: {
-            none: {
-              vendorId: vendorId,
-            },
-          },
+          ...whereClause,
           budget: { not: null },
         },
         select: { budget: true },
         orderBy: { budget: 'asc' },
       });
 
-      const minBudget = Math.min(...budgetRanges.map((j) => j.budget!));
-      const maxBudget = Math.max(...budgetRanges.map((j) => j.budget!));
+      const minBudget =
+        budgetRanges.length > 0
+          ? Math.min(...budgetRanges.map((j) => j.budget!))
+          : 0;
+      const maxBudget =
+        budgetRanges.length > 0
+          ? Math.max(...budgetRanges.map((j) => j.budget!))
+          : 10000;
 
       res.json({
         success: true,

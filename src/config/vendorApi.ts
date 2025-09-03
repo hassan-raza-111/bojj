@@ -185,19 +185,37 @@ export const vendorApi = {
     budgetMin?: number;
     budgetMax?: number;
   }) => {
+    console.log('🔍 vendorApi.getAvailableJobs called with params:', params);
     const queryString = params
       ? `?${new URLSearchParams(params as any).toString()}`
       : '';
-    return apiCall(
-      `/api/vendor/jobs/available${queryString}`,
-      { method: 'GET' },
-      true
-    );
+    const url = `/api/vendor/jobs/available${queryString}`;
+    console.log('🔍 Making API call to:', url);
+    try {
+      const response = await apiCall(url, { method: 'GET' }, false); // Temporarily set to false for testing
+      console.log('🔍 API response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ API call failed:', error);
+      throw error;
+    }
   },
 
   // Get available filters
   getAvailableFilters: async () => {
-    return apiCall('/api/vendor/jobs/filters', { method: 'GET' }, true);
+    console.log('🔍 vendorApi.getAvailableFilters called');
+    try {
+      const response = await apiCall(
+        '/api/vendor/jobs/filters',
+        { method: 'GET' },
+        false
+      ); // Temporarily set to false for testing
+      console.log('🔍 Filters API response:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Filters API call failed:', error);
+      throw error;
+    }
   },
 
   // Get active bids

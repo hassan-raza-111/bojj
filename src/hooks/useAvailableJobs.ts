@@ -1,6 +1,5 @@
-import { useState, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { vendorApi, AvailableJob } from '../config/vendorApi';
-import { toast } from 'sonner';
 
 export interface JobFilters {
   category: string;
@@ -34,17 +33,34 @@ export const useAvailableJobs = (filters: JobFilters) => {
     queryKey: ['vendor', 'jobs', 'available', filters],
     queryFn: async () => {
       console.log('🔍 Fetching available jobs with filters:', filters);
-      const response = await vendorApi.getAvailableJobs({
+
+      // Build params object and filter out undefined values
+      const params: any = {
         page: 1,
         limit: 20,
-        category: filters.category === 'all' ? undefined : filters.category,
-        location: filters.location === 'all' ? undefined : filters.location,
-        search: filters.search || undefined,
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
-        budgetMin: filters.budgetMin,
-        budgetMax: filters.budgetMax,
-      });
+      };
+
+      // Only add filters if they have valid values
+      if (filters.category && filters.category !== 'all') {
+        params.category = filters.category;
+      }
+      if (filters.location && filters.location !== 'all') {
+        params.location = filters.location;
+      }
+      if (filters.search && filters.search.trim()) {
+        params.search = filters.search.trim();
+      }
+      if (filters.budgetMin && !isNaN(filters.budgetMin)) {
+        params.budgetMin = filters.budgetMin;
+      }
+      if (filters.budgetMax && !isNaN(filters.budgetMax)) {
+        params.budgetMax = filters.budgetMax;
+      }
+
+      console.log('🔍 Sending params to API:', params);
+      const response = await vendorApi.getAvailableJobs(params);
       console.log('🔍 Available jobs response:', response);
       return response;
     },
