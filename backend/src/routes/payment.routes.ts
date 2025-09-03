@@ -1,28 +1,55 @@
-import { Router } from 'express';
+import express from 'express';
+import { processPaymentSchema } from '../utils/schemas';
 import {
   processPayment,
   releasePayment,
   refundPayment,
   getPaymentDetails,
-  getCustomerPaymentHistory,
-  getVendorPaymentHistory,
+  getCustomerPayments,
+  getVendorPayments,
   getAllPayments,
+  createPaymentIntent,
+  createPayPalPayment,
+  createManualPayment,
 } from '../controllers/payment.controller';
 import {
   authenticateToken,
-  requireCustomer,
-  requireVendor,
-  requireCustomerOrVendor,
-  requireOwnership,
   requireAdmin,
+  requireCustomer,
 } from '../middleware/auth.middleware';
 import { validateRequest } from '../middleware/validation.middleware';
-import { processPaymentSchema } from '../utils/schemas';
 
-const router = Router();
+const router = express.Router();
 
-// Admin routes
-router.get('/', authenticateToken, requireAdmin, getAllPayments);
+// Customer routes
+router.get(
+  '/customer/:customerId',
+  authenticateToken,
+  requireCustomer,
+  getCustomerPayments
+);
+router.get('/vendor/:vendorId', authenticateToken, getVendorPayments);
+router.get('/:paymentId', authenticateToken, getPaymentDetails);
+
+// Payment creation routes
+router.post(
+  '/stripe/create-intent',
+  authenticateToken,
+  requireCustomer,
+  createPaymentIntent
+);
+router.post(
+  '/paypal/create',
+  authenticateToken,
+  requireCustomer,
+  createPayPalPayment
+);
+router.post(
+  '/manual/create',
+  authenticateToken,
+  requireCustomer,
+  createManualPayment
+);
 
 // Payment processing (Customer only)
 router.post(
@@ -33,7 +60,8 @@ router.post(
   processPayment
 );
 
-// Payment management (Admin only)
+// Admin routes
+router.get('/', authenticateToken, requireAdmin, getAllPayments);
 router.post(
   '/:paymentId/release',
   authenticateToken,
@@ -47,26 +75,4 @@ router.post(
   refundPayment
 );
 
-// Payment viewing (owner or admin)
-router.get(
-  '/:paymentId',
-  authenticateToken,
-  requireOwnership('payment'),
-  getPaymentDetails
-);
-
-// Payment history (authenticated users)
-router.get(
-  '/customer/history',
-  authenticateToken,
-  requireCustomer,
-  getCustomerPaymentHistory
-);
-router.get(
-  '/vendor/history',
-  authenticateToken,
-  requireVendor,
-  getVendorPaymentHistory
-);
-
-export const paymentRouter = router;
+export default router;

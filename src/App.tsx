@@ -48,6 +48,7 @@ import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
 import JobCRUD from './pages/customer/JobCRUD';
 import CustomerPaymentPage from './pages/customer/customerpaymentpage';
+import PaymentSuccessPage from './pages/customer/PaymentSuccessPage';
 
 // Vendor Features
 import VendorDashboard from './pages/vendor/VendorDashboard';
