@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { MessageSquare } from 'lucide-react';
 import { useChat } from '@/contexts/ChatContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface MessageButtonProps {
@@ -21,6 +22,7 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
   className = '',
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { createChatRoom, loadChatRooms, chatRooms, setCurrentChatRoom } =
     useChat();
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,13 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
       }
 
       toast.success('Chat room opened!');
+
+      // Navigate to messages page
+      const messagesPath =
+        user.role === 'CUSTOMER'
+          ? '/customer/messages'
+          : '/vendor-dashboard/messages';
+      navigate(messagesPath);
     } catch (error) {
       console.log(
         'Chat room creation failed (probably already exists):',
@@ -75,6 +84,13 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
       }
 
       toast.success('Chat room opened!');
+
+      // Navigate to messages page
+      const messagesPath =
+        user.role === 'CUSTOMER'
+          ? '/customer/messages'
+          : '/vendor-dashboard/messages';
+      navigate(messagesPath);
     } finally {
       setIsLoading(false);
     }
