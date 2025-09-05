@@ -131,13 +131,17 @@ export const customerAPI = {
 
   // Enhanced Profile Management
   getProfileData: async () => {
-    return apiCall(API_CONFIG.ENDPOINTS.AUTH.PROFILE_DATA, { method: 'GET' }, true);
+    return apiCall(
+      API_CONFIG.ENDPOINTS.AUTH.PROFILE_DATA,
+      { method: 'GET' },
+      true
+    );
   },
 
   uploadProfilePicture: async (file: File) => {
     const formData = new FormData();
     formData.append('profilePicture', file);
-    
+
     return apiCall(
       API_CONFIG.ENDPOINTS.AUTH.UPLOAD_PICTURE,
       {
