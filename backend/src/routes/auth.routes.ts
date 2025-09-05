@@ -9,6 +9,9 @@ import {
   changePassword,
   requestPasswordReset,
   resetPassword,
+  getProfileData,
+  uploadProfilePicture,
+  deleteAccount,
 } from '../controllers/auth.controller';
 import { authenticateToken, optionalAuth } from '../middleware/auth.middleware';
 
@@ -28,5 +31,10 @@ router.post('/reset-password', resetPassword);
 router.get('/me', authenticateToken, getCurrentUser);
 router.patch('/me', authenticateToken, updateCurrentUser);
 router.patch('/change-password', authenticateToken, changePassword);
+
+// Enhanced profile management routes
+router.get('/profile', authenticateToken, getProfileData);
+router.post('/profile/picture', authenticateToken, uploadProfilePicture);
+router.delete('/account', authenticateToken, deleteAccount);
 
 export const authRouter = router;

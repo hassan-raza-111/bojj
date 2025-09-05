@@ -341,6 +341,203 @@ export const updateCurrentUser: RequestHandler = async (req, res, next) => {
   }
 };
 
+// Get comprehensive profile data for current user
+export const getProfileData: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const userId = req.user.id;
+
+    // Get user profile
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        bio: true,
+        phone: true,
+        location: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    // Get user statistics based on role
+    let stats: any = {};
+
+    if (user.role === 'CUSTOMER') {
+      // Customer stats
+      const [postedJobs, completedJobs, activeJobs, totalSpent, recentJobs] =
+        await Promise.all([
+          prisma.job.count({ where: { customerId: userId } }),
+          prisma.job.count({
+            where: { customerId: userId, status: 'COMPLETED' },
+          }),
+          prisma.job.count({
+            where: { customerId: userId, status: 'IN_PROGRESS' },
+          }),
+          prisma.payment.aggregate({
+            where: { customerId: userId, status: 'RELEASED' },
+            _sum: { amount: true },
+          }),
+          prisma.job.findMany({
+            where: { customerId: userId },
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              createdAt: true,
+              budget: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+          }),
+        ]);
+
+      stats = {
+        postedJobs,
+        completedJobs,
+        activeJobs,
+        totalSpent: totalSpent._sum.amount || 0,
+        recentJobs,
+      };
+    }
+
+    // Get recent activity (payments, reviews, etc.)
+    const [recentPayments, recentReviews] = await Promise.all([
+      prisma.payment.findMany({
+        where: { customerId: userId },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          createdAt: true,
+          job: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      prisma.review.findMany({
+        where: { reviewerId: userId },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          service: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        stats,
+        recentActivity: {
+          payments: recentPayments,
+          reviews: recentReviews,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Upload profile picture (placeholder for future implementation)
+export const uploadProfilePicture: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    // For now, just return success - file upload will be implemented later
+    res.json({
+      success: true,
+      message: 'Profile picture upload endpoint ready',
+      data: {
+        profilePictureUrl: null, // Will be implemented with file upload
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete account
+export const deleteAccount: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError(401, 'Authentication required');
+    }
+
+    const { password } = req.body;
+
+    if (!password) {
+      throw new AppError(400, 'Password is required to delete account');
+    }
+
+    // Get user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, password: true, email: true },
+    });
+
+    if (!user?.password) {
+      throw new AppError(400, 'User not found');
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      throw new AppError(400, 'Invalid password');
+    }
+
+    // Soft delete - update status to DELETED
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { status: 'DELETED' },
+    });
+
+    // Revoke all refresh tokens
+    await prisma.refreshToken.deleteMany({
+      where: { userId: req.user.id },
+    });
+
+    logger.info(`Account deleted: ${req.user.id} (${user.email})`);
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Change password
 export const changePassword: RequestHandler = async (req, res, next) => {
   try {

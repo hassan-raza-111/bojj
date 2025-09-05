@@ -128,6 +128,47 @@ export const customerAPI = {
       true
     );
   },
+
+  // Enhanced Profile Management
+  getProfileData: async () => {
+    return apiCall(API_CONFIG.ENDPOINTS.AUTH.PROFILE_DATA, { method: 'GET' }, true);
+  },
+
+  uploadProfilePicture: async (file: File) => {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    return apiCall(
+      API_CONFIG.ENDPOINTS.AUTH.UPLOAD_PICTURE,
+      {
+        method: 'POST',
+        body: formData,
+      },
+      true
+    );
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    return apiCall(
+      API_CONFIG.ENDPOINTS.AUTH.CHANGE_PASSWORD,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      },
+      true
+    );
+  },
+
+  deleteAccount: async (password: string) => {
+    return apiCall(
+      API_CONFIG.ENDPOINTS.AUTH.DELETE_ACCOUNT,
+      {
+        method: 'DELETE',
+        body: JSON.stringify({ password }),
+      },
+      true
+    );
+  },
 };
 
 export default customerAPI;

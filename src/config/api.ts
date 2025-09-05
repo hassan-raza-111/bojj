@@ -17,6 +17,9 @@ export const API_CONFIG = {
       CHANGE_PASSWORD: '/api/auth/change-password',
       FORGOT_PASSWORD: '/api/auth/forgot-password',
       RESET_PASSWORD: '/api/auth/reset-password',
+      PROFILE_DATA: '/api/auth/profile',
+      UPLOAD_PICTURE: '/api/auth/profile/picture',
+      DELETE_ACCOUNT: '/api/auth/account',
     },
     USERS: {
       GET_ALL: '/api/users',
