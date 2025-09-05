@@ -93,7 +93,10 @@ const App = () => {
                   <Route path='/faq' element={<FAQPage />} />
                   <Route path='/contact' element={<ContactPage />} />
                   <Route path='/support' element={<SupportPage />} />
-                  <Route path='/vendor/:id' element={<VendorProfilePage />} />
+                  <Route
+                    path='/vendor/public/:id'
+                    element={<VendorProfilePage />}
+                  />
                 </Route>
 
                 {/* Protected Admin routes - Only ADMIN users can access */}

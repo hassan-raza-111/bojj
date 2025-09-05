@@ -45,19 +45,12 @@ const VendorProfilePage = () => {
   };
 
   return (
-    // <motion.div
-    //   className="container py-8 sm:py-12"
-    //   variants={pageVariants}
-    //   initial="initial"
-    //   animate="animate"
-    //   exit="exit"
-    //   transition={{ duration: 0.3 }}
-    // >
-    <Card
-      className={`w-full max-w-4xl mx-auto ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-      }`}
-    >
+    <div className="container py-8 sm:py-12">
+      <Card
+        className={`w-full max-w-4xl mx-auto ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}
+      >
       <CardHeader className='flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-2'>
         <CardTitle
           className={`text-2xl font-bold ${
@@ -163,7 +156,7 @@ const VendorProfilePage = () => {
         </div>
       </CardContent>
     </Card>
-    // </motion.div>
+    </div>
   );
 };
 
