@@ -257,7 +257,7 @@ const App = () => {
                 {/* Protected vendor routes - Only authenticated VENDOR users can access */}
                 <Route element={<ProtectedRoute />}>
                   <Route
-                    path='/vendor-dashboard/*'
+                    path='/vendor/*'
                     element={
                       <VendorLayout>
                         <Routes>

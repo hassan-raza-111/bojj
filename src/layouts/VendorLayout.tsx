@@ -34,51 +34,51 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
   const navigation = [
     {
       name: 'Dashboard',
-      href: '/vendor-dashboard',
+      href: '/vendor',
       icon: LayoutDashboard,
       description: 'Overview and analytics',
     },
     {
       name: 'Available Jobs',
-      href: '/vendor-dashboard/jobs',
+      href: '/vendor/jobs',
       icon: Briefcase,
       description: 'Browse and apply for jobs',
     },
     {
       name: 'My Bids',
-      href: '/vendor-dashboard/bids',
+      href: '/vendor/bids',
       icon: Award,
       description: 'Manage your bids',
     },
     {
       name: 'Earnings',
-      href: '/vendor-dashboard/earnings',
+      href: '/vendor/earnings',
       icon: CreditCard,
       description: 'Payment history & withdrawals',
     },
     {
       name: 'Messages',
-      href: '/vendor-dashboard/messages',
+      href: '/vendor/messages',
       icon: MessageSquare,
       description: 'Communication hub',
     },
     {
       name: 'Support',
-      href: '/vendor-dashboard/support',
+      href: '/vendor/support',
       icon: HeadphonesIcon,
       description: 'Get help and support',
     },
     {
       name: 'Profile',
-      href: '/vendor-dashboard/profile',
+      href: '/vendor/profile',
       icon: User,
       description: 'Manage your profile',
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/vendor-dashboard') {
-      return location.pathname === '/vendor-dashboard';
+    if (href === '/vendor') {
+      return location.pathname === '/vendor';
     }
     return location.pathname.startsWith(href);
   };

@@ -172,7 +172,7 @@ const VendorDashboard = () => {
             />
             Refresh
           </Button>
-          <Link to='/vendor-dashboard/jobs/search'>
+          <Link to='/vendor/jobs/search'>
             <Button className='bg-bojj-primary hover:bg-bojj-primary/90'>
               <Search className='mr-2 h-4 w-4' />
               Find Jobs
@@ -410,7 +410,7 @@ const VendorDashboard = () => {
 
                     <div className='flex space-x-3 mt-4'>
                       <Link
-                        to={`/vendor-dashboard/jobs/${job.id}/details`}
+                        to={`/vendor/jobs/${job.id}/details`}
                         className='flex-1 min-w-0'
                       >
                         <Button variant='outline' className='w-full'>
@@ -522,7 +522,7 @@ const VendorDashboard = () => {
 
                     <div className='flex space-x-3 mt-4'>
                       <Link
-                        to={`/vendor-dashboard/bids/${bid.id}/view`}
+                        to={`/vendor/bids/${bid.id}/view`}
                         className='flex-1 min-w-0'
                       >
                         <Button variant='outline' className='w-full'>
@@ -531,7 +531,7 @@ const VendorDashboard = () => {
                       </Link>
 
                       <Link
-                        to={`/vendor-dashboard/messages?jobId=${
+                        to={`/vendor/messages?jobId=${
                           bid.job.id
                         }&client=${encodeURIComponent(
                           `${bid.job.customer.firstName} ${bid.job.customer.lastName}`
@@ -632,7 +632,7 @@ const VendorDashboard = () => {
 
                     <div className='flex space-x-3 mt-4'>
                       <Link
-                        to={`/vendor-dashboard/jobs/${job.id}/details`}
+                        to={`/vendor/jobs/${job.id}/details`}
                         className='flex-1 min-w-0'
                       >
                         <Button variant='outline' className='w-full'>
@@ -641,7 +641,7 @@ const VendorDashboard = () => {
                       </Link>
 
                       <Link
-                        to={`/vendor-dashboard/messages?jobId=${
+                        to={`/vendor/messages?jobId=${
                           job.id
                         }&client=${encodeURIComponent(
                           `${job.customer.firstName} ${job.customer.lastName}`
@@ -677,7 +677,7 @@ const VendorDashboard = () => {
               Your financial summary
             </CardDescription>
           </div>
-          <Link to='/vendor-dashboard/earnings'>
+          <Link to='/vendor/earnings'>
             <Button
               variant='ghost'
               className={

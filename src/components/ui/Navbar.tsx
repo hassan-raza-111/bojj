@@ -70,7 +70,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   {user?.role === 'VENDOR' ? (
-                    <Link to='/vendor-dashboard'>
+                    <Link to='/vendor'>
                       <Button
                         variant='outline'
                         className='border-bojj-primary/20 text-bojj-primary hover:bg-bojj-primary/10 hover:border-bojj-primary/30 transition-all duration-200'
@@ -157,7 +157,7 @@ const Navbar = () => {
                 {isAuthenticated ? (
                   <>
                     {user?.role === 'VENDOR' ? (
-                      <Link to='/vendor-dashboard' className='block w-full'>
+                      <Link to='/vendor' className='block w-full'>
                         <Button
                           variant='outline'
                           className='w-full border-bojj-primary/20 text-bojj-primary hover:bg-bojj-primary/10'

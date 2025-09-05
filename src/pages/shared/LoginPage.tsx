@@ -24,13 +24,16 @@ const LoginPage = () => {
 
     try {
       // 🔐 Backend API Login
-      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
@@ -55,7 +58,7 @@ const LoginPage = () => {
         // If there's a redirect parameter and user is customer, go there
         navigate(redirectTo);
       } else if (data.data.user.role === 'VENDOR') {
-        navigate('/vendor-dashboard');
+        navigate('/vendor');
       } else if (data.data.user.role === 'CUSTOMER') {
         navigate('/customer');
       } else {

@@ -26,7 +26,7 @@ export const Sidebar = ({ userType }: SidebarProps) => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const baseRoute = userType === 'customer' ? '/customer' : '/vendor-dashboard';
+  const baseRoute = userType === 'customer' ? '/customer' : '/vendor';
 
   // Define navigation items based on user type
   const navItems =

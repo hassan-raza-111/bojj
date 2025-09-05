@@ -27,7 +27,7 @@ const SubmitBidPage = () => {
     setTimeout(() => {
       setSubmitting(false);
       setSuccess(true);
-      setTimeout(() => navigate('/vendor-dashboard?tab=bids'), 1500);
+      setTimeout(() => navigate('/vendor?tab=bids'), 1500);
     }, 1200);
   };
 
@@ -103,7 +103,7 @@ const SubmitBidPage = () => {
                 >
                   {submitting ? 'Submitting...' : 'Submit Bid'}
                 </Button>
-                <Link to='/vendor-dashboard'>
+                <Link to='/vendor'>
                   <Button variant='outline' type='button' className='w-full'>
                     Cancel
                   </Button>

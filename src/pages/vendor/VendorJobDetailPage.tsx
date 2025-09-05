@@ -169,7 +169,7 @@ const VendorJobDetailPage = () => {
     return (
       <div className='flex flex-col items-center justify-center min-h-[60vh]'>
         <h2 className='text-2xl font-semibold mb-4'>Job not found</h2>
-        <Link to='/vendor-dashboard'>
+        <Link to='/vendor'>
           <Button>Back to Dashboard</Button>
         </Link>
       </div>
@@ -307,7 +307,7 @@ const VendorJobDetailPage = () => {
             </div>
           </div>
           <div className='flex gap-2 mt-6'>
-            <Link to='/vendor-dashboard'>
+            <Link to='/vendor'>
               <Button variant='outline'>Back to Dashboard</Button>
             </Link>
 

@@ -59,9 +59,7 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
 
       // Navigate to messages page
       const messagesPath =
-        user.role === 'CUSTOMER'
-          ? '/customer/messages'
-          : '/vendor-dashboard/messages';
+        user.role === 'CUSTOMER' ? '/customer/messages' : '/vendor/messages';
       navigate(messagesPath);
     } catch (error) {
       console.log(
@@ -87,9 +85,7 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
 
       // Navigate to messages page
       const messagesPath =
-        user.role === 'CUSTOMER'
-          ? '/customer/messages'
-          : '/vendor-dashboard/messages';
+        user.role === 'CUSTOMER' ? '/customer/messages' : '/vendor/messages';
       navigate(messagesPath);
     } finally {
       setIsLoading(false);
