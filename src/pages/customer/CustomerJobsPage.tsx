@@ -39,6 +39,7 @@ import {
   Trash2,
   MoreVertical,
   Loader2,
+  CreditCard,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -539,6 +540,19 @@ const CustomerJobsPage = () => {
                 >
                   View Details
                 </Button>
+
+                {/* Payment Button - Show when job is IN_PROGRESS or COMPLETED */}
+                {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') &&
+                  job.assignedVendor && (
+                    <Button
+                      size='sm'
+                      className='bg-green-600 hover:bg-green-700'
+                      onClick={() => navigate(`/customer/payment/${job.id}`)}
+                    >
+                      <CreditCard className='h-4 w-4 mr-1' />
+                      Pay
+                    </Button>
+                  )}
 
                 {job.status === 'OPEN' && (
                   <Button

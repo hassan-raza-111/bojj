@@ -47,7 +47,7 @@ import JobDetailPage from './pages/customer/JobDetailPage';
 import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
 import JobCRUD from './pages/customer/JobCRUD';
-import CustomerPaymentPage from './pages/customer/customerpaymentpage';
+import CustomerPaymentPage from './pages/customer/CustomerPaymentPage';
 import PaymentSuccessPage from './pages/customer/PaymentSuccessPage';
 
 // Vendor Features
@@ -153,6 +153,10 @@ const App = () => {
                             />
                             <Route
                               path='/payments'
+                              element={<CustomerPaymentPage />}
+                            />
+                            <Route
+                              path='/payment/:jobId'
                               element={<CustomerPaymentPage />}
                             />
                             <Route path='/support' element={<SupportPage />} />

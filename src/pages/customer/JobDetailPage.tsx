@@ -355,6 +355,19 @@ const JobDetailPage = () => {
               Edit Job
             </Button>
           )}
+
+          {/* Payment Button - Show when job is IN_PROGRESS or COMPLETED */}
+          {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') &&
+            job.assignedVendor && (
+              <Button
+                onClick={() => navigate(`/customer/payment/${job.id}`)}
+                className='bg-green-600 hover:bg-green-700'
+              >
+                <CreditCard className='h-4 w-4 mr-2' />
+                Make Payment
+              </Button>
+            )}
+
           <Badge className={getStatusColor(job.status)}>
             {job.status.replace('_', ' ')}
           </Badge>
@@ -455,6 +468,67 @@ const JobDetailPage = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Payment Information */}
+              {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') &&
+                job.assignedVendor && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className='flex items-center space-x-2'>
+                        <CreditCard className='h-5 w-5' />
+                        <span>Payment Information</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm text-gray-500'>
+                            Job Budget:
+                          </span>
+                          <span className='font-semibold text-lg'>
+                            {job.budget
+                              ? `$${job.budget.toLocaleString()}`
+                              : 'Not specified'}
+                          </span>
+                        </div>
+
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm text-gray-500'>
+                            Assigned Vendor:
+                          </span>
+                          <span className='font-medium'>
+                            {job.assignedVendor.firstName}{' '}
+                            {job.assignedVendor.lastName}
+                          </span>
+                        </div>
+
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm text-gray-500'>
+                            Job Status:
+                          </span>
+                          <Badge className={getStatusColor(job.status)}>
+                            {job.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+
+                        <div className='pt-4 border-t'>
+                          <Button
+                            onClick={() =>
+                              navigate(`/customer/payment/${job.id}`)
+                            }
+                            className='w-full bg-green-600 hover:bg-green-700'
+                            size='lg'
+                          >
+                            <CreditCard className='h-4 w-4 mr-2' />
+                            {job.status === 'COMPLETED'
+                              ? 'Complete Payment'
+                              : 'Make Payment'}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Requirements */}
               {job.requirements && job.requirements.length > 0 && (
