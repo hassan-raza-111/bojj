@@ -56,6 +56,7 @@ import VendorJobsPage from './pages/vendor/VendorJobsPage';
 import VendorBidsPage from './pages/vendor/VendorBidsPage';
 import VendorProfileManagement from './pages/vendor/VendorProfileManagement';
 import VendorProfilePage from './pages/vendor/VendorProfilePage';
+import VendorProfileSetup from './pages/vendor/VendorProfileSetup';
 import VendorJobDetailPage from './pages/vendor/VendorJobDetailPage';
 import SubmitBidPage from './pages/vendor/SubmitBidPage';
 
@@ -208,6 +209,10 @@ const App = () => {
                           <Route
                             path='/profile'
                             element={<VendorProfileManagement />}
+                          />
+                          <Route
+                            path='/profile/setup'
+                            element={<VendorProfileSetup />}
                           />
                           <Route path='/messages' element={<MessagesPage />} />
                           <Route path='/earnings' element={<PaymentsPage />} />

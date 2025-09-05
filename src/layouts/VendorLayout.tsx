@@ -2,6 +2,25 @@ import { ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
@@ -18,8 +37,16 @@ import {
   TrendingUp,
   Award,
   Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  Sun,
+  Star,
+  CheckCircle,
+  Edit,
 } from 'lucide-react';
 import { useState } from 'react';
+import { format } from 'date-fns';
 
 interface VendorLayoutProps {
   children: ReactNode;
@@ -27,7 +54,7 @@ interface VendorLayoutProps {
 
 const VendorLayout = ({ children }: VendorLayoutProps) => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -100,10 +127,22 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
   // Show loading while checking auth status
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20'>
+      <div
+        className={`flex items-center justify-center min-h-screen ${
+          theme === 'dark'
+            ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+        }`}
+      >
         <div className='text-center'>
           <div className='animate-spin rounded-full h-16 w-16 border-4 border-emerald-600 border-t-transparent mx-auto mb-4'></div>
-          <p className='text-gray-600'>Loading your dashboard...</p>
+          <p
+            className={`${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
+            Loading your dashboard...
+          </p>
         </div>
       </div>
     );
@@ -122,6 +161,12 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
   const firstName = user?.firstName || 'Vendor';
   const lastName = user?.lastName || '';
   const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
+
+  // Get vendor profile data for dynamic display
+  const vendorProfile = (user as any)?.vendorProfile;
+  const rating = vendorProfile?.rating || 0;
+  const completedJobs = vendorProfile?.completedJobs || 0;
+  const isVerified = vendorProfile?.verified || false;
 
   return (
     <div
@@ -174,7 +219,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
             <Button
               variant='ghost'
               size='sm'
-              className='lg:hidden'
+              className={`lg:hidden ${
+                theme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
               onClick={() => setSidebarOpen(false)}
             >
               <X className='h-5 w-5' />
@@ -204,19 +253,9 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
                   }`}
                 >
-                  Professional Vendor
+                  {user?.email || 'vendor@example.com'}
                 </p>
-                <div className='flex items-center mt-1'>
-                  <Badge
-                    variant='outline'
-                    className={`text-xs mr-2 ${
-                      theme === 'dark'
-                        ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
-                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                    }`}
-                  >
-                    ⭐ 4.8
-                  </Badge>
+                <div className='flex items-center space-x-2 mt-1'>
                   <Badge
                     variant='outline'
                     className={`text-xs ${
@@ -225,9 +264,51 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                         : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     }`}
                   >
-                    Verified
+                    {user?.status || 'ACTIVE'}
                   </Badge>
+                  {user?.location && (
+                    <div className='flex items-center space-x-1'>
+                      <MapPin className='h-3 w-3 text-gray-400' />
+                      <span className='text-xs text-gray-500 truncate max-w-20'>
+                        {user.location}
+                      </span>
+                    </div>
+                  )}
                 </div>
+                <div className='flex items-center space-x-2 mt-1'>
+                  <Badge
+                    variant='outline'
+                    className={`text-xs ${
+                      theme === 'dark'
+                        ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
+                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}
+                  >
+                    <Star className='h-3 w-3 mr-1' />
+                    {rating.toFixed(1)}
+                  </Badge>
+                  {isVerified && (
+                    <Badge
+                      variant='outline'
+                      className={`text-xs ${
+                        theme === 'dark'
+                          ? 'bg-green-900/20 text-green-300 border-green-700'
+                          : 'bg-green-50 text-green-700 border-green-200'
+                      }`}
+                    >
+                      <CheckCircle className='h-3 w-3 mr-1' />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                {user?.createdAt && (
+                  <div className='flex items-center space-x-1 mt-1'>
+                    <Calendar className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>
+                      Joined {format(new Date(user.createdAt), 'MMM yyyy')}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -302,18 +383,36 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
             }`}
           >
-            <Button
-              variant='ghost'
-              className={`w-full justify-start ${
-                theme === 'dark'
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-              onClick={handleLogout}
-            >
-              <LogOut className='mr-3 h-5 w-5' />
-              Logout
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant='ghost'
+                  className={`w-full justify-start ${
+                    theme === 'dark'
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                >
+                  <LogOut className='mr-3 h-5 w-5' />
+                  Logout
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to logout? You will need to sign in
+                    again to access your account.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogout}>
+                    Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
@@ -333,7 +432,11 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
             <Button
               variant='ghost'
               size='sm'
-              className='lg:hidden'
+              className={`lg:hidden ${
+                theme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className='h-5 w-5' />
@@ -348,13 +451,29 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               >
                 Vendor Dashboard
               </h1>
-              <p
-                className={`text-sm ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                }`}
-              >
-                Welcome back, {firstName}
-              </p>
+              <div className='flex items-center space-x-4'>
+                <p
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
+                  Welcome back, {firstName}
+                </p>
+                {user?.phone && (
+                  <div className='flex items-center space-x-1'>
+                    <Phone className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>{user.phone}</span>
+                  </div>
+                )}
+                {user?.location && (
+                  <div className='flex items-center space-x-1'>
+                    <MapPin className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>
+                      {user.location}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right side actions */}
@@ -363,35 +482,144 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               <div className='hidden md:flex items-center space-x-4 text-sm'>
                 <div className='flex items-center space-x-1 text-emerald-600'>
                   <TrendingUp className='h-4 w-4' />
-                  <span className='font-medium'>$2,450</span>
+                  <span className='font-medium'>${completedJobs * 250}</span>
                 </div>
                 <div className='flex items-center space-x-1 text-blue-600'>
                   <Calendar className='h-4 w-4' />
-                  <span className='font-medium'>12 Jobs</span>
+                  <span className='font-medium'>{completedJobs} Jobs</span>
+                </div>
+                <div className='flex items-center space-x-1 text-yellow-600'>
+                  <Star className='h-4 w-4' />
+                  <span className='font-medium'>{rating.toFixed(1)}</span>
                 </div>
               </div>
 
               {/* Notifications */}
-              <Button variant='ghost' size='sm' className='relative'>
+              <Button
+                variant='ghost'
+                size='sm'
+                className={`relative ${
+                  theme === 'dark'
+                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
                 <Bell className='h-5 w-5' />
                 <span className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white'>
-                  5
+                  3
                 </span>
               </Button>
 
               {/* User menu */}
               <div className='flex items-center space-x-3'>
-                <span
-                  className={`text-sm font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  {fullName}
-                </span>
-                <Button variant='ghost' size='sm' onClick={handleLogout}>
-                  <LogOut className='h-4 w-4 mr-2' />
-                  Logout
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      className={`relative h-10 w-10 rounded-full p-0 ${
+                        theme === 'dark'
+                          ? 'hover:bg-gray-700'
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white text-sm font-semibold shadow-md'>
+                        {user?.firstName?.charAt(0) || 'V'}
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className='w-56' align='end' forceMount>
+                    <DropdownMenuLabel className='font-normal'>
+                      <div className='flex flex-col space-y-1'>
+                        <p className='text-sm font-medium leading-none'>
+                          {fullName}
+                        </p>
+                        <p className='text-xs leading-none text-muted-foreground'>
+                          {user?.email || 'vendor@example.com'}
+                        </p>
+                        {user?.location && (
+                          <div className='flex items-center space-x-1'>
+                            <MapPin className='h-3 w-3 text-gray-400' />
+                            <span className='text-xs text-gray-500'>
+                              {user.location}
+                            </span>
+                          </div>
+                        )}
+                        <div className='flex items-center space-x-2'>
+                          <Badge
+                            variant='outline'
+                            className={`text-xs ${
+                              theme === 'dark'
+                                ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
+                                : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            }`}
+                          >
+                            <Star className='h-3 w-3 mr-1' />
+                            {rating.toFixed(1)}
+                          </Badge>
+                          {isVerified && (
+                            <Badge
+                              variant='outline'
+                              className={`text-xs ${
+                                theme === 'dark'
+                                  ? 'bg-green-900/20 text-green-300 border-green-700'
+                                  : 'bg-green-50 text-green-700 border-green-200'
+                              }`}
+                            >
+                              <CheckCircle className='h-3 w-3 mr-1' />
+                              Verified
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to='/vendor/profile' className='w-full'>
+                        <User className='mr-2 h-4 w-4' />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to='/vendor/profile/setup' className='w-full'>
+                        <Edit className='mr-2 h-4 w-4' />
+                        <span>Setup Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toggleTheme()}>
+                      <Sun className='mr-2 h-4 w-4' />
+                      <span>
+                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          className='text-red-600 focus:text-red-600'
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          <LogOut className='mr-2 h-4 w-4' />
+                          <span>Logout</span>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to logout? You will need to
+                            sign in again to access your account.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleLogout}>
+                            Logout
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>

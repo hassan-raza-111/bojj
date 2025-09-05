@@ -19,6 +19,9 @@ import {
   Clock,
   RefreshCw,
   AlertCircle,
+  User,
+  CheckCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { useVendorDashboard } from '@/hooks/useVendorDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,10 +29,12 @@ import { formatDistanceToNow } from 'date-fns';
 import BidModal from '@/components/vendor/BidModal';
 import { vendorApi } from '@/config/vendorApi';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('available');
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   // Bid modal state
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
@@ -146,6 +151,34 @@ const VendorDashboard = () => {
     setIsBidModalOpen(true);
   };
 
+  // Check if profile is complete
+  const isProfileComplete = () => {
+    const vendorProfile = (user as any)?.vendorProfile;
+    return !!(
+      vendorProfile?.companyName &&
+      vendorProfile?.businessType &&
+      vendorProfile?.skills?.length > 0 &&
+      vendorProfile?.experience &&
+      user?.phone &&
+      user?.location
+    );
+  };
+
+  const profileCompletionPercentage = () => {
+    const vendorProfile = (user as any)?.vendorProfile;
+    let completed = 0;
+    const total = 6;
+
+    if (vendorProfile?.companyName) completed++;
+    if (vendorProfile?.businessType) completed++;
+    if (vendorProfile?.skills?.length > 0) completed++;
+    if (vendorProfile?.experience) completed++;
+    if (user?.phone) completed++;
+    if (user?.location) completed++;
+
+    return Math.round((completed / total) * 100);
+  };
+
   // Close bid modal
   const closeBidModal = () => {
     setIsBidModalOpen(false);
@@ -180,6 +213,40 @@ const VendorDashboard = () => {
           </Link>
         </div>
       </div>
+
+      {/* Profile Completion Alert */}
+      {!isProfileComplete() && (
+        <Card
+          className={`mb-6 ${
+            theme === 'dark'
+              ? 'bg-yellow-900/20 border-yellow-700'
+              : 'bg-yellow-50 border-yellow-200'
+          }`}
+        >
+          <CardContent className='p-4'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-3'>
+                <AlertTriangle className='h-6 w-6 text-yellow-600' />
+                <div>
+                  <h3 className='font-semibold text-yellow-800 dark:text-yellow-200'>
+                    Complete Your Profile
+                  </h3>
+                  <p className='text-sm text-yellow-700 dark:text-yellow-300'>
+                    Your profile is {profileCompletionPercentage()}% complete.
+                    Complete it to get more job opportunities.
+                  </p>
+                </div>
+              </div>
+              <Link to='/vendor/profile/setup'>
+                <Button className='bg-yellow-600 hover:bg-yellow-700 text-white'>
+                  <User className='mr-2 h-4 w-4' />
+                  Complete Profile
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8'>
