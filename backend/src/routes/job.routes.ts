@@ -87,5 +87,11 @@ router.post(
   rejectBid
 );
 router.post('/:id/complete', authenticateToken, requireVendor, completeJob);
+router.post(
+  '/:id/complete-customer',
+  authenticateToken,
+  requireCustomer,
+  completeJob
+);
 
 export const jobRouter = router;

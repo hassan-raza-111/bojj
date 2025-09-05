@@ -79,8 +79,6 @@ const Settings = () => {
     autoReleaseDays: 7,
     supportedCurrencies: ['USD', 'EUR', 'GBP'],
     stripeEnabled: true,
-    paypalEnabled: true,
-    bankTransferEnabled: true,
     minimumPayout: 50,
   });
 
@@ -522,36 +520,6 @@ const Settings = () => {
                     checked={paymentSettings.stripeEnabled}
                     onCheckedChange={(checked) =>
                       handlePaymentChange('stripeEnabled', checked)
-                    }
-                  />
-                </div>
-
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
-                  <div>
-                    <div className='font-medium'>PayPal Integration</div>
-                    <div className='text-sm text-gray-500'>
-                      Enable PayPal payment processing
-                    </div>
-                  </div>
-                  <Switch
-                    checked={paymentSettings.paypalEnabled}
-                    onCheckedChange={(checked) =>
-                      handlePaymentChange('paypalEnabled', checked)
-                    }
-                  />
-                </div>
-
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
-                  <div>
-                    <div className='font-medium'>Bank Transfer</div>
-                    <div className='text-sm text-gray-500'>
-                      Enable bank transfer payments
-                    </div>
-                  </div>
-                  <Switch
-                    checked={paymentSettings.bankTransferEnabled}
-                    onCheckedChange={(checked) =>
-                      handlePaymentChange('bankTransferEnabled', checked)
                     }
                   />
                 </div>

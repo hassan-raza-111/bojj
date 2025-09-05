@@ -212,8 +212,12 @@ const App = () => {
                               element={<MessagesPage />}
                             />
                             <Route
-                              path='/payments'
+                              path='/jobs/:jobId/payment'
                               element={<CustomerPaymentPage />}
+                            />
+                            <Route
+                              path='/jobs/:jobId/payment-success'
+                              element={<PaymentSuccessPage />}
                             />
                             <Route path='/support' element={<SupportPage />} />
                             <Route

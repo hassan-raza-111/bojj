@@ -42,6 +42,7 @@ model User {
   chatRooms        ChatRoom[]       @relation("CustomerChatRooms")
   vendorChatRooms  ChatRoom[]       @relation("VendorChatRooms")
   sentMessages     ChatMessage[]    @relation("SentMessages")
+  vendorPayouts    VendorPayout[]   @relation("VendorPayouts")
 
   @@map("users")
 }
@@ -105,6 +106,7 @@ model Job {
   // Job status
   status      JobStatus @default(OPEN)
   priority    Priority  @default(MEDIUM)
+  paymentStatus String?  // PENDING, PAID, RELEASED
   
   // Customer info
   customerId  String
@@ -135,6 +137,8 @@ model Job {
   customerRating   Float?     // Rating given by customer after completion
   customerFeedback String?    // Feedback from customer
   completionDate   DateTime?  // When job was actually completed
+  completedAt      DateTime?  // When vendor marked as complete
+  approvedAt       DateTime?  // When customer approved
   
   // Relations
   bids        Bid[]
@@ -206,6 +210,7 @@ model Payment {
   jobId       String?
   customerId  String
   vendorId    String
+  vendorPayoutId String?
   transactionId String?
   paymentMethod String?
   createdAt   DateTime      @default(now())
@@ -215,6 +220,7 @@ model Payment {
   customer    User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
   job         Job?          @relation(fields: [jobId], references: [id])
   vendor      User          @relation("VendorPayments", fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorPayout VendorPayout? @relation("PayoutPayments", fields: [vendorPayoutId], references: [id])
 
   @@map("payments")
 }
@@ -362,6 +368,28 @@ model ChatMessage {
   @@map("chat_messages")
 }
 
+model VendorPayout {
+  id          String        @id @default(uuid())
+  vendorId    String
+  amount      Float
+  currency    String        @default("USD")
+  status      PayoutStatus  @default(PENDING)
+  method      PayoutMethod  @default(STRIPE)
+  description String?
+  stripePayoutId String?
+  adminNotes  String?
+  requestedAt DateTime      @default(now())
+  processedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  vendor      User          @relation("VendorPayouts", fields: [vendorId], references: [id], onDelete: Cascade)
+  payments    Payment[]     @relation("PayoutPayments")
+
+  @@map("vendor_payouts")
+}
+
 enum Role {
   CUSTOMER
   VENDOR
@@ -377,6 +405,7 @@ enum UserStatus {
 enum JobStatus {
   OPEN
   IN_PROGRESS
+  PENDING_APPROVAL
   COMPLETED
   CANCELLED
   DISPUTED
@@ -461,4 +490,19 @@ enum MessageType {
   IMAGE
   FILE
   SYSTEM
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PROCESSED
+  REJECTED
+  FAILED
+}
+
+enum PayoutMethod {
+  STRIPE
+  BANK_TRANSFER
+  PAYPAL
+  CHECK
 }

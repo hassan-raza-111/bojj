@@ -570,19 +570,25 @@ export const rejectBid: RequestHandler = async (req, res, next) => {
 export const completeJob: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { vendorId } = req.body;
+    const { vendorId, customerId } = req.body;
 
-    if (!vendorId) {
+    if (!vendorId && !customerId) {
       res.status(400).json({
         success: false,
-        message: 'Vendor ID is required',
+        message: 'Vendor ID or Customer ID is required',
       });
       return;
     }
 
     const job = await prisma.job.findUnique({
       where: { id },
-      select: { id: true, assignedVendorId: true, status: true },
+      select: {
+        id: true,
+        assignedVendorId: true,
+        status: true,
+        customerId: true,
+        paymentStatus: true,
+      },
     });
 
     if (!job) {
@@ -593,7 +599,8 @@ export const completeJob: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    if (job.assignedVendorId !== vendorId) {
+    // Check if user is authorized to complete this job
+    if (vendorId && job.assignedVendorId !== vendorId) {
       res.status(403).json({
         success: false,
         message: 'You can only complete jobs assigned to you',
@@ -601,24 +608,72 @@ export const completeJob: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    if (job.status !== 'IN_PROGRESS') {
-      res.status(400).json({
+    if (customerId && job.customerId !== customerId) {
+      res.status(403).json({
         success: false,
-        message: 'Job must be in progress to be completed',
+        message: 'You can only approve your own jobs',
       });
       return;
     }
 
-    // Update job status
-    await prisma.job.update({
-      where: { id },
-      data: { status: 'COMPLETED' },
-    });
+    // Vendor completing job
+    if (vendorId && job.status === 'IN_PROGRESS') {
+      await prisma.job.update({
+        where: { id },
+        data: {
+          status: 'PENDING_APPROVAL',
+          completedAt: new Date(),
+        },
+      });
 
-    logger.info(`Job completed: ${id} by vendor: ${vendorId}`);
-    res.json({
-      success: true,
-      message: 'Job completed successfully',
+      logger.info(
+        `Job marked as completed by vendor: ${id} by vendor: ${vendorId}`
+      );
+      res.json({
+        success: true,
+        message: 'Job completed successfully. Waiting for customer approval.',
+      });
+      return;
+    }
+
+    // Customer approving job
+    if (customerId && job.status === 'PENDING_APPROVAL') {
+      await prisma.job.update({
+        where: { id },
+        data: {
+          status: 'COMPLETED',
+          approvedAt: new Date(),
+        },
+      });
+
+      // Release payment to vendor if paid
+      if (job.paymentStatus === 'PAID') {
+        const payment = await prisma.payment.findFirst({
+          where: { jobId: id },
+        });
+
+        if (payment) {
+          await prisma.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: 'RELEASED',
+              releasedAt: new Date(),
+            },
+          });
+        }
+      }
+
+      logger.info(`Job approved by customer: ${id} by customer: ${customerId}`);
+      res.json({
+        success: true,
+        message: 'Job approved and payment released to vendor.',
+      });
+      return;
+    }
+
+    res.status(400).json({
+      success: false,
+      message: 'Invalid job status for this action',
     });
     return;
   } catch (error) {

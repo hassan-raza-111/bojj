@@ -111,7 +111,7 @@ export const createBidSchema = z.object({
 // Payment schemas
 export const processPaymentSchema = z.object({
   amount: z.number().positive(),
-  paymentMethod: z.enum(['STRIPE', 'PAYPAL']),
+  paymentMethod: z.enum(['STRIPE']),
   jobId: idSchema,
   customerId: idSchema,
   vendorId: idSchema,

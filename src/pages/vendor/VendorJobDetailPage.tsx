@@ -9,6 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
+import { CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Mock data for jobs
 const jobs = [
@@ -129,6 +131,39 @@ const VendorJobDetailPage = () => {
       job = jobs.find((j) => j.id === awarded.jobId);
     }
   }
+
+  const handleCompleteJob = (jobId: string) => {
+    if (
+      window.confirm(
+        'Are you sure you want to mark this job as complete? This will notify the customer for approval.'
+      )
+    ) {
+      // Call API to complete job
+      fetch(`/api/jobs/${jobId}/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ vendorId: localStorage.getItem('userId') }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            toast.success(
+              'Job marked as complete! Waiting for customer approval.'
+            );
+            // Update job status locally
+            job.status = 'pending_approval';
+          } else {
+            toast.error(data.message || 'Failed to complete job.');
+          }
+        })
+        .catch((error) => {
+          toast.error('Failed to complete job.');
+        });
+    }
+  };
 
   if (!job) {
     return (
@@ -275,6 +310,17 @@ const VendorJobDetailPage = () => {
             <Link to='/vendor-dashboard'>
               <Button variant='outline'>Back to Dashboard</Button>
             </Link>
+
+            {/* Job Completion Button - Only show if job is in progress */}
+            {job.status === 'active' && (
+              <Button
+                onClick={() => handleCompleteJob(job.id)}
+                className='bg-green-600 hover:bg-green-700'
+              >
+                <CheckCircle className='h-4 w-4 mr-2' />
+                Mark as Complete
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

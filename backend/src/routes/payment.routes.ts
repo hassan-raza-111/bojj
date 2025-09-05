@@ -9,9 +9,8 @@ import {
   getVendorPayments,
   getAllPayments,
   createPaymentIntent,
-  createPayPalPayment,
-  createManualPayment,
 } from '../controllers/payment.controller';
+import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
 import {
   authenticateToken,
   requireAdmin,
@@ -20,6 +19,13 @@ import {
 import { validateRequest } from '../middleware/validation.middleware';
 
 const router = express.Router();
+
+// Stripe webhook endpoint (no authentication required)
+router.post(
+  '/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 
 // Customer routes
 router.get(
@@ -37,18 +43,6 @@ router.post(
   authenticateToken,
   requireCustomer,
   createPaymentIntent
-);
-router.post(
-  '/paypal/create',
-  authenticateToken,
-  requireCustomer,
-  createPayPalPayment
-);
-router.post(
-  '/manual/create',
-  authenticateToken,
-  requireCustomer,
-  createManualPayment
 );
 
 // Payment processing (Customer only)

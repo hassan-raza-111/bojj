@@ -11,6 +11,7 @@ import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
 import vendorRouter from './routes/vendor.routes';
 import chatRouter from './routes/chat.routes';
+import { vendorPayoutRouter } from './routes/vendor-payout.routes';
 // Temporarily commented out due to TypeScript compilation issues
 // import { paymentRouter } from './routes/payment.routes';
 // import { serviceRouter } from './routes/service.routes';
@@ -71,6 +72,7 @@ app.use('/api/jobs', jobRouter); // Customer side needs this
 app.use('/api/dashboard', dashboardRouter); // Customer side needs this
 app.use('/api/vendor', vendorRouter); // Vendor dashboard routes
 app.use('/api/chat', chatRouter); // Chat routes
+app.use('/api/vendor-payouts', vendorPayoutRouter); // Vendor payout routes
 // Temporarily commented out due to TypeScript compilation issues
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);

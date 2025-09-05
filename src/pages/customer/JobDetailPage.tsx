@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   Phone,
   Mail,
+  CreditCard,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -218,6 +219,48 @@ const JobDetailPage = () => {
   const handleRejectBid = (bidId: string) => {
     if (window.confirm('Are you sure you want to reject this bid?')) {
       rejectBidMutation.mutate({ jobId: id || '', bidId });
+    }
+  };
+
+  const handleCompleteJob = (jobId: string) => {
+    if (
+      window.confirm(
+        'Are you sure you want to mark this job as complete? This will release the payment to the vendor.'
+      )
+    ) {
+      // Call API to complete job
+      fetch(`/api/jobs/${jobId}/complete-customer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ customerId: user?.id }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            toast({
+              title: 'Job Completed',
+              description:
+                'Job has been marked as complete and payment has been released to the vendor.',
+            });
+            queryClient.invalidateQueries({ queryKey: ['job', id] });
+          } else {
+            toast({
+              title: 'Error',
+              description: data.message || 'Failed to complete job.',
+              variant: 'destructive',
+            });
+          }
+        })
+        .catch((error) => {
+          toast({
+            title: 'Error',
+            description: 'Failed to complete job.',
+            variant: 'destructive',
+          });
+        });
     }
   };
 
@@ -810,6 +853,30 @@ const JobDetailPage = () => {
                 <Eye className='h-4 w-4 mr-2' />
                 View Public Page
               </Button>
+
+              {/* Payment Button - Only show if job has assigned vendor */}
+              {job.assignedVendor && job.status === 'IN_PROGRESS' && (
+                <Button
+                  onClick={() => navigate(`/customer/jobs/${job.id}/payment`)}
+                  size='sm'
+                  className='w-full bg-green-600 hover:bg-green-700'
+                >
+                  <CreditCard className='h-4 w-4 mr-2' />
+                  Make Payment
+                </Button>
+              )}
+
+              {/* Job Approval Button - Only show if job is pending approval */}
+              {job.assignedVendor && job.status === 'PENDING_APPROVAL' && (
+                <Button
+                  onClick={() => handleCompleteJob(job.id)}
+                  size='sm'
+                  className='w-full bg-blue-600 hover:bg-blue-700'
+                >
+                  <CheckCircle className='h-4 w-4 mr-2' />
+                  Approve & Release Payment
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
