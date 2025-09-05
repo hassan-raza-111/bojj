@@ -30,4 +30,8 @@ router.post('/bids/submit', VendorController.submitBid);
 // Earnings
 router.get('/earnings', VendorController.getEarnings);
 
+// Profile
+router.get('/profile', VendorController.getProfile);
+router.put('/profile', VendorController.updateProfile);
+
 export default router;

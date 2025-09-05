@@ -1,86 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/hooks/useAuth';
-import {
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
-  Camera,
-  Save,
-  Edit,
-  Star,
-  Briefcase,
-  Award,
-  CheckCircle,
-  Upload,
-  Building,
-  Calendar,
-  DollarSign,
-} from 'lucide-react';
-import { toast } from 'sonner';
-
-interface VendorProfileData {
-  companyName: string;
-  businessType: string;
-  experience: number;
-  skills: string[];
-  location: string;
-  phone: string;
-  website?: string;
-  description: string;
-  hourlyRate?: number;
-  portfolio: string[];
-  documents: string[];
-  verified: boolean;
-}
 
 const VendorProfileSetup = () => {
   const { theme } = useTheme();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [newSkill, setNewSkill] = useState('');
-
-  // Initialize with user data or empty state
-  const [profileData, setProfileData] = useState<VendorProfileData>({
-    companyName: (user as any)?.vendorProfile?.companyName || '',
-    businessType: (user as any)?.vendorProfile?.businessType || '',
-    experience: (user as any)?.vendorProfile?.experience || 0,
-    skills: (user as any)?.vendorProfile?.skills || [],
-    location: user?.location || '',
-    phone: user?.phone || '',
-    website: '',
+  const [profileData, setProfileData] = useState({
+    companyName: '',
+    businessType: '',
+    phone: '',
+    location: '',
     description: '',
-    hourlyRate: 0,
-    portfolio: [],
-    documents: [],
-    verified: (user as any)?.vendorProfile?.verified || false,
+    skills: [] as string[],
   });
+
+  const steps = [
+    { id: 1, title: 'Basic Info', description: 'Company and contact details' },
+    {
+      id: 2,
+      title: 'Skills & Experience',
+      description: 'Your expertise areas',
+    },
+    { id: 3, title: 'Portfolio', description: 'Showcase your work' },
+    { id: 4, title: 'Review & Complete', description: 'Final review' },
+  ];
 
   const businessTypes = [
     'Individual Contractor',
@@ -102,63 +46,7 @@ const VendorProfileSetup = () => {
     'Flooring',
     'Carpentry',
     'Cleaning',
-    'Web Development',
-    'Graphic Design',
-    'Marketing',
-    'Consulting',
-    'Other',
   ];
-
-  const steps = [
-    { id: 1, title: 'Basic Info', description: 'Company and contact details' },
-    {
-      id: 2,
-      title: 'Skills & Experience',
-      description: 'Your expertise areas',
-    },
-    { id: 3, title: 'Portfolio', description: 'Showcase your work' },
-    { id: 4, title: 'Review & Complete', description: 'Final review' },
-  ];
-
-  const handleInputChange = (field: keyof VendorProfileData, value: any) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const addSkill = () => {
-    if (newSkill.trim() && !profileData.skills.includes(newSkill.trim())) {
-      setProfileData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }));
-      setNewSkill('');
-    }
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setProfileData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((skill) => skill !== skillToRemove),
-    }));
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      // Here you would make API call to save profile
-      // await vendorApi.updateProfile(profileData);
-
-      toast.success('Profile updated successfully!');
-      setIsEditing(false);
-      navigate('/vendor');
-    } catch (error) {
-      toast.error('Failed to update profile. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const nextStep = () => {
     if (currentStep < steps.length) {
@@ -176,281 +64,219 @@ const VendorProfileSetup = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className='space-y-6'>
+          <div className='space-y-4'>
             <div className='text-center'>
-              <Avatar className='h-24 w-24 mx-auto mb-4'>
-                <AvatarImage src={(user as any)?.profilePicture} />
-                <AvatarFallback className='text-2xl'>
-                  {user?.firstName?.charAt(0) || 'V'}
-                </AvatarFallback>
-              </Avatar>
+              <div className='h-24 w-24 mx-auto mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold'>
+                V
+              </div>
               <Button variant='outline' size='sm'>
-                <Camera className='mr-2 h-4 w-4' />
-                Upload Photo
+                📷 Upload Photo
               </Button>
             </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label htmlFor='companyName'>Company Name *</Label>
-                <Input
-                  id='companyName'
+                <label
+                  className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  Company Name
+                </label>
+                <input
+                  className={`w-full p-2 border rounded ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
                   value={profileData.companyName}
                   onChange={(e) =>
-                    handleInputChange('companyName', e.target.value)
+                    setProfileData({
+                      ...profileData,
+                      companyName: e.target.value,
+                    })
                   }
-                  placeholder='Enter your company name'
+                  placeholder='Enter company name'
                 />
               </div>
-
               <div className='space-y-2'>
-                <Label htmlFor='businessType'>Business Type *</Label>
-                <Select
+                <label
+                  className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  Business Type
+                </label>
+                <select
+                  className={`w-full p-2 border rounded ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
                   value={profileData.businessType}
-                  onValueChange={(value) =>
-                    handleInputChange('businessType', value)
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      businessType: e.target.value,
+                    })
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select business type' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {businessTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value=''>Select business type</option>
+                  {businessTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
-
               <div className='space-y-2'>
-                <Label htmlFor='phone'>Phone Number *</Label>
-                <Input
-                  id='phone'
+                <label
+                  className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  Phone Number
+                </label>
+                <input
+                  className={`w-full p-2 border rounded ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
                   value={profileData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, phone: e.target.value })
+                  }
                   placeholder='+1 (555) 123-4567'
                 />
               </div>
-
               <div className='space-y-2'>
-                <Label htmlFor='location'>Location *</Label>
-                <Input
-                  id='location'
+                <label
+                  className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  Location
+                </label>
+                <input
+                  className={`w-full p-2 border rounded ${
+                    theme === 'dark'
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
                   value={profileData.location}
                   onChange={(e) =>
-                    handleInputChange('location', e.target.value)
+                    setProfileData({ ...profileData, location: e.target.value })
                   }
                   placeholder='City, State'
                 />
               </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='website'>Website (Optional)</Label>
-                <Input
-                  id='website'
-                  value={profileData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  placeholder='www.yourwebsite.com'
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='hourlyRate'>Hourly Rate (USD)</Label>
-                <Input
-                  id='hourlyRate'
-                  type='number'
-                  value={profileData.hourlyRate}
-                  onChange={(e) =>
-                    handleInputChange('hourlyRate', Number(e.target.value))
-                  }
-                  placeholder='50'
-                />
-              </div>
             </div>
-
             <div className='space-y-2'>
-              <Label htmlFor='description'>Business Description *</Label>
-              <Textarea
-                id='description'
+              <label
+                className={`text-sm font-medium ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}
+              >
+                Business Description
+              </label>
+              <textarea
+                className={`w-full p-2 border rounded ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
                 value={profileData.description}
                 onChange={(e) =>
-                  handleInputChange('description', e.target.value)
+                  setProfileData({
+                    ...profileData,
+                    description: e.target.value,
+                  })
                 }
-                placeholder='Tell clients about your business, experience, and what makes you unique...'
+                placeholder='Tell clients about your business...'
                 rows={4}
               />
             </div>
           </div>
         );
-
       case 2:
         return (
-          <div className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-              <div className='space-y-2'>
-                <Label htmlFor='experience'>Years of Experience *</Label>
-                <Input
-                  id='experience'
-                  type='number'
-                  value={profileData.experience}
-                  onChange={(e) =>
-                    handleInputChange('experience', Number(e.target.value))
-                  }
-                  placeholder='5'
-                />
-              </div>
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium'>Years of Experience</label>
+              <input
+                className='w-full p-2 border rounded'
+                type='number'
+                placeholder='5'
+              />
             </div>
-
-            <div className='space-y-4'>
-              <Label>Skills & Services *</Label>
-              <div className='flex gap-2'>
-                <Select value={newSkill} onValueChange={setNewSkill}>
-                  <SelectTrigger className='flex-1'>
-                    <SelectValue placeholder='Select a skill' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {skillCategories.map((skill) => (
-                      <SelectItem key={skill} value={skill}>
-                        {skill}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={addSkill} disabled={!newSkill}>
-                  Add
-                </Button>
-              </div>
-
-              <div className='flex flex-wrap gap-2'>
-                {profileData.skills.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant='secondary'
-                    className='flex items-center gap-1'
-                  >
-                    {skill}
-                    <button
-                      onClick={() => removeSkill(skill)}
-                      className='ml-1 hover:text-red-500'
-                    >
-                      ×
-                    </button>
-                  </Badge>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium'>Hourly Rate (USD)</label>
+              <input
+                className='w-full p-2 border rounded'
+                type='number'
+                placeholder='50'
+              />
+            </div>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium'>Skills & Services</label>
+              <div className='grid grid-cols-2 gap-2'>
+                {skillCategories.map((skill) => (
+                  <label key={skill} className='flex items-center space-x-2'>
+                    <input type='checkbox' />
+                    <span className='text-sm'>{skill}</span>
+                  </label>
                 ))}
               </div>
             </div>
           </div>
         );
-
       case 3:
         return (
-          <div className='space-y-6'>
+          <div className='space-y-4'>
             <div className='text-center py-8'>
-              <Upload className='h-12 w-12 mx-auto text-gray-400 mb-4' />
-              <h3 className='text-lg font-semibold mb-2'>Portfolio Upload</h3>
-              <p className='text-gray-500 mb-4'>
-                Upload images of your previous work to showcase your skills
-              </p>
-              <Button variant='outline'>
-                <Upload className='mr-2 h-4 w-4' />
-                Upload Images
-              </Button>
+              <div className='text-6xl mb-4'>📁</div>
+              <p className='text-gray-500 mb-4'>Upload your portfolio images</p>
+              <Button variant='outline'>📤 Upload Images</Button>
             </div>
-
-            <div className='text-center py-8'>
-              <Building className='h-12 w-12 mx-auto text-gray-400 mb-4' />
-              <h3 className='text-lg font-semibold mb-2'>Documents</h3>
-              <p className='text-gray-500 mb-4'>
-                Upload certifications, licenses, and insurance documents
-              </p>
-              <Button variant='outline'>
-                <Upload className='mr-2 h-4 w-4' />
-                Upload Documents
-              </Button>
+            <div className='grid grid-cols-3 gap-4'>
+              <div className='bg-gray-200 rounded-md aspect-square flex items-center justify-center'>
+                <span className='text-gray-500'>Image 1</span>
+              </div>
+              <div className='bg-gray-200 rounded-md aspect-square flex items-center justify-center'>
+                <span className='text-gray-500'>Image 2</span>
+              </div>
+              <div className='bg-gray-200 rounded-md aspect-square flex items-center justify-center'>
+                <span className='text-gray-500'>Image 3</span>
+              </div>
             </div>
           </div>
         );
-
       case 4:
         return (
-          <div className='space-y-6'>
-            <div className='text-center mb-8'>
-              <CheckCircle className='h-16 w-16 mx-auto text-green-500 mb-4' />
-              <h3 className='text-2xl font-bold mb-2'>Profile Complete!</h3>
-              <p className='text-gray-500'>
-                Review your information before publishing your profile
+          <div className='space-y-4'>
+            <div className='text-center'>
+              <div className='text-6xl mb-4'>✅</div>
+              <h3 className='text-xl font-semibold mb-2'>
+                Profile Setup Complete!
+              </h3>
+              <p className='text-gray-600'>
+                Your vendor profile has been created successfully. You can now
+                start receiving job opportunities.
               </p>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <User className='h-5 w-5' />
-                  Profile Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <div>
-                    <Label className='text-sm font-medium'>Company Name</Label>
-                    <p className='text-sm text-gray-600'>
-                      {profileData.companyName}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className='text-sm font-medium'>Business Type</Label>
-                    <p className='text-sm text-gray-600'>
-                      {profileData.businessType}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className='text-sm font-medium'>Experience</Label>
-                    <p className='text-sm text-gray-600'>
-                      {profileData.experience} years
-                    </p>
-                  </div>
-                  <div>
-                    <Label className='text-sm font-medium'>Location</Label>
-                    <p className='text-sm text-gray-600'>
-                      {profileData.location}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className='text-sm font-medium'>Phone</Label>
-                    <p className='text-sm text-gray-600'>{profileData.phone}</p>
-                  </div>
-                  <div>
-                    <Label className='text-sm font-medium'>Hourly Rate</Label>
-                    <p className='text-sm text-gray-600'>
-                      ${profileData.hourlyRate}/hour
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className='text-sm font-medium'>Skills</Label>
-                  <div className='flex flex-wrap gap-2 mt-2'>
-                    {profileData.skills.map((skill) => (
-                      <Badge key={skill} variant='secondary'>
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className='text-sm font-medium'>Description</Label>
-                  <p className='text-sm text-gray-600 mt-2'>
-                    {profileData.description}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className='bg-gray-50 p-4 rounded-lg'>
+              <h4 className='font-semibold mb-2'>Profile Summary:</h4>
+              <ul className='text-sm text-gray-600 space-y-1'>
+                <li>• Company: {profileData.companyName || 'Not provided'}</li>
+                <li>
+                  • Business Type: {profileData.businessType || 'Not provided'}
+                </li>
+                <li>• Location: {profileData.location || 'Not provided'}</li>
+                <li>• Phone: {profileData.phone || 'Not provided'}</li>
+              </ul>
+            </div>
           </div>
         );
-
       default:
         return null;
     }
@@ -464,49 +290,43 @@ const VendorProfileSetup = () => {
     >
       <div className='max-w-4xl mx-auto p-6'>
         {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2'>Complete Your Profile</h1>
-          <p className='text-gray-600'>
-            Set up your vendor profile to start getting jobs
+        <div className='text-center mb-8'>
+          <h1
+            className={`text-3xl font-bold mb-2 ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}
+          >
+            Setup Your Vendor Profile
+          </h1>
+          <p
+            className={`${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
+            Complete your profile to start receiving job opportunities
           </p>
         </div>
 
         {/* Progress Steps */}
-        <div className='mb-8'>
-          <div className='flex items-center justify-between'>
+        <div className='flex justify-center mb-8'>
+          <div className='flex items-center space-x-4'>
             {steps.map((step, index) => (
               <div key={step.id} className='flex items-center'>
                 <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                     currentStep >= step.id
-                      ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : 'border-gray-300 text-gray-400'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-200 text-gray-600'
                   }`}
                 >
-                  {currentStep > step.id ? (
-                    <CheckCircle className='h-5 w-5' />
-                  ) : (
-                    <span className='text-sm font-medium'>{step.id}</span>
-                  )}
+                  {step.id}
                 </div>
-                <div className='ml-3'>
-                  <p
-                    className={`text-sm font-medium ${
-                      currentStep >= step.id
-                        ? 'text-emerald-600'
-                        : 'text-gray-400'
-                    }`}
-                  >
-                    {step.title}
-                  </p>
+                <div className='ml-2'>
+                  <p className='text-sm font-medium'>{step.title}</p>
                   <p className='text-xs text-gray-500'>{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div
-                    className={`flex-1 h-0.5 mx-4 ${
-                      currentStep > step.id ? 'bg-emerald-600' : 'bg-gray-300'
-                    }`}
-                  />
+                  <div className='w-8 h-0.5 bg-gray-200 mx-4'></div>
                 )}
               </div>
             ))}
@@ -514,29 +334,39 @@ const VendorProfileSetup = () => {
         </div>
 
         {/* Step Content */}
-        <Card>
-          <CardContent className='p-8'>{renderStepContent()}</CardContent>
+        <Card
+          className={`${
+            theme === 'dark'
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}
+        >
+          <CardHeader>
+            <CardTitle
+              className={`${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
+            >
+              Step {currentStep}: {steps[currentStep - 1].title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>{renderStepContent()}</CardContent>
         </Card>
 
         {/* Navigation */}
-        <div className='flex justify-between mt-8'>
+        <div className='flex justify-between mt-6'>
           <Button
-            variant='outline'
             onClick={prevStep}
             disabled={currentStep === 1}
+            variant='outline'
           >
             Previous
           </Button>
-
-          <div className='flex gap-2'>
-            {currentStep < steps.length ? (
-              <Button onClick={nextStep}>Next Step</Button>
-            ) : (
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Complete Profile'}
-              </Button>
-            )}
-          </div>
+          {currentStep < steps.length ? (
+            <Button onClick={nextStep}>Next</Button>
+          ) : (
+            <Button className='bg-emerald-600 hover:bg-emerald-700'>
+              Finish Setup
+            </Button>
+          )}
         </div>
       </div>
     </div>

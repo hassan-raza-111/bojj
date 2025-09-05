@@ -10,6 +10,7 @@ import adminRouter from './routes/admin.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
 import vendorRouter from './routes/vendor.routes';
+import { VendorController } from './controllers/vendor.controller';
 import chatRouter from './routes/chat.routes';
 import { vendorPayoutRouter } from './routes/vendor-payout.routes';
 // Temporarily commented out due to TypeScript compilation issues
@@ -71,6 +72,9 @@ app.use('/api/admin', adminRouter);
 app.use('/api/jobs', jobRouter); // Customer side needs this
 app.use('/api/dashboard', dashboardRouter); // Customer side needs this
 app.use('/api/vendor', vendorRouter); // Vendor dashboard routes
+app.get('/api/vendor/public/:vendorId', (req, res) =>
+  VendorController.getPublicProfile(req, res)
+); // Public vendor profile
 app.use('/api/chat', chatRouter); // Chat routes
 app.use('/api/vendor-payouts', vendorPayoutRouter); // Vendor payout routes
 // Temporarily commented out due to TypeScript compilation issues

@@ -327,4 +327,33 @@ export const vendorApi = {
       true
     );
   },
+
+  // Get vendor profile
+  getProfile: async () => {
+    console.log('vendorApi: Getting vendor profile');
+    return apiCall('/api/vendor/profile', { method: 'GET' }, true);
+  },
+
+  // Update vendor profile
+  updateProfile: async (profileData: any) => {
+    console.log('vendorApi: Updating vendor profile', profileData);
+    return apiCall(
+      '/api/vendor/profile',
+      {
+        method: 'PUT',
+        body: JSON.stringify(profileData),
+      },
+      true
+    );
+  },
+
+  // Get public vendor profile
+  getPublicProfile: async (vendorId: string) => {
+    console.log('vendorApi: Getting public vendor profile for ID:', vendorId);
+    return apiCall(
+      `/api/vendor/public/${vendorId}`,
+      { method: 'GET' },
+      false // No auth required for public profile
+    );
+  },
 };

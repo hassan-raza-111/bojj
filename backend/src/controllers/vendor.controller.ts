@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
-
-const prisma = new PrismaClient();
 
 export class VendorController {
   // Get vendor dashboard summary
@@ -945,42 +943,142 @@ export class VendorController {
     }
   }
 
-  // Get job details for bidding
-  static async getJobDetails(req: Request, res: Response) {
+  // Get vendor profile
+  static async getProfile(req: Request, res: Response) {
     try {
-      const { jobId } = req.params;
       const vendorId = req.user?.id;
-
       if (!vendorId) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      const job = await prisma.job.findUnique({
-        where: { id: jobId },
+      const vendor = await prisma.user.findUnique({
+        where: { id: vendorId },
         include: {
-          customer: {
+          vendorProfile: true,
+        },
+      });
+
+      if (!vendor) {
+        return res.status(404).json({ message: 'Vendor not found' });
+      }
+
+      res.json({
+        success: true,
+        data: vendor,
+      });
+    } catch (error) {
+      logger.error('Error getting vendor profile:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Update vendor profile
+  static async updateProfile(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const {
+        companyName,
+        businessType,
+        experience,
+        skills,
+        description,
+        hourlyRate,
+        portfolio,
+        documents,
+      } = req.body;
+
+      // Update user basic info
+      const updatedUser = await prisma.user.update({
+        where: { id: vendorId },
+        data: {
+          location: req.body.location,
+          phone: req.body.phone,
+        },
+      });
+
+      // Update or create vendor profile
+      const vendorProfile = await prisma.vendorProfile.upsert({
+        where: { userId: vendorId },
+        update: {
+          companyName,
+          businessType,
+          experience: experience ? parseInt(experience) : undefined,
+          skills: skills || [],
+          description,
+          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
+          portfolio: portfolio || [],
+          documents: documents || [],
+        },
+        create: {
+          userId: vendorId,
+          companyName,
+          businessType,
+          experience: experience ? parseInt(experience) : 0,
+          skills: skills || [],
+          description,
+          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
+          portfolio: portfolio || [],
+          documents: documents || [],
+          rating: 0,
+          totalReviews: 0,
+          completedJobs: 0,
+          verified: false,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: {
+          ...updatedUser,
+          vendorProfile,
+        },
+      });
+    } catch (error) {
+      logger.error('Error updating vendor profile:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  // Get public vendor profile (for customers to view)
+  static async getPublicProfile(req: Request, res: Response) {
+    try {
+      const { vendorId } = req.params;
+
+      const vendor = await prisma.user.findUnique({
+        where: { id: vendorId, role: 'VENDOR' },
+        include: {
+          vendorProfile: {
             select: {
-              firstName: true,
-              lastName: true,
-              location: true,
-              phone: true,
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              rating: true,
+              totalReviews: true,
+              completedJobs: true,
+              portfolio: true,
+              description: true,
+              hourlyRate: true,
+              verified: true,
             },
-          },
-          bids: {
-            where: { vendorId },
-            select: { id: true, amount: true, status: true },
           },
         },
       });
 
-      if (!job) {
-        return res.status(404).json({ message: 'Job not found' });
+      if (!vendor) {
+        return res.status(404).json({ message: 'Vendor not found' });
       }
 
-      res.json(job);
+      res.json({
+        success: true,
+        data: vendor,
+      });
     } catch (error) {
-      logger.error('Error getting job details:', error);
+      logger.error('Error getting public vendor profile:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   }
-}
