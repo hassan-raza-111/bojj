@@ -704,30 +704,116 @@ const JobDetailsPage = () => {
               </CardContent>
             </Card>
 
-            {/* Actions */}
+            {/* Additional Information Card */}
             <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
               <CardHeader>
                 <CardTitle
                   className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
                 >
-                  Actions
+                  Job Guidelines
                 </CardTitle>
               </CardHeader>
-              <CardContent className='space-y-3'>
-                <Button className='w-full' variant='outline'>
-                  <MessageSquare className='mr-2 h-4 w-4' />
-                  Contact Support
-                </Button>
+              <CardContent className='space-y-4'>
+                <div className='space-y-3'>
+                  <div className='flex items-start gap-3'>
+                    <CheckCircle className='h-5 w-5 text-green-500 mt-0.5 flex-shrink-0' />
+                    <div>
+                      <p
+                        className={`font-medium ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        Review Bids Carefully
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        Compare vendor ratings, experience, and proposals before
+                        making a decision.
+                      </p>
+                    </div>
+                  </div>
 
-                <Button className='w-full' variant='outline'>
-                  <RefreshCw className='mr-2 h-4 w-4' />
-                  Extend Deadline
-                </Button>
+                  <div className='flex items-start gap-3'>
+                    <MessageSquare className='h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0' />
+                    <div>
+                      <p
+                        className={`font-medium ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        Communicate Clearly
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        Use the message feature to discuss project details with
+                        vendors.
+                      </p>
+                    </div>
+                  </div>
 
-                <Button className='w-full' variant='outline'>
-                  <XCircle className='mr-2 h-4 w-4' />
-                  Cancel Job
-                </Button>
+                  <div className='flex items-start gap-3'>
+                    <Clock className='h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0' />
+                    <div>
+                      <p
+                        className={`font-medium ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        Timeline Expectations
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        Set realistic deadlines and communicate any urgent
+                        requirements.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='flex items-start gap-3'>
+                    <Star className='h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0' />
+                    <div>
+                      <p
+                        className={`font-medium ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}
+                      >
+                        Quality Assurance
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        Check vendor profiles, reviews, and completed projects
+                        for quality assurance.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`pt-3 border-t ${
+                    theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                  }`}
+                >
+                  <p
+                    className={`text-xs ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}
+                  >
+                    💡 Tip: Accept bids only when you're confident about the
+                    vendor's capabilities and timeline.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

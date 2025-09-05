@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator, SeparatorHorizontal } from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';
 import { MessageButton } from '@/components/shared/MessageButton';
 import {
   Calendar,
@@ -166,7 +166,7 @@ const JobDetailPage = () => {
   // Accept bid mutation
   const acceptBidMutation = useMutation({
     mutationFn: ({ jobId, bidId }: { jobId: string; bidId: string }) =>
-      customerAPI.acceptBid(jobId, bidId),
+      customerAPI.acceptBid(jobId, bidId, user?.id || ''),
     onSuccess: () => {
       toast({
         title: 'Bid Accepted',
@@ -188,7 +188,7 @@ const JobDetailPage = () => {
   // Reject bid mutation
   const rejectBidMutation = useMutation({
     mutationFn: ({ jobId, bidId }: { jobId: string; bidId: string }) =>
-      customerAPI.rejectBid(jobId, bidId),
+      customerAPI.rejectBid(jobId, bidId, user?.id || ''),
     onSuccess: () => {
       toast({
         title: 'Bid Rejected',
@@ -904,55 +904,6 @@ const JobDetailPage = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-2'>
-              <Button variant='outline' size='sm' className='w-full'>
-                <MessageSquare className='h-4 w-4 mr-2' />
-                View All Bids
-              </Button>
-
-              {job.status === 'OPEN' && (
-                <Button variant='outline' size='sm' className='w-full'>
-                  <Edit className='h-4 w-4 mr-2' />
-                  Edit Job
-                </Button>
-              )}
-
-              <Button variant='outline' size='sm' className='w-full'>
-                <Eye className='h-4 w-4 mr-2' />
-                View Public Page
-              </Button>
-
-              {/* Payment Button - Only show if job has assigned vendor */}
-              {job.assignedVendor && job.status === 'IN_PROGRESS' && (
-                <Button
-                  onClick={() => navigate(`/customer/jobs/${job.id}/payment`)}
-                  size='sm'
-                  className='w-full bg-green-600 hover:bg-green-700'
-                >
-                  <CreditCard className='h-4 w-4 mr-2' />
-                  Make Payment
-                </Button>
-              )}
-
-              {/* Job Approval Button - Only show if job is pending approval */}
-              {job.assignedVendor && job.status === 'PENDING_APPROVAL' && (
-                <Button
-                  onClick={() => handleCompleteJob(job.id)}
-                  size='sm'
-                  className='w-full bg-blue-600 hover:bg-blue-700'
-                >
-                  <CheckCircle className='h-4 w-4 mr-2' />
-                  Approve & Release Payment
-                </Button>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
