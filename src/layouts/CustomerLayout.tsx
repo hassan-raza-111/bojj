@@ -2,6 +2,25 @@ import { ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
@@ -15,8 +34,14 @@ import {
   LogOut,
   Menu,
   X,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  Sun,
 } from 'lucide-react';
 import { useState } from 'react';
+import { format } from 'date-fns';
 
 interface CustomerLayoutProps {
   children: ReactNode;
@@ -24,7 +49,7 @@ interface CustomerLayoutProps {
 
 const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -211,18 +236,36 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
                   }`}
                 >
-                  Customer
+                  {user?.email || 'customer@example.com'}
                 </p>
-                <Badge
-                  variant='outline'
-                  className={`mt-1 text-xs ${
-                    theme === 'dark'
-                      ? 'bg-purple-900/20 text-purple-300 border-purple-700'
-                      : 'bg-purple-50 text-purple-700 border-purple-200'
-                  }`}
-                >
-                  Verified
-                </Badge>
+                <div className='flex items-center space-x-2 mt-1'>
+                  <Badge
+                    variant='outline'
+                    className={`text-xs ${
+                      theme === 'dark'
+                        ? 'bg-purple-900/20 text-purple-300 border-purple-700'
+                        : 'bg-purple-50 text-purple-700 border-purple-200'
+                    }`}
+                  >
+                    {user?.status || 'ACTIVE'}
+                  </Badge>
+                  {user?.location && (
+                    <div className='flex items-center space-x-1'>
+                      <MapPin className='h-3 w-3 text-gray-400' />
+                      <span className='text-xs text-gray-500 truncate max-w-20'>
+                        {user.location}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {user?.createdAt && (
+                  <div className='flex items-center space-x-1 mt-1'>
+                    <Calendar className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>
+                      Joined {format(new Date(user.createdAt), 'MMM yyyy')}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -295,18 +338,36 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
             }`}
           >
-            <Button
-              variant='ghost'
-              className={`w-full justify-start ${
-                theme === 'dark'
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-              onClick={handleLogout}
-            >
-              <LogOut className='mr-3 h-5 w-5' />
-              Logout
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant='ghost'
+                  className={`w-full justify-start ${
+                    theme === 'dark'
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                >
+                  <LogOut className='mr-3 h-5 w-5' />
+                  Logout
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to logout? You will need to sign in
+                    again to access your account.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogout}>
+                    Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
@@ -345,13 +406,29 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               >
                 Customer Dashboard
               </h1>
-              <p
-                className={`text-sm ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                }`}
-              >
-                Welcome back, {firstName}
-              </p>
+              <div className='flex items-center space-x-4'>
+                <p
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                  }`}
+                >
+                  Welcome back, {firstName}
+                </p>
+                {user?.phone && (
+                  <div className='flex items-center space-x-1'>
+                    <Phone className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>{user.phone}</span>
+                  </div>
+                )}
+                {user?.location && (
+                  <div className='flex items-center space-x-1'>
+                    <MapPin className='h-3 w-3 text-gray-400' />
+                    <span className='text-xs text-gray-500'>
+                      {user.location}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right side actions */}
@@ -374,26 +451,82 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
 
               {/* User menu */}
               <div className='flex items-center space-x-3'>
-                <span
-                  className={`text-sm font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  {fullName}
-                </span>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className={`${
-                    theme === 'dark'
-                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                  onClick={handleLogout}
-                >
-                  <LogOut className='h-4 w-4 mr-2' />
-                  Logout
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      className={`relative h-10 w-10 rounded-full p-0 ${
+                        theme === 'dark'
+                          ? 'hover:bg-gray-700'
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white text-sm font-semibold shadow-md'>
+                        {user?.firstName?.charAt(0) || 'C'}
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className='w-56' align='end' forceMount>
+                    <DropdownMenuLabel className='font-normal'>
+                      <div className='flex flex-col space-y-1'>
+                        <p className='text-sm font-medium leading-none'>
+                          {fullName}
+                        </p>
+                        <p className='text-xs leading-none text-muted-foreground'>
+                          {user?.email || 'customer@example.com'}
+                        </p>
+                        {user?.location && (
+                          <div className='flex items-center space-x-1'>
+                            <MapPin className='h-3 w-3 text-gray-400' />
+                            <span className='text-xs text-gray-500'>
+                              {user.location}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to='/customer/profile' className='w-full'>
+                        <User className='mr-2 h-4 w-4' />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toggleTheme()}>
+                      <Sun className='mr-2 h-4 w-4' />
+                      <span>
+                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          className='text-red-600 focus:text-red-600'
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          <LogOut className='mr-2 h-4 w-4' />
+                          <span>Logout</span>
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to logout? You will need to
+                            sign in again to access your account.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleLogout}>
+                            Logout
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
