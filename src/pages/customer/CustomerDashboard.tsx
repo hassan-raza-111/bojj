@@ -18,7 +18,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  TrendingUp,
   Users,
   Calendar,
   MapPin,
@@ -336,11 +335,10 @@ const CustomerDashboard = () => {
         onValueChange={setActiveTab}
         className='space-y-6'
       >
-        <TabsList className='grid w-full grid-cols-4'>
+        <TabsList className='grid w-full grid-cols-3'>
           <TabsTrigger value='overview'>Overview</TabsTrigger>
           <TabsTrigger value='jobs'>My Jobs</TabsTrigger>
           <TabsTrigger value='bids'>Bids</TabsTrigger>
-          <TabsTrigger value='analytics'>Analytics</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -405,7 +403,9 @@ const CustomerDashboard = () => {
                     <div
                       key={job.id}
                       className='flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer'
-                      onClick={() => navigate(`/customer/jobs/${job.id}`)}
+                      onClick={() =>
+                        navigate(`/customer/jobs/${job.id}/details`)
+                      }
                     >
                       <div className='flex-1'>
                         <div className='flex items-center space-x-2 mb-2'>
@@ -481,7 +481,9 @@ const CustomerDashboard = () => {
                         <Button
                           variant='ghost'
                           size='sm'
-                          onClick={() => navigate(`/customer/jobs/${job.id}`)}
+                          onClick={() =>
+                            navigate(`/customer/jobs/${job.id}/details`)
+                          }
                         >
                           View
                         </Button>
@@ -536,7 +538,9 @@ const CustomerDashboard = () => {
                         <Button
                           variant='ghost'
                           size='sm'
-                          onClick={() => navigate(`/customer/jobs/${job.id}`)}
+                          onClick={() =>
+                            navigate(`/customer/jobs/${job.id}/details`)
+                          }
                         >
                           View
                         </Button>
@@ -582,7 +586,9 @@ const CustomerDashboard = () => {
                     <div
                       key={job.id}
                       className='flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer'
-                      onClick={() => navigate(`/customer/jobs/${job.id}`)}
+                      onClick={() =>
+                        navigate(`/customer/jobs/${job.id}/details`)
+                      }
                     >
                       <div className='flex-1'>
                         <div className='flex items-center space-x-2 mb-2'>
@@ -662,30 +668,6 @@ const CustomerDashboard = () => {
                 <Button onClick={() => navigate('/customer/jobs')}>
                   View Jobs with Bids
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value='analytics' className='space-y-6'>
-          <Card>
-            <CardHeader>
-              <CardTitle>Job Performance</CardTitle>
-              <CardDescription>
-                Analytics and insights about your jobs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='text-center py-8'>
-                <TrendingUp className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-                <h3 className='text-lg font-medium mb-2'>
-                  Analytics Coming Soon
-                </h3>
-                <p className='text-gray-600 dark:text-gray-400 mb-4'>
-                  Detailed analytics and performance metrics will be available
-                  soon
-                </p>
               </div>
             </CardContent>
           </Card>

@@ -140,7 +140,7 @@ const JobDetailsPage = () => {
             </p>
             <div className='flex gap-3'>
               <Button
-                onClick={() => navigate('/customer-dashboard/jobs')}
+                onClick={() => navigate('/customer/jobs')}
                 variant='outline'
               >
                 <ArrowLeft className='mr-2 h-4 w-4' />
@@ -167,7 +167,7 @@ const JobDetailsPage = () => {
         {/* Header */}
         <div className='mb-6'>
           <Button
-            onClick={() => navigate('/customer-dashboard/jobs')}
+            onClick={() => navigate('/customer/jobs')}
             variant='ghost'
             className='mb-4'
           >

@@ -46,7 +46,6 @@ import JobPostingForm from './pages/customer/JobPostingForm';
 import JobDetailPage from './pages/customer/JobDetailPage';
 import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
-import JobCRUD from './pages/customer/JobCRUD';
 import CustomerPaymentPage from './pages/customer/CustomerPaymentPage';
 import PaymentSuccessPage from './pages/customer/PaymentSuccessPage';
 
@@ -193,7 +192,7 @@ const App = () => {
 
                 <Route element={<ProtectedRoute />}>
                   <Route
-                    path='/customer-dashboard/*'
+                    path='/customer/*'
                     element={
                       <CustomerProvider>
                         <CustomerLayout>

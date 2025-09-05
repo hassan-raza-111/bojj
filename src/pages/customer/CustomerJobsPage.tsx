@@ -534,9 +534,7 @@ const CustomerJobsPage = () => {
                   variant='outline'
                   size='sm'
                   className='flex-1'
-                  onClick={() =>
-                    navigate(`/customer-dashboard/jobs/${job.id}/details`)
-                  }
+                  onClick={() => navigate(`/customer/jobs/${job.id}/details`)}
                 >
                   View Details
                 </Button>
