@@ -8,22 +8,42 @@ import fs from 'fs';
 function calculateProfileCompletion(vendor: any): number {
   const vendorProfile = vendor.vendorProfile;
   let completed = 0;
-  const total = 6;
 
-  if (vendorProfile?.companyName) completed++;
-  if (vendorProfile?.businessType) completed++;
-  if (vendorProfile?.skills?.length > 0) completed++;
-  if (vendorProfile?.experience && vendorProfile.experience > 0) completed++;
-  if (vendor?.phone) completed++;
-  if (vendor?.location) completed++;
+  // Only check fields that are actually used in profile setup
+  const requiredFields = [
+    { name: 'companyName', value: !!vendorProfile?.companyName },
+    { name: 'businessType', value: !!vendorProfile?.businessType },
+    { name: 'phone', value: !!vendor?.phone },
+    { name: 'location', value: !!vendor?.location },
+    { name: 'description', value: !!vendorProfile?.description },
+    {
+      name: 'experience',
+      value: vendorProfile?.experience && vendorProfile.experience > 0,
+    },
+    { name: 'skills', value: vendorProfile?.skills?.length > 0 },
+  ];
+
+  // Count completed fields
+  requiredFields.forEach((field) => {
+    if (field.value) completed++;
+  });
+
+  const total = requiredFields.length;
 
   console.log('📊 Profile Completion Calculation:', {
-    companyName: !!vendorProfile?.companyName,
-    businessType: !!vendorProfile?.businessType,
-    skills: vendorProfile?.skills?.length > 0,
-    experience: vendorProfile?.experience > 0,
-    phone: !!vendor?.phone,
-    location: !!vendor?.location,
+    vendorId: vendor.id,
+    userData: {
+      phone: vendor?.phone,
+      location: vendor?.location,
+    },
+    vendorProfileData: {
+      companyName: vendorProfile?.companyName,
+      businessType: vendorProfile?.businessType,
+      description: vendorProfile?.description,
+      experience: vendorProfile?.experience,
+      skills: vendorProfile?.skills,
+    },
+    fieldStatus: requiredFields.map((f) => ({ [f.name]: f.value })),
     completed,
     total,
     percentage: Math.round((completed / total) * 100),
@@ -1066,9 +1086,6 @@ export class VendorController {
               businessType: true,
               experience: true,
               skills: true,
-              portfolio: true,
-              verified: true,
-              documents: true,
               rating: true,
               totalReviews: true,
               completedJobs: true,
@@ -1144,19 +1161,22 @@ export class VendorController {
         experience,
         skills,
         description,
-        hourlyRate,
-        portfolio,
-        documents,
         location,
         phone,
       } = req.body;
 
       // Validate required fields
-      if (!companyName || !businessType || !location || !phone) {
+      if (
+        !companyName ||
+        !businessType ||
+        !location ||
+        !phone ||
+        !description
+      ) {
         return res.status(400).json({
           success: false,
           message:
-            'Company name, business type, location, and phone are required',
+            'Company name, business type, location, phone, and description are required',
         });
       }
 
@@ -1176,14 +1196,6 @@ export class VendorController {
         });
       }
 
-      // Validate hourly rate (optional for now)
-      // if (!hourlyRate || hourlyRate <= 0) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: 'Valid hourly rate is required',
-      //   });
-      // }
-
       // Update user basic info
       const updatedUser = await prisma.user.update({
         where: { id: vendorId },
@@ -1202,9 +1214,6 @@ export class VendorController {
           experience: parseInt(experience),
           skills: skills || [],
           description: description || '',
-          // hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
-          portfolio: portfolio || [],
-          documents: documents || [],
           updatedAt: new Date(),
         },
         create: {
@@ -1214,13 +1223,9 @@ export class VendorController {
           experience: parseInt(experience),
           skills: skills || [],
           description: description || '',
-          // hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
-          portfolio: portfolio || [],
-          documents: documents || [],
           rating: 0,
           totalReviews: 0,
           completedJobs: 0,
-          verified: false,
         },
       });
 
@@ -1411,9 +1416,7 @@ export class VendorController {
               rating: true,
               totalReviews: true,
               completedJobs: true,
-              portfolio: true,
               description: true,
-              // hourlyRate: true,
               verified: true,
             },
           },

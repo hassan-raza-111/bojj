@@ -1,13 +1,89 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { getImageUrl } from '@/utils/imageUtils';
+import { vendorApi } from '@/config/vendorApi';
+import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const VendorProfileManagement = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        const response = await vendorApi.getProfile();
+
+        if (response.success && response.data) {
+          setProfileData(response.data);
+        } else {
+          toast.error('Failed to load profile data');
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast.error('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+        }`}
+      >
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4'></div>
+          <p
+            className={`${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
+            Loading profile data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+        }`}
+      >
+        <div className='text-center'>
+          <p
+            className={`${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
+            No profile data found. Please complete your profile setup.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const vendorProfile = profileData.vendorProfile;
+  const fullName =
+    `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() ||
+    'Vendor';
 
   return (
     <div
@@ -78,14 +154,14 @@ const VendorProfileManagement = () => {
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                   }`}
                 >
-                  Vendor Name
+                  {vendorProfile?.companyName || fullName}
                 </CardTitle>
                 <p
                   className={`${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
                   }`}
                 >
-                  vendor@example.com
+                  {profileData.email || 'vendor@example.com'}
                 </p>
 
                 <div className='flex flex-wrap gap-2 justify-center mt-4'>
@@ -96,23 +172,28 @@ const VendorProfileManagement = () => {
                         : 'bg-yellow-100 text-yellow-800'
                     }`}
                   >
-                    ⭐ 4.5 (25 reviews)
+                    ⭐ {vendorProfile?.rating?.toFixed(1) || '0.0'} (
+                    {vendorProfile?.totalReviews || 0} reviews)
                   </span>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      theme === 'dark'
-                        ? 'bg-green-900/20 text-green-300 border border-green-700'
-                        : 'bg-green-100 text-green-800'
-                    }`}
-                  >
-                    ✓ Verified
-                  </span>
+                  {vendorProfile?.verified && (
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        theme === 'dark'
+                          ? 'bg-green-900/20 text-green-300 border border-green-700'
+                          : 'bg-green-100 text-green-800'
+                      }`}
+                    >
+                      ✓ Verified
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
                 <div className='grid grid-cols-2 gap-4 text-center'>
                   <div>
-                    <p className='text-2xl font-bold text-emerald-600'>12</p>
+                    <p className='text-2xl font-bold text-emerald-600'>
+                      {vendorProfile?.completedJobs || 0}
+                    </p>
                     <p
                       className={`text-sm ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -122,7 +203,9 @@ const VendorProfileManagement = () => {
                     </p>
                   </div>
                   <div>
-                    <p className='text-2xl font-bold text-blue-600'>5</p>
+                    <p className='text-2xl font-bold text-blue-600'>
+                      {vendorProfile?.experience || 0}
+                    </p>
                     <p
                       className={`text-sm ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -171,7 +254,7 @@ const VendorProfileManagement = () => {
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
-                      value='My Company'
+                      value={vendorProfile?.companyName || ''}
                       readOnly
                       placeholder='Enter company name'
                     />
@@ -184,16 +267,16 @@ const VendorProfileManagement = () => {
                     >
                       Business Type
                     </label>
-                    <select
+                    <input
                       className={`w-full p-2 border rounded ${
                         theme === 'dark'
-                          ? 'bg-gray-700 border-gray-600 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
-                      disabled
-                    >
-                      <option value='Small Business'>Small Business</option>
-                    </select>
+                      value={vendorProfile?.businessType || ''}
+                      readOnly
+                      placeholder='Business type'
+                    />
                   </div>
                   <div className='space-y-2'>
                     <label
@@ -209,7 +292,7 @@ const VendorProfileManagement = () => {
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
-                      value='+1 (555) 123-4567'
+                      value={profileData.phone || ''}
                       readOnly
                       placeholder='+1 (555) 123-4567'
                     />
@@ -228,7 +311,7 @@ const VendorProfileManagement = () => {
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
-                      value='New York, NY'
+                      value={profileData.location || ''}
                       readOnly
                       placeholder='City, State'
                     />
@@ -249,7 +332,7 @@ const VendorProfileManagement = () => {
                         ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                         : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
-                    value='Experienced vendor providing quality services...'
+                    value={vendorProfile?.description || ''}
                     readOnly
                     placeholder='Tell clients about your business...'
                     rows={4}
@@ -277,42 +360,28 @@ const VendorProfileManagement = () => {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='flex flex-wrap gap-2'>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 text-gray-300 border border-gray-600'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Home Renovation
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 text-gray-300 border border-gray-600'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Plumbing
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 text-gray-300 border border-gray-600'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Electrical
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      theme === 'dark'
-                        ? 'bg-gray-700 text-gray-300 border border-gray-600'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Painting
-                  </span>
+                  {vendorProfile?.skills?.length > 0 ? (
+                    vendorProfile.skills.map((skill: string, index: number) => (
+                      <span
+                        key={index}
+                        className={`px-2 py-1 rounded text-sm ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 text-gray-300 border border-gray-600'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p
+                      className={`text-sm ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
+                      No skills added yet
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

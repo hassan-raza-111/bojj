@@ -129,12 +129,24 @@ export const useAuth = () => {
     }
   };
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('accessToken');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
+  const refreshUserData = async () => {
+    try {
+      const data = await apiCall(
+        API_CONFIG.ENDPOINTS.AUTH.ME,
+        { method: 'GET' },
+        true
+      );
+
+      if (data.success) {
+        const userData = data.data;
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userData));
+        console.log('🔄 User data refreshed:', userData);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
   };
 
   return {
@@ -146,7 +158,7 @@ export const useAuth = () => {
     logout,
     updateUser,
     changePassword,
-    getAuthHeaders,
     checkAuthStatus,
+    refreshUserData,
   };
 };

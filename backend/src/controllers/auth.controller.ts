@@ -285,11 +285,29 @@ export const getCurrentUser: RequestHandler = async (req, res, next) => {
         createdAt: true,
         updatedAt: true,
       },
+      include: {
+        vendorProfile: {
+          select: {
+            id: true,
+            userId: true,
+            companyName: true,
+            businessType: true,
+            experience: true,
+            skills: true,
+            rating: true,
+            totalReviews: true,
+            completedJobs: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
     });
 
     res.json({
       success: true,
-      data: { user },
+      data: user,
     });
   } catch (error) {
     next(error);

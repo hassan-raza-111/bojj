@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,26 +28,21 @@ interface VendorProfileData {
   skills: string[];
   location: string;
   phone: string;
-  website?: string;
   description: string;
-  hourlyRate: number;
-  portfolio: string[];
-  documents: string[];
-  verified: boolean;
   avatar?: string;
 }
 
 const VendorProfileSetup = () => {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [uploadingPicture, setUploadingPicture] = useState(false);
-  const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
 
   const [profileData, setProfileData] = useState<VendorProfileData>({
     companyName: '',
@@ -55,20 +51,13 @@ const VendorProfileSetup = () => {
     skills: [],
     location: user?.location || '',
     phone: user?.phone || '',
-    website: '',
     description: '',
-    hourlyRate: 0,
-    portfolio: [],
-    documents: [],
-    verified: false,
     avatar: (user as any)?.avatar || '',
   });
 
   const businessTypes = [
     'Individual Contractor',
-    'Small Business (2-10 employees)',
-    'Medium Business (11-50 employees)',
-    'Large Business (50+ employees)',
+    'Small Business',
     'Freelancer',
     'Consultant',
   ];
@@ -98,8 +87,7 @@ const VendorProfileSetup = () => {
       title: 'Skills & Experience',
       description: 'Your expertise areas',
     },
-    { id: 3, title: 'Portfolio', description: 'Showcase your work' },
-    { id: 4, title: 'Review & Complete', description: 'Final review' },
+    { id: 3, title: 'Review & Complete', description: 'Final review' },
   ];
 
   // Load existing profile data
@@ -115,6 +103,20 @@ const VendorProfileSetup = () => {
           const userData = response.data;
           const existingProfile = userData.vendorProfile;
 
+          console.log('📋 Loaded Profile Data:', {
+            userData: {
+              phone: userData.phone,
+              location: userData.location,
+            },
+            existingProfile: {
+              companyName: existingProfile?.companyName,
+              businessType: existingProfile?.businessType,
+              experience: existingProfile?.experience,
+              skills: existingProfile?.skills,
+              description: existingProfile?.description,
+            },
+          });
+
           setProfileData((prev) => ({
             ...prev,
             // Load user basic info
@@ -127,10 +129,6 @@ const VendorProfileSetup = () => {
             experience: existingProfile?.experience || 0,
             skills: existingProfile?.skills || [],
             description: existingProfile?.description || '',
-            hourlyRate: existingProfile?.hourlyRate || 0,
-            portfolio: existingProfile?.portfolio || [],
-            documents: existingProfile?.documents || [],
-            verified: existingProfile?.verified || false,
           }));
         } else {
           // Even if API fails, show user's basic info
@@ -204,31 +202,29 @@ const VendorProfileSetup = () => {
     }
   };
 
-  const handleUploadPortfolio = async (files: File[]) => {
-    try {
-      setUploadingPortfolio(true);
-      const response = await vendorApi.uploadPortfolioImages(files);
-
-      if (response.success) {
-        setProfileData((prev) => ({
-          ...prev,
-          portfolio: response.data.portfolio,
-        }));
-        toast.success('Portfolio images uploaded successfully!');
-      } else {
-        toast.error('Failed to upload portfolio images');
-      }
-    } catch (error) {
-      console.error('Error uploading portfolio:', error);
-      toast.error('Failed to upload portfolio images');
-    } finally {
-      setUploadingPortfolio(false);
-    }
-  };
-
   const handleSaveProfile = async () => {
+    // Validate all required fields before saving
+    if (!isStepValid()) {
+      console.log('❌ Validation failed:', {
+        currentStep,
+        profileData,
+        step1Valid:
+          profileData.companyName &&
+          profileData.businessType &&
+          profileData.phone &&
+          profileData.location &&
+          profileData.description,
+        step2Valid: profileData.experience > 0 && profileData.skills.length > 0,
+      });
+      toast.error('Please complete all required fields before saving');
+      return;
+    }
+
     try {
       setSaving(true);
+
+      console.log('💾 Saving profile data:', profileData);
+      console.log('👤 User data before save:', user);
 
       const response = await vendorApi.updateProfile({
         ...profileData,
@@ -236,11 +232,22 @@ const VendorProfileSetup = () => {
         phone: profileData.phone,
       });
 
+      console.log('✅ Profile save response:', response);
+
       if (response.success) {
-        toast.success('Profile saved successfully!');
-        navigate('/vendor/dashboard');
+        toast.success(
+          'Profile saved successfully! Redirecting to dashboard...'
+        );
+        // Refresh user data to get updated profile
+        await refreshUserData();
+        // Invalidate React Query cache to refresh dashboard data
+        queryClient.invalidateQueries({ queryKey: ['vendor'] });
+        // Small delay to show the success message
+        setTimeout(() => {
+          navigate('/vendor');
+        }, 1000);
       } else {
-        toast.error('Failed to save profile');
+        toast.error(response.message || 'Failed to save profile');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -418,7 +425,7 @@ const VendorProfileSetup = () => {
       case 2:
         return (
           <div className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-1 gap-4'>
               <div className='space-y-2'>
                 <Label htmlFor='experience'>Years of Experience *</Label>
                 <Input
@@ -432,27 +439,6 @@ const VendorProfileSetup = () => {
                     })
                   }
                   placeholder='5'
-                  className={
-                    theme === 'dark'
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='hourlyRate'>Hourly Rate (USD) *</Label>
-                <Input
-                  id='hourlyRate'
-                  type='number'
-                  value={profileData.hourlyRate}
-                  onChange={(e) =>
-                    setProfileData({
-                      ...profileData,
-                      hourlyRate: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  placeholder='50'
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -546,82 +532,6 @@ const VendorProfileSetup = () => {
       case 3:
         return (
           <div className='space-y-6'>
-            <div className='text-center py-8'>
-              <div className='text-6xl mb-4'>📁</div>
-              <p
-                className={`mb-4 ${
-                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}
-              >
-                Upload your portfolio images
-              </p>
-              <Button
-                variant='outline'
-                onClick={() => {
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = 'image/*';
-                  input.multiple = true;
-                  input.onchange = (e) => {
-                    const files = Array.from(
-                      (e.target as HTMLInputElement).files || []
-                    );
-                    if (files.length > 0) {
-                      handleUploadPortfolio(files);
-                    }
-                  };
-                  input.click();
-                }}
-                disabled={uploadingPortfolio}
-              >
-                <Upload className='w-4 h-4 mr-2' />
-                {uploadingPortfolio ? 'Uploading...' : 'Upload Images'}
-              </Button>
-            </div>
-
-            {profileData.portfolio.length > 0 && (
-              <div className='grid grid-cols-3 gap-4'>
-                {profileData.portfolio.map((image, index) => {
-                  // Convert relative URL to full URL if needed
-                  const imageUrl = getImageUrl(image);
-
-                  return (
-                    <div
-                      key={index}
-                      className={`rounded-md aspect-square overflow-hidden ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border border-gray-600'
-                          : 'bg-gray-200'
-                      }`}
-                    >
-                      <img
-                        src={imageUrl}
-                        alt={`Portfolio ${index + 1}`}
-                        className='w-full h-full object-cover'
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                      <div
-                        className={`w-full h-full flex items-center justify-center ${
-                          theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
-                        } hidden`}
-                      >
-                        Portfolio {index + 1}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className='space-y-6'>
             <div className='text-center'>
               <div className='text-6xl mb-4'>✅</div>
               <h3
@@ -713,22 +623,6 @@ const VendorProfileSetup = () => {
                       {profileData.experience} years
                     </p>
                   </div>
-                  <div>
-                    <p
-                      className={`text-sm font-medium ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}
-                    >
-                      Hourly Rate:
-                    </p>
-                    <p
-                      className={`${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`}
-                    >
-                      ${profileData.hourlyRate}/hour
-                    </p>
-                  </div>
                 </div>
 
                 <div>
@@ -789,14 +683,8 @@ const VendorProfileSetup = () => {
           profileData.description
         );
       case 2:
-        return (
-          profileData.experience > 0 &&
-          profileData.hourlyRate > 0 &&
-          profileData.skills.length > 0
-        );
+        return profileData.experience > 0 && profileData.skills.length > 0;
       case 3:
-        return true; // Portfolio is optional
-      case 4:
         return true; // Review step
       default:
         return false;
@@ -935,7 +823,14 @@ const VendorProfileSetup = () => {
               disabled={saving || !isStepValid()}
               className='bg-emerald-600 hover:bg-emerald-700'
             >
-              {saving ? 'Saving...' : 'Complete Setup'}
+              {saving ? (
+                <>
+                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+                  Saving...
+                </>
+              ) : (
+                'Complete Setup'
+              )}
             </Button>
           )}
         </div>

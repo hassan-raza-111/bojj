@@ -159,6 +159,8 @@ const VendorDashboard = () => {
       vendorProfile?.businessType &&
       vendorProfile?.skills?.length > 0 &&
       vendorProfile?.experience &&
+      vendorProfile.experience > 0 &&
+      vendorProfile?.description &&
       user?.phone &&
       user?.location
     );
@@ -167,14 +169,47 @@ const VendorDashboard = () => {
   const profileCompletionPercentage = () => {
     const vendorProfile = (user as any)?.vendorProfile;
     let completed = 0;
-    const total = 6;
 
-    if (vendorProfile?.companyName) completed++;
-    if (vendorProfile?.businessType) completed++;
-    if (vendorProfile?.skills?.length > 0) completed++;
-    if (vendorProfile?.experience) completed++;
-    if (user?.phone) completed++;
-    if (user?.location) completed++;
+    // Only check fields that are actually used in profile setup
+    const requiredFields = [
+      { name: 'companyName', value: !!vendorProfile?.companyName },
+      { name: 'businessType', value: !!vendorProfile?.businessType },
+      { name: 'phone', value: !!user?.phone },
+      { name: 'location', value: !!user?.location },
+      { name: 'description', value: !!vendorProfile?.description },
+      {
+        name: 'experience',
+        value: vendorProfile?.experience && vendorProfile.experience > 0,
+      },
+      { name: 'skills', value: vendorProfile?.skills?.length > 0 },
+    ];
+
+    // Count completed fields
+    requiredFields.forEach((field) => {
+      if (field.value) completed++;
+    });
+
+    const total = requiredFields.length;
+
+    console.log('🔍 Profile Completion Debug:', {
+      user: user?.email,
+      vendorProfile: vendorProfile ? 'exists' : 'missing',
+      userData: {
+        phone: user?.phone,
+        location: user?.location,
+      },
+      vendorProfileData: {
+        companyName: vendorProfile?.companyName,
+        businessType: vendorProfile?.businessType,
+        description: vendorProfile?.description,
+        experience: vendorProfile?.experience,
+        skills: vendorProfile?.skills,
+      },
+      fieldStatus: requiredFields.map((f) => ({ [f.name]: f.value })),
+      completed,
+      total,
+      percentage: Math.round((completed / total) * 100),
+    });
 
     return Math.round((completed / total) * 100);
   };
