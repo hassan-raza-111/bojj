@@ -1369,6 +1369,8 @@ export class VendorController {
           totalReviews: 0,
           completedJobs: 0,
           verified: false,
+          skills: [],
+          documents: [],
         },
       });
 
