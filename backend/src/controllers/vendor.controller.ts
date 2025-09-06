@@ -1,6 +1,24 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
+import path from 'path';
+import fs from 'fs';
+
+// Helper function to calculate profile completion percentage
+function calculateProfileCompletion(vendor: any): number {
+  const vendorProfile = vendor.vendorProfile;
+  let completed = 0;
+  const total = 6;
+
+  if (vendorProfile?.companyName) completed++;
+  if (vendorProfile?.businessType) completed++;
+  if (vendorProfile?.skills?.length > 0) completed++;
+  if (vendorProfile?.experience && vendorProfile.experience > 0) completed++;
+  if (vendor?.phone) completed++;
+  if (vendor?.location) completed++;
+
+  return Math.round((completed / total) * 100);
+}
 
 export class VendorController {
   // Get vendor dashboard summary
@@ -478,6 +496,77 @@ export class VendorController {
     }
   }
 
+  // Get job details for vendors
+  static async getJobDetails(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      const { jobId } = req.params;
+
+      if (!vendorId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Find the job with customer information
+      const job = await prisma.job.findFirst({
+        where: {
+          id: jobId,
+          status: 'OPEN',
+          isDeleted: false,
+        },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              location: true,
+              customerProfile: {
+                select: {
+                  totalJobsPosted: true,
+                  totalSpent: true,
+                },
+              },
+            },
+          },
+          bids: {
+            where: {
+              vendorId: vendorId, // Only show vendor's own bids
+            },
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+          _count: {
+            select: { bids: true },
+          },
+        },
+      });
+
+      if (!job) {
+        return res
+          .status(404)
+          .json({ message: 'Job not found or not available for bidding' });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          job: {
+            ...job,
+            hasVendorBid: job.bids.length > 0,
+            vendorBid: job.bids.length > 0 ? job.bids[0] : null,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Error getting job details:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
   // Get bid details
   static async getBidDetails(req: Request, res: Response) {
     try {
@@ -948,7 +1037,10 @@ export class VendorController {
     try {
       const vendorId = req.user?.id;
       if (!vendorId) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
       }
 
       const vendor = await prisma.user.findUnique({
@@ -959,16 +1051,28 @@ export class VendorController {
       });
 
       if (!vendor) {
-        return res.status(404).json({ message: 'Vendor not found' });
+        return res.status(404).json({
+          success: false,
+          message: 'Vendor not found',
+        });
       }
+
+      // Calculate profile completion percentage
+      const profileCompletion = calculateProfileCompletion(vendor);
 
       res.json({
         success: true,
-        data: vendor,
+        data: {
+          ...vendor,
+          profileCompletion,
+        },
       });
     } catch (error) {
       logger.error('Error getting vendor profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
     }
   }
 
@@ -977,7 +1081,10 @@ export class VendorController {
     try {
       const vendorId = req.user?.id;
       if (!vendorId) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
       }
 
       const {
@@ -989,14 +1096,49 @@ export class VendorController {
         hourlyRate,
         portfolio,
         documents,
+        location,
+        phone,
       } = req.body;
+
+      // Validate required fields
+      if (!companyName || !businessType || !location || !phone) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Company name, business type, location, and phone are required',
+        });
+      }
+
+      // Validate skills
+      if (!skills || !Array.isArray(skills) || skills.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'At least one skill is required',
+        });
+      }
+
+      // Validate experience
+      if (!experience || experience < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid experience is required',
+        });
+      }
+
+      // Validate hourly rate
+      if (!hourlyRate || hourlyRate <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid hourly rate is required',
+        });
+      }
 
       // Update user basic info
       const updatedUser = await prisma.user.update({
         where: { id: vendorId },
         data: {
-          location: req.body.location,
-          phone: req.body.phone,
+          location: location,
+          phone: phone,
         },
       });
 
@@ -1006,21 +1148,22 @@ export class VendorController {
         update: {
           companyName,
           businessType,
-          experience: experience ? parseInt(experience) : undefined,
+          experience: parseInt(experience),
           skills: skills || [],
-          description,
-          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
+          description: description || '',
+          hourlyRate: parseFloat(hourlyRate),
           portfolio: portfolio || [],
           documents: documents || [],
+          updatedAt: new Date(),
         },
         create: {
           userId: vendorId,
           companyName,
           businessType,
-          experience: experience ? parseInt(experience) : 0,
+          experience: parseInt(experience),
           skills: skills || [],
-          description,
-          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
+          description: description || '',
+          hourlyRate: parseFloat(hourlyRate),
           portfolio: portfolio || [],
           documents: documents || [],
           rating: 0,
@@ -1030,16 +1173,139 @@ export class VendorController {
         },
       });
 
+      // Calculate updated profile completion
+      const profileCompletion = calculateProfileCompletion({
+        ...updatedUser,
+        vendorProfile,
+      });
+
       res.json({
         success: true,
         data: {
           ...updatedUser,
           vendorProfile,
+          profileCompletion,
         },
       });
     } catch (error) {
       logger.error('Error updating vendor profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+
+  // Upload profile picture
+  static async uploadProfilePicture(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      if (!vendorId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+      }
+
+      console.log('📸 Upload Profile Picture Request:', {
+        vendorId,
+        hasFile: !!req.file,
+        fileInfo: req.file ? {
+          fieldname: req.file.fieldname,
+          originalname: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+          filename: req.file.filename
+        } : null
+      });
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded',
+        });
+      }
+
+      // Generate file URL
+      const fileUrl = `/uploads/profiles/${req.file.filename}`;
+
+      // Update user avatar
+      const updatedUser = await prisma.user.update({
+        where: { id: vendorId },
+        data: { avatar: fileUrl },
+      });
+
+      console.log('✅ Profile picture uploaded successfully:', fileUrl);
+
+      res.json({
+        success: true,
+        data: { avatar: fileUrl },
+      });
+    } catch (error) {
+      logger.error('Error uploading profile picture:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+
+  // Upload portfolio images
+  static async uploadPortfolioImages(req: Request, res: Response) {
+    try {
+      const vendorId = req.user?.id;
+      if (!vendorId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+        });
+      }
+
+      if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No files uploaded',
+        });
+      }
+
+      const files = req.files as Express.Multer.File[];
+      const fileUrls = files.map(
+        (file) => `/uploads/portfolio/${file.filename}`
+      );
+
+      // Get current portfolio
+      const vendorProfile = await prisma.vendorProfile.findUnique({
+        where: { userId: vendorId },
+        select: { portfolio: true },
+      });
+
+      const currentPortfolio = vendorProfile?.portfolio || [];
+      const updatedPortfolio = [...currentPortfolio, ...fileUrls];
+
+      // Update vendor profile portfolio
+      await prisma.vendorProfile.upsert({
+        where: { userId: vendorId },
+        update: { portfolio: updatedPortfolio },
+        create: {
+          userId: vendorId,
+          portfolio: updatedPortfolio,
+          rating: 0,
+          totalReviews: 0,
+          completedJobs: 0,
+          verified: false,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: { portfolio: updatedPortfolio },
+      });
+    } catch (error) {
+      logger.error('Error uploading portfolio images:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
     }
   }
 
@@ -1047,6 +1313,13 @@ export class VendorController {
   static async getPublicProfile(req: Request, res: Response) {
     try {
       const { vendorId } = req.params;
+
+      if (!vendorId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vendor ID is required',
+        });
+      }
 
       const vendor = await prisma.user.findUnique({
         where: { id: vendorId, role: 'VENDOR' },
@@ -1070,7 +1343,10 @@ export class VendorController {
       });
 
       if (!vendor) {
-        return res.status(404).json({ message: 'Vendor not found' });
+        return res.status(404).json({
+          success: false,
+          message: 'Vendor not found',
+        });
       }
 
       res.json({
@@ -1079,6 +1355,10 @@ export class VendorController {
       });
     } catch (error) {
       logger.error('Error getting public vendor profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
     }
   }
+}

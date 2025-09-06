@@ -2,9 +2,21 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const VendorProfileManagement = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
+
+  // Convert avatar URL to full URL if needed
+  const getAvatarUrl = (avatar: string | undefined) => {
+    if (!avatar) return null;
+    return avatar.startsWith('/uploads/')
+      ? `${
+          import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+        }${avatar}`
+      : avatar;
+  };
 
   return (
     <div
@@ -54,7 +66,21 @@ const VendorProfileManagement = () => {
             >
               <CardHeader className='text-center'>
                 <div className='h-24 w-24 mx-auto mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold'>
-                  V
+                  {user?.avatar ? (
+                    <img
+                      src={getAvatarUrl(user.avatar) || ''}
+                      alt='Profile'
+                      className='w-full h-full rounded-full object-cover'
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <span className={user?.avatar ? 'hidden' : ''}>
+                    {user?.firstName?.charAt(0) || 'V'}
+                  </span>
                 </div>
                 <CardTitle
                   className={`text-xl ${

@@ -77,10 +77,13 @@ export const API_CONFIG = {
   },
 
   // Request headers
-  getHeaders: (includeAuth: boolean = false) => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+  getHeaders: (includeAuth: boolean = false, isFormData: boolean = false) => {
+    const headers: Record<string, string> = {};
+
+    // Only set Content-Type for JSON requests, not for FormData
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (includeAuth) {
       const token = localStorage.getItem('accessToken');
@@ -103,7 +106,10 @@ export const apiCall = async (
   includeAuth: boolean = false
 ) => {
   const url = API_CONFIG.getUrl(endpoint);
-  const headers = API_CONFIG.getHeaders(includeAuth);
+
+  // Check if body is FormData
+  const isFormData = options.body instanceof FormData;
+  const headers = API_CONFIG.getHeaders(includeAuth, isFormData);
 
   const config: RequestInit = {
     ...options,

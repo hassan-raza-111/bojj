@@ -356,4 +356,38 @@ export const vendorApi = {
       false // No auth required for public profile
     );
   },
+
+  // Upload profile picture
+  uploadProfilePicture: async (file: File) => {
+    console.log('vendorApi: Uploading profile picture');
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    return apiCall(
+      '/api/vendor/profile/picture',
+      {
+        method: 'POST',
+        body: formData,
+      },
+      true
+    );
+  },
+
+  // Upload portfolio images
+  uploadPortfolioImages: async (files: File[]) => {
+    console.log('vendorApi: Uploading portfolio images');
+    const formData = new FormData();
+    files.forEach((file, index) => {
+      formData.append('portfolioImages', file);
+    });
+
+    return apiCall(
+      '/api/vendor/profile/portfolio',
+      {
+        method: 'POST',
+        body: formData,
+      },
+      true
+    );
+  },
 };

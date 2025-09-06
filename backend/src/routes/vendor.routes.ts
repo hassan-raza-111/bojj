@@ -2,8 +2,12 @@ import { Router } from 'express';
 import { VendorController } from '../controllers/vendor.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { validateRole } from '../middleware/validation.middleware';
+import { uploadProfilePicture, uploadPortfolioImages } from '../middleware/upload.middleware';
 
 const router = Router();
+
+// Public routes (no auth required)
+router.get('/public/:vendorId', VendorController.getPublicProfile);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
@@ -33,5 +37,7 @@ router.get('/earnings', VendorController.getEarnings);
 // Profile
 router.get('/profile', VendorController.getProfile);
 router.put('/profile', VendorController.updateProfile);
+router.post('/profile/picture', uploadProfilePicture, VendorController.uploadProfilePicture);
+router.post('/profile/portfolio', uploadPortfolioImages, VendorController.uploadPortfolioImages);
 
 export default router;

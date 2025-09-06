@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { Express } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import path from 'path';
 import { config } from './config';
 import { swaggerDocument, swaggerUi } from './config/swagger';
 import { errorHandler } from './middleware/error.middleware';
@@ -10,7 +11,6 @@ import adminRouter from './routes/admin.routes';
 import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
 import vendorRouter from './routes/vendor.routes';
-import { VendorController } from './controllers/vendor.controller';
 import chatRouter from './routes/chat.routes';
 import { vendorPayoutRouter } from './routes/vendor-payout.routes';
 // Temporarily commented out due to TypeScript compilation issues
@@ -53,6 +53,9 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -71,10 +74,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/jobs', jobRouter); // Customer side needs this
 app.use('/api/dashboard', dashboardRouter); // Customer side needs this
-app.use('/api/vendor', vendorRouter); // Vendor dashboard routes
-app.get('/api/vendor/public/:vendorId', (req, res) =>
-  VendorController.getPublicProfile(req, res)
-); // Public vendor profile
+app.use('/api/vendor', vendorRouter); // Vendor dashboard routes (includes public profile)
 app.use('/api/chat', chatRouter); // Chat routes
 app.use('/api/vendor-payouts', vendorPayoutRouter); // Vendor payout routes
 // Temporarily commented out due to TypeScript compilation issues
