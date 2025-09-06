@@ -3,20 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+import { getImageUrl } from '@/utils/imageUtils';
 
 const VendorProfileManagement = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
-
-  // Convert avatar URL to full URL if needed
-  const getAvatarUrl = (avatar: string | undefined) => {
-    if (!avatar) return null;
-    return avatar.startsWith('/uploads/')
-      ? `${
-          import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
-        }${avatar}`
-      : avatar;
-  };
 
   return (
     <div
@@ -68,7 +59,7 @@ const VendorProfileManagement = () => {
                 <div className='h-24 w-24 mx-auto mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold'>
                   {user?.avatar ? (
                     <img
-                      src={getAvatarUrl(user.avatar) || ''}
+                      src={getImageUrl(user.avatar) || ''}
                       alt='Profile'
                       className='w-full h-full rounded-full object-cover'
                       onError={(e) => {

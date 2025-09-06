@@ -17,6 +17,18 @@ function calculateProfileCompletion(vendor: any): number {
   if (vendor?.phone) completed++;
   if (vendor?.location) completed++;
 
+  console.log('📊 Profile Completion Calculation:', {
+    companyName: !!vendorProfile?.companyName,
+    businessType: !!vendorProfile?.businessType,
+    skills: vendorProfile?.skills?.length > 0,
+    experience: vendorProfile?.experience > 0,
+    phone: !!vendor?.phone,
+    location: !!vendor?.location,
+    completed,
+    total,
+    percentage: Math.round((completed / total) * 100),
+  });
+
   return Math.round((completed / total) * 100);
 }
 
@@ -1046,7 +1058,25 @@ export class VendorController {
       const vendor = await prisma.user.findUnique({
         where: { id: vendorId },
         include: {
-          vendorProfile: true,
+          vendorProfile: {
+            select: {
+              id: true,
+              userId: true,
+              companyName: true,
+              businessType: true,
+              experience: true,
+              skills: true,
+              portfolio: true,
+              verified: true,
+              documents: true,
+              rating: true,
+              totalReviews: true,
+              completedJobs: true,
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
         },
       });
 
@@ -1059,6 +1089,27 @@ export class VendorController {
 
       // Calculate profile completion percentage
       const profileCompletion = calculateProfileCompletion(vendor);
+
+      console.log('📋 Vendor Profile Response:', {
+        vendorId,
+        hasVendorProfile: !!vendor.vendorProfile,
+        profileCompletion,
+        userData: {
+          firstName: vendor.firstName,
+          lastName: vendor.lastName,
+          phone: vendor.phone,
+          location: vendor.location,
+        },
+        vendorProfileData: vendor.vendorProfile
+          ? {
+              companyName: vendor.vendorProfile.companyName,
+              businessType: vendor.vendorProfile.businessType,
+              experience: vendor.vendorProfile.experience,
+              skillsCount: vendor.vendorProfile.skills?.length || 0,
+              description: vendor.vendorProfile.description,
+            }
+          : null,
+      });
 
       res.json({
         success: true,
@@ -1125,13 +1176,13 @@ export class VendorController {
         });
       }
 
-      // Validate hourly rate
-      if (!hourlyRate || hourlyRate <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Valid hourly rate is required',
-        });
-      }
+      // Validate hourly rate (optional for now)
+      // if (!hourlyRate || hourlyRate <= 0) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: 'Valid hourly rate is required',
+      //   });
+      // }
 
       // Update user basic info
       const updatedUser = await prisma.user.update({
@@ -1151,7 +1202,7 @@ export class VendorController {
           experience: parseInt(experience),
           skills: skills || [],
           description: description || '',
-          hourlyRate: parseFloat(hourlyRate),
+          // hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
           portfolio: portfolio || [],
           documents: documents || [],
           updatedAt: new Date(),
@@ -1163,7 +1214,7 @@ export class VendorController {
           experience: parseInt(experience),
           skills: skills || [],
           description: description || '',
-          hourlyRate: parseFloat(hourlyRate),
+          // hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
           portfolio: portfolio || [],
           documents: documents || [],
           rating: 0,
@@ -1210,13 +1261,15 @@ export class VendorController {
       console.log('📸 Upload Profile Picture Request:', {
         vendorId,
         hasFile: !!req.file,
-        fileInfo: req.file ? {
-          fieldname: req.file.fieldname,
-          originalname: req.file.originalname,
-          mimetype: req.file.mimetype,
-          size: req.file.size,
-          filename: req.file.filename
-        } : null
+        fileInfo: req.file
+          ? {
+              fieldname: req.file.fieldname,
+              originalname: req.file.originalname,
+              mimetype: req.file.mimetype,
+              size: req.file.size,
+              filename: req.file.filename,
+            }
+          : null,
       });
 
       if (!req.file) {
@@ -1224,6 +1277,29 @@ export class VendorController {
           success: false,
           message: 'No file uploaded',
         });
+      }
+
+      // Get current user to check for existing avatar
+      const currentUser = await prisma.user.findUnique({
+        where: { id: vendorId },
+        select: { avatar: true },
+      });
+
+      // Delete old avatar file if it exists
+      if (currentUser?.avatar) {
+        try {
+          const oldFilePath = path.join(
+            __dirname,
+            '../../uploads/profiles',
+            path.basename(currentUser.avatar)
+          );
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+            console.log('🗑️ Deleted old avatar file:', oldFilePath);
+          }
+        } catch (deleteError) {
+          console.warn('⚠️ Could not delete old avatar file:', deleteError);
+        }
       }
 
       // Generate file URL
@@ -1335,7 +1411,7 @@ export class VendorController {
               completedJobs: true,
               portfolio: true,
               description: true,
-              hourlyRate: true,
+              // hourlyRate: true,
               verified: true,
             },
           },

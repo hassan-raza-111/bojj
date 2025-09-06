@@ -10,6 +10,7 @@ interface User {
   bio?: string;
   phone?: string;
   location?: string;
+  avatar?: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   createdAt: string;
   updatedAt: string;

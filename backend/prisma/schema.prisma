@@ -21,11 +21,15 @@ model User {
   status           UserStatus       @default(ACTIVE)
   emailVerified    Boolean          @default(false)
   phoneVerified    Boolean          @default(false)
-  lastLoginAt      DateTime?        // Track last login for admin monitoring
-  loginCount       Int              @default(0)     // Track login frequency
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+  lastLoginAt      DateTime?
+  loginCount       Int              @default(0)
+  adminActions     AdminActionLog[] @relation("AdminActions")
   bids             Bid[]
+  sentMessages     ChatMessage[]    @relation("SentMessages")
+  chatRooms        ChatRoom[]       @relation("CustomerChatRooms")
+  vendorChatRooms  ChatRoom[]       @relation("VendorChatRooms")
   customerProfile  CustomerProfile?
   assignedJobs     Job[]            @relation("AssignedJobs")
   jobs             Job[]
@@ -37,12 +41,8 @@ model User {
   services         Service[]
   assignedTickets  SupportTicket[]  @relation("AssignedTickets")
   supportTickets   SupportTicket[]
-  vendorProfile    VendorProfile?
-  adminActions     AdminActionLog[] @relation("AdminActions")
-  chatRooms        ChatRoom[]       @relation("CustomerChatRooms")
-  vendorChatRooms  ChatRoom[]       @relation("VendorChatRooms")
-  sentMessages     ChatMessage[]    @relation("SentMessages")
   vendorPayouts    VendorPayout[]   @relation("VendorPayouts")
+  vendorProfile    VendorProfile?
 
   @@map("users")
 }
@@ -61,7 +61,7 @@ model VendorProfile {
   totalReviews  Int      @default(0)
   completedJobs Int      @default(0)
   description   String?
-  hourlyRate    Float?
+  hourlyRate    Float?   @map("hourlyRate")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -84,75 +84,55 @@ model CustomerProfile {
 }
 
 model Job {
-  id          String    @id @default(uuid())
-  title       String
-  description String
-  requirements String[]
-  
-  // Job details
-  category    String
-  subcategory String?
-  tags        String[]
-  budget      Float?
-  budgetType  BudgetType
-  
-  // Location & timing
-  location    String?
-  street      String?
-  city        String?
-  state       String?
-  zipCode     String?
-  isRemote    Boolean   @default(false)
-  deadline    DateTime?
-  
-  // Job status
-  status      JobStatus @default(OPEN)
-  priority    Priority  @default(MEDIUM)
-  paymentStatus String?  // PENDING, PAID, RELEASED
-  
-  // Customer info
-  customerId  String
-  customer    User      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  
-  // Vendor assignment
-  assignedVendorId String?
-  assignedVendor   User?    @relation("AssignedJobs", fields: [assignedVendorId], references: [id])
-  
-  // Additional fields for customer module
-  timeline    String?
-  date        DateTime?
-  time        String?
+  id                 String        @id @default(uuid())
+  title              String
+  description        String
+  requirements       String[]
+  category           String
+  subcategory        String?
+  tags               String[]
+  budget             Float?
+  budgetType         BudgetType
+  location           String?
+  isRemote           Boolean       @default(false)
+  deadline           DateTime?
+  status             JobStatus     @default(OPEN)
+  priority           Priority      @default(MEDIUM)
+  customerId         String
+  assignedVendorId   String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
   additionalRequests String?
-  contactPreference String?
-  images      String[]
-  
-  // Admin tracking fields
-  viewCount   Int       @default(0)
-  bidCount    Int       @default(0)
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime?
-  deletedBy   String?
-  
-  // Enhanced dashboard fields
-  estimatedDuration String?  // e.g., "2-3 days", "1 week"
-  urgency          String?   // e.g., "Low", "Medium", "High"
-  customerRating   Float?     // Rating given by customer after completion
-  customerFeedback String?    // Feedback from customer
-  completionDate   DateTime?  // When job was actually completed
-  completedAt      DateTime?  // When vendor marked as complete
-  approvedAt       DateTime?  // When customer approved
-  
-  // Relations
-  bids        Bid[]
-  payments    Payment[]
-  reviews     Review[]
-  analytics   JobAnalytics?
-  chatRooms   ChatRoom[]
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
+  city               String?
+  contactPreference  String?
+  date               DateTime?
+  images             String[]
+  state              String?
+  street             String?
+  time               String?
+  timeline           String?
+  zipCode            String?
+  bidCount           Int           @default(0)
+  deletedAt          DateTime?
+  deletedBy          String?
+  isDeleted          Boolean       @default(false)
+  viewCount          Int           @default(0)
+  completionDate     DateTime?
+  customerFeedback   String?
+  customerRating     Float?
+  estimatedDuration  String?
+  urgency            String?
+  approvedAt         DateTime?
+  completedAt        DateTime?
+  paymentStatus      String?
+  bids               Bid[]
+  chatRooms          ChatRoom?
+  analytics          JobAnalytics?
+  assignedVendor     User?         @relation("AssignedJobs", fields: [assignedVendorId], references: [id])
+  customer           User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments           Payment[]
+  reviews            Review[]
+
   @@map("jobs")
 }
 
@@ -162,12 +142,12 @@ model Bid {
   description String
   timeline    String
   milestones  Json?
-  notes       String?   // Additional notes from vendor
   status      BidStatus @default(PENDING)
   jobId       String
   vendorId    String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  notes       String?
   job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
   vendor      User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
@@ -199,30 +179,30 @@ model Service {
 }
 
 model Payment {
-  id          String        @id @default(uuid())
-  amount      Float
-  currency    String        @default("USD")
-  description String
-  status      PaymentStatus @default(PENDING)
-  method      PaymentMethod
-  isEscrow    Boolean       @default(true)
-  escrowFee   Float         @default(0)
-  platformFee Float         @default(0)
-  netAmount   Float         @default(0)
-  jobId       String?
-  customerId  String
-  vendorId    String
+  id             String        @id @default(uuid())
+  amount         Float
+  currency       String        @default("USD")
+  description    String
+  status         PaymentStatus @default(PENDING)
+  method         PaymentMethod
+  isEscrow       Boolean       @default(true)
+  escrowFee      Float         @default(0)
+  jobId          String?
+  customerId     String
+  vendorId       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  paidAt         DateTime?
+  releasedAt     DateTime?
+  netAmount      Float         @default(0)
+  paymentMethod  String?
+  platformFee    Float         @default(0)
+  transactionId  String?
   vendorPayoutId String?
-  transactionId String?
-  paymentMethod String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  paidAt      DateTime?
-  releasedAt  DateTime?
-  customer    User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
-  job         Job?          @relation(fields: [jobId], references: [id])
-  vendor      User          @relation("VendorPayments", fields: [vendorId], references: [id], onDelete: Cascade)
-  vendorPayout VendorPayout? @relation("PayoutPayments", fields: [vendorPayoutId], references: [id])
+  customer       User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
+  job            Job?          @relation(fields: [jobId], references: [id])
+  vendor         User          @relation("VendorPayments", fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorPayout   VendorPayout? @relation("PayoutPayments", fields: [vendorPayoutId], references: [id])
 
   @@map("payments")
 }
@@ -290,104 +270,89 @@ model PasswordReset {
 }
 
 model AdminActionLog {
-  id          String   @id @default(uuid())
-  adminId     String
-  action      String   // e.g., "APPROVE_VENDOR", "UPDATE_JOB_STATUS"
-  targetType  String   // e.g., "USER", "JOB", "PAYMENT"
-  targetId    String   // ID of the target entity
-  details     Json?    // Additional action details
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-  admin       User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  admin      User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
 
   @@map("admin_action_logs")
 }
 
 model JobAnalytics {
-  id                String   @id @default(uuid())
-  jobId             String   @unique
-  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  
-  // Performance metrics
-  timeToFirstBid    Int?     // Minutes from posting to first bid
-  totalBidCount     Int       @default(0)
-  averageBidAmount  Float?
-  highestBidAmount  Float?
-  lowestBidAmount   Float?
-  
-  // Engagement metrics
-  uniqueViewers     Int       @default(0)
-  savedCount        Int       @default(0)
-  shareCount        Int       @default(0)
-  
-  // Completion metrics
-  timeToCompletion  Int?     // Days from posting to completion
-  customerSatisfaction Float? // 1-5 rating
-  rehireLikelihood  Float?   // 0-100 percentage
-  
-  // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id                   String   @id @default(uuid())
+  jobId                String   @unique
+  timeToFirstBid       Int?
+  totalBidCount        Int      @default(0)
+  averageBidAmount     Float?
+  highestBidAmount     Float?
+  lowestBidAmount      Float?
+  uniqueViewers        Int      @default(0)
+  savedCount           Int      @default(0)
+  shareCount           Int      @default(0)
+  timeToCompletion     Int?
+  customerSatisfaction Float?
+  rehireLikelihood     Float?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  job                  Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
   @@map("job_analytics")
 }
 
-// Chat System Models
 model ChatRoom {
-  id          String    @id @default(uuid())
-  jobId       String    @unique
-  customerId  String
-  vendorId    String
-  status      ChatRoomStatus @default(ACTIVE)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  customer    User      @relation("CustomerChatRooms", fields: [customerId], references: [id], onDelete: Cascade)
-  vendor      User      @relation("VendorChatRooms", fields: [vendorId], references: [id], onDelete: Cascade)
-  messages    ChatMessage[]
-  
+  id         String         @id @default(uuid())
+  jobId      String         @unique
+  customerId String
+  vendorId   String
+  status     ChatRoomStatus @default(ACTIVE)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  messages   ChatMessage[]
+  customer   User           @relation("CustomerChatRooms", fields: [customerId], references: [id], onDelete: Cascade)
+  job        Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  vendor     User           @relation("VendorChatRooms", fields: [vendorId], references: [id], onDelete: Cascade)
+
   @@map("chat_rooms")
 }
 
 model ChatMessage {
-  id          String    @id @default(uuid())
+  id          String      @id @default(uuid())
   chatRoomId  String
   senderId    String
   content     String
   messageType MessageType @default(TEXT)
-  isRead      Boolean   @default(false)
+  isRead      Boolean     @default(false)
   readAt      DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  chatRoom    ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  sender      User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  chatRoom    ChatRoom    @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender      User        @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
   @@map("chat_messages")
 }
 
 model VendorPayout {
-  id          String        @id @default(uuid())
-  vendorId    String
-  amount      Float
-  currency    String        @default("USD")
-  status      PayoutStatus  @default(PENDING)
-  method      PayoutMethod  @default(STRIPE)
-  description String?
+  id             String       @id @default(uuid())
+  vendorId       String
+  amount         Float
+  currency       String       @default("USD")
+  status         PayoutStatus @default(PENDING)
+  method         PayoutMethod @default(STRIPE)
+  description    String?
   stripePayoutId String?
-  adminNotes  String?
-  requestedAt DateTime      @default(now())
-  processedAt DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  // Relations
-  vendor      User          @relation("VendorPayouts", fields: [vendorId], references: [id], onDelete: Cascade)
-  payments    Payment[]     @relation("PayoutPayments")
+  adminNotes     String?
+  requestedAt    DateTime     @default(now())
+  processedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  payments       Payment[]    @relation("PayoutPayments")
+  vendor         User         @relation("VendorPayouts", fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("vendor_payouts")
 }
@@ -407,10 +372,10 @@ enum UserStatus {
 enum JobStatus {
   OPEN
   IN_PROGRESS
-  PENDING_APPROVAL
   COMPLETED
   CANCELLED
   DISPUTED
+  PENDING_APPROVAL
 }
 
 enum BidStatus {

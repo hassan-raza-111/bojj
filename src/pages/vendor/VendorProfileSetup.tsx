@@ -13,12 +13,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { vendorApi } from '@/config/vendorApi';
 import { toast } from 'sonner';
 import { Plus, X, Upload, Check } from 'lucide-react';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface VendorProfileData {
   companyName: string;
@@ -33,6 +33,7 @@ interface VendorProfileData {
   portfolio: string[];
   documents: string[];
   verified: boolean;
+  avatar?: string;
 }
 
 const VendorProfileSetup = () => {
@@ -60,6 +61,7 @@ const VendorProfileSetup = () => {
     portfolio: [],
     documents: [],
     verified: false,
+    avatar: (user as any)?.avatar || '',
   });
 
   const businessTypes = [
@@ -110,21 +112,34 @@ const VendorProfileSetup = () => {
         const response = await vendorApi.getProfile();
 
         if (response.success && response.data) {
-          const existingProfile = response.data.vendorProfile;
-          if (existingProfile) {
-            setProfileData((prev) => ({
-              ...prev,
-              companyName: existingProfile.companyName || '',
-              businessType: existingProfile.businessType || '',
-              experience: existingProfile.experience || 0,
-              skills: existingProfile.skills || [],
-              description: existingProfile.description || '',
-              hourlyRate: existingProfile.hourlyRate || 0,
-              portfolio: existingProfile.portfolio || [],
-              documents: existingProfile.documents || [],
-              verified: existingProfile.verified || false,
-            }));
-          }
+          const userData = response.data;
+          const existingProfile = userData.vendorProfile;
+
+          setProfileData((prev) => ({
+            ...prev,
+            // Load user basic info
+            location: userData.location || user?.location || '',
+            phone: userData.phone || user?.phone || '',
+            avatar: userData.avatar || (user as any)?.avatar || '',
+            // Load vendor profile info
+            companyName: existingProfile?.companyName || '',
+            businessType: existingProfile?.businessType || '',
+            experience: existingProfile?.experience || 0,
+            skills: existingProfile?.skills || [],
+            description: existingProfile?.description || '',
+            hourlyRate: existingProfile?.hourlyRate || 0,
+            portfolio: existingProfile?.portfolio || [],
+            documents: existingProfile?.documents || [],
+            verified: existingProfile?.verified || false,
+          }));
+        } else {
+          // Even if API fails, show user's basic info
+          setProfileData((prev) => ({
+            ...prev,
+            location: user?.location || '',
+            phone: user?.phone || '',
+            avatar: (user as any)?.avatar || '',
+          }));
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -173,7 +188,11 @@ const VendorProfileSetup = () => {
 
       if (response.success) {
         toast.success('Profile picture uploaded successfully!');
-        // Update user context if needed
+        // Update local state with new avatar URL
+        setProfileData((prev) => ({
+          ...prev,
+          avatar: response.data.avatar,
+        }));
       } else {
         toast.error('Failed to upload profile picture');
       }
@@ -237,11 +256,33 @@ const VendorProfileSetup = () => {
         return (
           <div className='space-y-6'>
             <div className='text-center'>
-              <Avatar className='h-24 w-24 mx-auto mb-4'>
-                <AvatarFallback className='text-2xl'>
+              {/* Main Profile Picture - Using simple img instead of Avatar component */}
+              <div className='relative mb-4'>
+                {profileData.avatar ? (
+                  <img
+                    src={getImageUrl(profileData.avatar) || ''}
+                    alt='Profile Picture'
+                    className='w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-300 shadow-lg'
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      // Show fallback
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+
+                {/* Fallback circle with initial */}
+                <div
+                  className={`w-24 h-24 rounded-full mx-auto border-4 border-gray-300 shadow-lg flex items-center justify-center text-2xl font-bold bg-gray-200 text-gray-600 ${
+                    profileData.avatar ? 'hidden' : ''
+                  }`}
+                >
                   {user?.firstName?.charAt(0) || 'V'}
-                </AvatarFallback>
-              </Avatar>
+                </div>
+              </div>
+
               <Button
                 variant='outline'
                 size='sm'
@@ -542,12 +583,7 @@ const VendorProfileSetup = () => {
               <div className='grid grid-cols-3 gap-4'>
                 {profileData.portfolio.map((image, index) => {
                   // Convert relative URL to full URL if needed
-                  const imageUrl = image.startsWith('/uploads/')
-                    ? `${
-                        import.meta.env.VITE_BACKEND_URL ||
-                        'http://localhost:3000'
-                      }${image}`
-                    : image;
+                  const imageUrl = getImageUrl(image);
 
                   return (
                     <div
