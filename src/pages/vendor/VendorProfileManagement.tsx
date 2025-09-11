@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -7,12 +8,15 @@ import { getImageUrl } from '@/utils/imageUtils';
 import { vendorApi } from '@/config/vendorApi';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Edit, Upload } from 'lucide-react';
 
 const VendorProfileManagement = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
 
   // Load profile data
   useEffect(() => {
@@ -39,6 +43,30 @@ const VendorProfileManagement = () => {
     loadProfile();
   }, [user]);
 
+  // Handle profile picture upload
+  const handleUploadPicture = async (file: File) => {
+    try {
+      setUploadingPicture(true);
+      const response = await vendorApi.uploadProfilePicture(file);
+
+      if (response.success) {
+        toast.success('Profile picture uploaded successfully!');
+        // Reload profile data
+        const updatedResponse = await vendorApi.getProfile();
+        if (updatedResponse.success && updatedResponse.data) {
+          setProfileData(updatedResponse.data);
+        }
+      } else {
+        toast.error('Failed to upload profile picture');
+      }
+    } catch (error) {
+      console.error('Error uploading picture:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -46,8 +74,8 @@ const VendorProfileManagement = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4'></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <p
             className={`${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -67,7 +95,7 @@ const VendorProfileManagement = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='text-center'>
+        <div className="text-center">
           <p
             className={`${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -91,9 +119,9 @@ const VendorProfileManagement = () => {
         theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
       }`}
     >
-      <div className='max-w-4xl mx-auto p-6'>
+      <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
-        <div className='flex justify-between items-center mb-8'>
+        <div className="flex justify-between items-center mb-8">
           <div>
             <h1
               className={`text-3xl font-bold mb-2 ${
@@ -111,19 +139,21 @@ const VendorProfileManagement = () => {
             </p>
           </div>
           <Button
+            onClick={() => navigate('/vendor/profile/setup')}
             className={
               theme === 'dark'
                 ? 'bg-emerald-600 hover:bg-emerald-700'
                 : 'bg-emerald-600 hover:bg-emerald-700'
             }
           >
+            <Edit className="mr-2 h-4 w-4" />
             Edit Profile
           </Button>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Overview */}
-          <div className='lg:col-span-1'>
+          <div className="lg:col-span-1">
             <Card
               className={`${
                 theme === 'dark'
@@ -131,13 +161,13 @@ const VendorProfileManagement = () => {
                   : 'bg-white border-gray-200'
               }`}
             >
-              <CardHeader className='text-center'>
-                <div className='h-24 w-24 mx-auto mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold'>
-                  {user?.avatar ? (
+              <CardHeader className="text-center">
+                <div className="relative h-24 w-24 mx-auto mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {profileData?.avatar ? (
                     <img
-                      src={getImageUrl(user.avatar) || ''}
-                      alt='Profile'
-                      className='w-full h-full rounded-full object-cover'
+                      src={getImageUrl(profileData.avatar) || ''}
+                      alt="Profile"
+                      className="w-full h-full rounded-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
@@ -145,9 +175,31 @@ const VendorProfileManagement = () => {
                       }}
                     />
                   ) : null}
-                  <span className={user?.avatar ? 'hidden' : ''}>
-                    {user?.firstName?.charAt(0) || 'V'}
+                  <span className={profileData?.avatar ? 'hidden' : ''}>
+                    {profileData?.firstName?.charAt(0) || 'V'}
                   </span>
+
+                  {/* Upload Button */}
+                  <Button
+                    size="sm"
+                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-white dark:bg-gray-800 border-2 border-emerald-200 dark:border-emerald-700 shadow-md hover:shadow-lg"
+                    variant="outline"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          handleUploadPicture(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                    disabled={uploadingPicture}
+                  >
+                    <Upload className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  </Button>
                 </div>
                 <CardTitle
                   className={`text-xl ${
@@ -164,7 +216,7 @@ const VendorProfileManagement = () => {
                   {profileData.email || 'vendor@example.com'}
                 </p>
 
-                <div className='flex flex-wrap gap-2 justify-center mt-4'>
+                <div className="flex flex-wrap gap-2 justify-center mt-4">
                   <span
                     className={`px-2 py-1 rounded text-sm ${
                       theme === 'dark'
@@ -189,9 +241,9 @@ const VendorProfileManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className='grid grid-cols-2 gap-4 text-center'>
+                <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <p className='text-2xl font-bold text-emerald-600'>
+                    <p className="text-2xl font-bold text-emerald-600">
                       {vendorProfile?.completedJobs || 0}
                     </p>
                     <p
@@ -203,7 +255,7 @@ const VendorProfileManagement = () => {
                     </p>
                   </div>
                   <div>
-                    <p className='text-2xl font-bold text-blue-600'>
+                    <p className="text-2xl font-bold text-blue-600">
                       {vendorProfile?.experience || 0}
                     </p>
                     <p
@@ -220,7 +272,7 @@ const VendorProfileManagement = () => {
           </div>
 
           {/* Profile Details */}
-          <div className='lg:col-span-2 space-y-6'>
+          <div className="lg:col-span-2 space-y-6">
             {/* Basic Information */}
             <Card
               className={`${
@@ -238,9 +290,9 @@ const VendorProfileManagement = () => {
                   Basic Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <div className='space-y-2'>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <label
                       className={`text-sm font-medium ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -256,10 +308,10 @@ const VendorProfileManagement = () => {
                       }`}
                       value={vendorProfile?.companyName || ''}
                       readOnly
-                      placeholder='Enter company name'
+                      placeholder="Enter company name"
                     />
                   </div>
-                  <div className='space-y-2'>
+                  <div className="space-y-2">
                     <label
                       className={`text-sm font-medium ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -275,10 +327,10 @@ const VendorProfileManagement = () => {
                       }`}
                       value={vendorProfile?.businessType || ''}
                       readOnly
-                      placeholder='Business type'
+                      placeholder="Business type"
                     />
                   </div>
-                  <div className='space-y-2'>
+                  <div className="space-y-2">
                     <label
                       className={`text-sm font-medium ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -294,10 +346,10 @@ const VendorProfileManagement = () => {
                       }`}
                       value={profileData.phone || ''}
                       readOnly
-                      placeholder='+1 (555) 123-4567'
+                      placeholder="+1 (555) 123-4567"
                     />
                   </div>
-                  <div className='space-y-2'>
+                  <div className="space-y-2">
                     <label
                       className={`text-sm font-medium ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -313,12 +365,12 @@ const VendorProfileManagement = () => {
                       }`}
                       value={profileData.location || ''}
                       readOnly
-                      placeholder='City, State'
+                      placeholder="City, State"
                     />
                   </div>
                 </div>
 
-                <div className='space-y-2'>
+                <div className="space-y-2">
                   <label
                     className={`text-sm font-medium ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -334,7 +386,7 @@ const VendorProfileManagement = () => {
                     }`}
                     value={vendorProfile?.description || ''}
                     readOnly
-                    placeholder='Tell clients about your business...'
+                    placeholder="Tell clients about your business..."
                     rows={4}
                   />
                 </div>
@@ -358,8 +410,8 @@ const VendorProfileManagement = () => {
                   Skills & Services
                 </CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex flex-wrap gap-2'>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
                   {vendorProfile?.skills?.length > 0 ? (
                     vendorProfile.skills.map((skill: string, index: number) => (
                       <span

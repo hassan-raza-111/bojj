@@ -220,6 +220,20 @@ const VendorProfileSetup = () => {
       return;
     }
 
+    // Additional validation for all steps
+    if (
+      !profileData.companyName ||
+      !profileData.businessType ||
+      !profileData.phone ||
+      !profileData.location ||
+      !profileData.description ||
+      profileData.experience <= 0 ||
+      profileData.skills.length === 0
+    ) {
+      toast.error('Please complete all required fields in all steps');
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -242,10 +256,11 @@ const VendorProfileSetup = () => {
         await refreshUserData();
         // Invalidate React Query cache to refresh dashboard data
         queryClient.invalidateQueries({ queryKey: ['vendor'] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
         // Small delay to show the success message
         setTimeout(() => {
           navigate('/vendor');
-        }, 1000);
+        }, 1500);
       } else {
         toast.error(response.message || 'Failed to save profile');
       }
@@ -261,15 +276,15 @@ const VendorProfileSetup = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className='space-y-6'>
-            <div className='text-center'>
+          <div className="space-y-6">
+            <div className="text-center">
               {/* Main Profile Picture - Using simple img instead of Avatar component */}
-              <div className='relative mb-4'>
+              <div className="relative mb-4">
                 {profileData.avatar ? (
                   <img
                     src={getImageUrl(profileData.avatar) || ''}
-                    alt='Profile Picture'
-                    className='w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-300 shadow-lg'
+                    alt="Profile Picture"
+                    className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-gray-300 shadow-lg"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -291,9 +306,9 @@ const VendorProfileSetup = () => {
               </div>
 
               <Button
-                variant='outline'
-                size='sm'
-                className='mb-4'
+                variant="outline"
+                size="sm"
+                className="mb-4"
                 onClick={() => {
                   const input = document.createElement('input');
                   input.type = 'file';
@@ -308,16 +323,16 @@ const VendorProfileSetup = () => {
                 }}
                 disabled={uploadingPicture}
               >
-                <Upload className='w-4 h-4 mr-2' />
+                <Upload className="w-4 h-4 mr-2" />
                 {uploadingPicture ? 'Uploading...' : 'Upload Photo'}
               </Button>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='companyName'>Company Name *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company Name *</Label>
                 <Input
-                  id='companyName'
+                  id="companyName"
                   value={profileData.companyName}
                   onChange={(e) =>
                     setProfileData({
@@ -325,7 +340,7 @@ const VendorProfileSetup = () => {
                       companyName: e.target.value,
                     })
                   }
-                  placeholder='Enter company name'
+                  placeholder="Enter company name"
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -334,8 +349,8 @@ const VendorProfileSetup = () => {
                 />
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='businessType'>Business Type *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="businessType">Business Type *</Label>
                 <Select
                   value={profileData.businessType}
                   onValueChange={(value) =>
@@ -352,7 +367,7 @@ const VendorProfileSetup = () => {
                         : 'bg-white border-gray-300 text-gray-900'
                     }
                   >
-                    <SelectValue placeholder='Select business type' />
+                    <SelectValue placeholder="Select business type" />
                   </SelectTrigger>
                   <SelectContent>
                     {businessTypes.map((type) => (
@@ -364,15 +379,15 @@ const VendorProfileSetup = () => {
                 </Select>
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='phone'>Phone Number *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number *</Label>
                 <Input
-                  id='phone'
+                  id="phone"
                   value={profileData.phone}
                   onChange={(e) =>
                     setProfileData({ ...profileData, phone: e.target.value })
                   }
-                  placeholder='+1 (555) 123-4567'
+                  placeholder="+1 (555) 123-4567"
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -381,15 +396,15 @@ const VendorProfileSetup = () => {
                 />
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='location'>Location *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
                 <Input
-                  id='location'
+                  id="location"
                   value={profileData.location}
                   onChange={(e) =>
                     setProfileData({ ...profileData, location: e.target.value })
                   }
-                  placeholder='City, State'
+                  placeholder="City, State"
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -399,10 +414,10 @@ const VendorProfileSetup = () => {
               </div>
             </div>
 
-            <div className='space-y-2'>
-              <Label htmlFor='description'>Business Description *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description">Business Description *</Label>
               <Textarea
-                id='description'
+                id="description"
                 value={profileData.description}
                 onChange={(e) =>
                   setProfileData({
@@ -410,7 +425,7 @@ const VendorProfileSetup = () => {
                     description: e.target.value,
                   })
                 }
-                placeholder='Tell clients about your business...'
+                placeholder="Tell clients about your business..."
                 rows={4}
                 className={
                   theme === 'dark'
@@ -424,13 +439,13 @@ const VendorProfileSetup = () => {
 
       case 2:
         return (
-          <div className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-1 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='experience'>Years of Experience *</Label>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="experience">Years of Experience *</Label>
                 <Input
-                  id='experience'
-                  type='number'
+                  id="experience"
+                  type="number"
                   value={profileData.experience}
                   onChange={(e) =>
                     setProfileData({
@@ -438,7 +453,7 @@ const VendorProfileSetup = () => {
                       experience: parseInt(e.target.value) || 0,
                     })
                   }
-                  placeholder='5'
+                  placeholder="5"
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -448,15 +463,15 @@ const VendorProfileSetup = () => {
               </div>
             </div>
 
-            <div className='space-y-4'>
+            <div className="space-y-4">
               <Label>Skills & Services *</Label>
 
               {/* Add new skill */}
-              <div className='flex gap-2'>
+              <div className="flex gap-2">
                 <Input
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  placeholder='Add a skill...'
+                  placeholder="Add a skill..."
                   className={
                     theme === 'dark'
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
@@ -464,22 +479,22 @@ const VendorProfileSetup = () => {
                   }
                   onKeyPress={(e) => e.key === 'Enter' && addSkill()}
                 />
-                <Button onClick={addSkill} size='sm'>
-                  <Plus className='w-4 h-4' />
+                <Button onClick={addSkill} size="sm">
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
 
               {/* Selected skills */}
-              <div className='flex flex-wrap gap-2'>
+              <div className="flex flex-wrap gap-2">
                 {profileData.skills.map((skill) => (
                   <Badge
                     key={skill}
-                    variant='secondary'
-                    className='flex items-center gap-1'
+                    variant="secondary"
+                    className="flex items-center gap-1"
                   >
                     {skill}
                     <X
-                      className='w-3 h-3 cursor-pointer hover:text-red-500'
+                      className="w-3 h-3 cursor-pointer hover:text-red-500"
                       onClick={() => removeSkill(skill)}
                     />
                   </Badge>
@@ -487,18 +502,18 @@ const VendorProfileSetup = () => {
               </div>
 
               {/* Quick add skills */}
-              <div className='space-y-2'>
-                <Label className='text-sm text-gray-500'>
+              <div className="space-y-2">
+                <Label className="text-sm text-gray-500">
                   Quick Add Skills:
                 </Label>
-                <div className='grid grid-cols-2 gap-2'>
+                <div className="grid grid-cols-2 gap-2">
                   {skillCategories.map((skill) => (
                     <label
                       key={skill}
-                      className='flex items-center space-x-2 cursor-pointer'
+                      className="flex items-center space-x-2 cursor-pointer"
                     >
                       <input
-                        type='checkbox'
+                        type="checkbox"
                         checked={profileData.skills.includes(skill)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -512,7 +527,7 @@ const VendorProfileSetup = () => {
                             removeSkill(skill);
                           }
                         }}
-                        className='rounded'
+                        className="rounded"
                       />
                       <span
                         className={`text-sm ${
@@ -531,9 +546,9 @@ const VendorProfileSetup = () => {
 
       case 3:
         return (
-          <div className='space-y-6'>
-            <div className='text-center'>
-              <div className='text-6xl mb-4'>✅</div>
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="text-6xl mb-4">✅</div>
               <h3
                 className={`text-xl font-semibold mb-2 ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -573,8 +588,8 @@ const VendorProfileSetup = () => {
                   {profileData.businessType || 'Business Type'}
                 </p>
               </CardHeader>
-              <CardContent className='space-y-3'>
-                <div className='grid grid-cols-2 gap-4'>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p
                       className={`text-sm font-medium ${
@@ -633,12 +648,12 @@ const VendorProfileSetup = () => {
                   >
                     Skills:
                   </p>
-                  <div className='flex flex-wrap gap-1 mt-1'>
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {profileData.skills.map((skill) => (
                       <Badge
                         key={skill}
-                        variant='secondary'
-                        className='text-xs'
+                        variant="secondary"
+                        className="text-xs"
                       >
                         {skill}
                       </Badge>
@@ -698,8 +713,8 @@ const VendorProfileSetup = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4'></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <p
             className={`${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -718,9 +733,9 @@ const VendorProfileSetup = () => {
         theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
       }`}
     >
-      <div className='max-w-4xl mx-auto p-6'>
+      <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
-        <div className='text-center mb-8'>
+        <div className="text-center mb-8">
           <h1
             className={`text-3xl font-bold mb-2 ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -738,10 +753,10 @@ const VendorProfileSetup = () => {
         </div>
 
         {/* Progress Steps */}
-        <div className='flex justify-center mb-8'>
-          <div className='flex items-center space-x-4'>
+        <div className="flex justify-center mb-8">
+          <div className="flex items-center space-x-4">
             {steps.map((step, index) => (
-              <div key={step.id} className='flex items-center'>
+              <div key={step.id} className="flex items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                     currentStep >= step.id
@@ -752,12 +767,12 @@ const VendorProfileSetup = () => {
                   }`}
                 >
                   {currentStep > step.id ? (
-                    <Check className='w-4 h-4' />
+                    <Check className="w-4 h-4" />
                   ) : (
                     step.id
                   )}
                 </div>
-                <div className='ml-2'>
+                <div className="ml-2">
                   <p
                     className={`text-sm font-medium ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -804,11 +819,11 @@ const VendorProfileSetup = () => {
         </Card>
 
         {/* Navigation */}
-        <div className='flex justify-between mt-6'>
+        <div className="flex justify-between mt-6">
           <Button
             onClick={prevStep}
             disabled={currentStep === 1}
-            variant='outline'
+            variant="outline"
           >
             Previous
           </Button>
@@ -821,11 +836,11 @@ const VendorProfileSetup = () => {
             <Button
               onClick={handleSaveProfile}
               disabled={saving || !isStepValid()}
-              className='bg-emerald-600 hover:bg-emerald-700'
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               {saving ? (
                 <>
-                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Saving...
                 </>
               ) : (
