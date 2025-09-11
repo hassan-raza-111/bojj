@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,6 +9,17 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -114,6 +126,9 @@ const awardedJobs = [
 const VendorJobDetailPage = () => {
   const { id } = useParams();
   const { theme } = useTheme();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
 
   // Try to find job directly
   let job = jobs.find((j) => j.id === id);
@@ -132,44 +147,60 @@ const VendorJobDetailPage = () => {
     }
   }
 
-  const handleCompleteJob = (jobId: string) => {
-    if (
-      window.confirm(
-        'Are you sure you want to mark this job as complete? This will notify the customer for approval.'
-      )
-    ) {
-      // Call API to complete job
-      fetch(`/api/jobs/${jobId}/complete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ vendorId: localStorage.getItem('userId') }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            toast.success(
-              'Job marked as complete! Waiting for customer approval.'
-            );
-            // Update job status locally
-            job.status = 'pending_approval';
-          } else {
-            toast.error(data.message || 'Failed to complete job.');
-          }
-        })
-        .catch((error) => {
-          toast.error('Failed to complete job.');
-        });
+  const handleCompleteJob = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmPayment = () => {
+    if (!selectedPaymentMethod) {
+      toast.error('Please select a payment method');
+      return;
     }
+
+    // Call API to complete job with payment method
+    fetch(`/api/jobs/${job.id}/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({
+        vendorId: localStorage.getItem('userId'),
+        paymentMethod: selectedPaymentMethod,
+        paymentNotes: paymentNotes,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          toast.success(
+            'Job marked as complete! Waiting for customer approval.'
+          );
+          // Update job status locally
+          job.status = 'pending_approval';
+          setShowPaymentModal(false);
+          setSelectedPaymentMethod('');
+          setPaymentNotes('');
+        } else {
+          toast.error(data.message || 'Failed to complete job.');
+        }
+      })
+      .catch((error) => {
+        toast.error('Failed to complete job.');
+      });
+  };
+
+  const handleCancelPayment = () => {
+    setShowPaymentModal(false);
+    setSelectedPaymentMethod('');
+    setPaymentNotes('');
   };
 
   if (!job) {
     return (
-      <div className='flex flex-col items-center justify-center min-h-[60vh]'>
-        <h2 className='text-2xl font-semibold mb-4'>Job not found</h2>
-        <Link to='/vendor'>
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <h2 className="text-2xl font-semibold mb-4">Job not found</h2>
+        <Link to="/vendor">
           <Button>Back to Dashboard</Button>
         </Link>
       </div>
@@ -177,10 +208,10 @@ const VendorJobDetailPage = () => {
   }
 
   return (
-    <div className='max-w-2xl mx-auto py-10'>
+    <div className="max-w-2xl mx-auto py-10">
       <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
         <CardHeader>
-          <div className='flex justify-between items-start'>
+          <div className="flex justify-between items-start">
             <div>
               <CardTitle
                 className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
@@ -196,7 +227,7 @@ const VendorJobDetailPage = () => {
               </CardDescription>
             </div>
             <Badge
-              variant='outline'
+              variant="outline"
               className={
                 job.status === 'completed'
                   ? theme === 'dark'
@@ -212,7 +243,7 @@ const VendorJobDetailPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className='mb-6'>
+          <div className="mb-6">
             <h3
               className={`font-semibold mb-1 ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -224,7 +255,7 @@ const VendorJobDetailPage = () => {
               {job.description}
             </p>
           </div>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <p
                 className={`text-sm ${
@@ -306,24 +337,126 @@ const VendorJobDetailPage = () => {
               </p>
             </div>
           </div>
-          <div className='flex gap-2 mt-6'>
-            <Link to='/vendor'>
-              <Button variant='outline'>Back to Dashboard</Button>
+          <div className="flex gap-2 mt-6">
+            <Link to="/vendor">
+              <Button variant="outline">Back to Dashboard</Button>
             </Link>
 
             {/* Job Completion Button - Only show if job is in progress */}
             {job.status === 'active' && (
               <Button
-                onClick={() => handleCompleteJob(job.id)}
-                className='bg-green-600 hover:bg-green-700'
+                onClick={handleCompleteJob}
+                className="bg-green-600 hover:bg-green-700"
               >
-                <CheckCircle className='h-4 w-4 mr-2' />
+                <CheckCircle className="h-4 w-4 mr-2" />
                 Mark as Complete
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Method Selection Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent
+          className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
+        >
+          <DialogHeader>
+            <DialogTitle
+              className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+            >
+              Complete Job - Payment Method
+            </DialogTitle>
+            <DialogDescription
+              className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}
+            >
+              Please select how you received payment for this job before marking
+              it as complete.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label
+                className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+              >
+                Payment Method *
+              </Label>
+              <RadioGroup
+                value={selectedPaymentMethod}
+                onValueChange={setSelectedPaymentMethod}
+                className="mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="CASH" id="cash" />
+                  <Label
+                    htmlFor="cash"
+                    className={
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }
+                  >
+                    Cash
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="VENMO" id="venmo" />
+                  <Label
+                    htmlFor="venmo"
+                    className={
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }
+                  >
+                    Venmo
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="ZELLE" id="zelle" />
+                  <Label
+                    htmlFor="zelle"
+                    className={
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }
+                  >
+                    Zelle
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label
+                htmlFor="payment-notes"
+                className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+              >
+                Payment Notes (Optional)
+              </Label>
+              <Textarea
+                id="payment-notes"
+                placeholder="Add any additional notes about the payment..."
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                className={`mt-2 ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelPayment}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmPayment}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Complete Job
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

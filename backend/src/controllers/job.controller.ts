@@ -570,7 +570,7 @@ export const rejectBid: RequestHandler = async (req, res, next) => {
 export const completeJob: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { vendorId, customerId } = req.body;
+    const { vendorId, customerId, paymentMethod, paymentNotes } = req.body;
 
     if (!vendorId && !customerId) {
       res.status(400).json({
@@ -587,6 +587,7 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         assignedVendorId: true,
         status: true,
         customerId: true,
+        paymentReceived: true,
       },
     });
 
@@ -615,17 +616,39 @@ export const completeJob: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Vendor completing job
+    // Vendor completing job - requires payment method selection
     if (vendorId && job.status === 'IN_PROGRESS') {
+      if (!paymentMethod) {
+        res.status(400).json({
+          success: false,
+          message: 'Payment method is required to complete the job',
+        });
+        return;
+      }
+
+      // Validate payment method
+      const validPaymentMethods = ['CASH', 'VENMO', 'ZELLE'];
+      if (!validPaymentMethods.includes(paymentMethod)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid payment method. Must be CASH, VENMO, or ZELLE',
+        });
+        return;
+      }
+
       await prisma.job.update({
         where: { id },
         data: {
           status: 'PENDING_APPROVAL',
+          paymentMethod: paymentMethod,
+          paymentReceived: true,
+          paymentReceivedAt: new Date(),
+          paymentNotes: paymentNotes || null,
         },
       });
 
       logger.info(
-        `Job marked as completed by vendor: ${id} by vendor: ${vendorId}`
+        `Job marked as completed by vendor: ${id} by vendor: ${vendorId} with payment method: ${paymentMethod}`
       );
       res.json({
         success: true,
@@ -640,30 +663,14 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         where: { id },
         data: {
           status: 'COMPLETED',
+          completionDate: new Date(),
         },
       });
-
-      // Release payment to vendor if payment exists
-      const payment = await prisma.payment.findFirst({
-        where: { jobId: id },
-      });
-
-      if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'RELEASED',
-            releasedAt: new Date(),
-          },
-        });
-
-        logger.info(`Payment released for job: ${id}`);
-      }
 
       logger.info(`Job approved by customer: ${id} by customer: ${customerId}`);
       res.json({
         success: true,
-        message: 'Job approved and payment released to vendor.',
+        message: 'Job approved successfully.',
       });
       return;
     }

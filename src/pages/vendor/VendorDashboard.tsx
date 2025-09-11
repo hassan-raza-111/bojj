@@ -55,19 +55,19 @@ const VendorDashboard = () => {
 
   // Loading skeleton component
   const LoadingSkeleton = () => (
-    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
       {[1, 2, 3, 4].map((i) => (
         <Card key={i} className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
           <CardHeader>
-            <Skeleton className='h-6 w-3/4' />
-            <Skeleton className='h-4 w-1/2' />
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
           </CardHeader>
           <CardContent>
-            <Skeleton className='h-4 w-full mb-2' />
-            <Skeleton className='h-4 w-3/4 mb-4' />
-            <div className='flex space-x-3'>
-              <Skeleton className='h-10 flex-1' />
-              <Skeleton className='h-10 flex-1' />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-4" />
+            <div className="flex space-x-3">
+              <Skeleton className="h-10 flex-1" />
+              <Skeleton className="h-10 flex-1" />
             </div>
           </CardContent>
         </Card>
@@ -77,14 +77,14 @@ const VendorDashboard = () => {
 
   // Error component
   const ErrorComponent = () => (
-    <div className='flex flex-col items-center justify-center py-12'>
-      <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
-      <h3 className='text-lg font-semibold mb-2'>Something went wrong</h3>
-      <p className='text-gray-600 dark:text-gray-400 mb-4'>
+    <div className="flex flex-col items-center justify-center py-12">
+      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+      <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
         Failed to load dashboard data. Please try again.
       </p>
-      <Button onClick={refreshAll} variant='outline'>
-        <RefreshCw className='mr-2 h-4 w-4' />
+      <Button onClick={refreshAll} variant="outline">
+        <RefreshCw className="mr-2 h-4 w-4" />
         Retry
       </Button>
     </div>
@@ -231,18 +231,18 @@ const VendorDashboard = () => {
       }`}
     >
       {/* Header */}
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-xl font-semibold'>Vendor Dashboard</h2>
-        <div className='flex space-x-3'>
-          <Button onClick={refreshAll} variant='outline' disabled={isLoading}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Vendor Dashboard</h2>
+        <div className="flex space-x-3">
+          <Button onClick={refreshAll} variant="outline" disabled={isLoading}>
             <RefreshCw
               className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
             />
             Refresh
           </Button>
-          <Link to='/vendor/jobs/search'>
-            <Button className='bg-bojj-primary hover:bg-bojj-primary/90'>
-              <Search className='mr-2 h-4 w-4' />
+          <Link to="/vendor/jobs/search">
+            <Button className="bg-bojj-primary hover:bg-bojj-primary/90">
+              <Search className="mr-2 h-4 w-4" />
               Find Jobs
             </Button>
           </Link>
@@ -258,23 +258,23 @@ const VendorDashboard = () => {
               : 'bg-yellow-50 border-yellow-200'
           }`}
         >
-          <CardContent className='p-4'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center space-x-3'>
-                <AlertTriangle className='h-6 w-6 text-yellow-600' />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
                 <div>
-                  <h3 className='font-semibold text-yellow-800 dark:text-yellow-200'>
+                  <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">
                     Complete Your Profile
                   </h3>
-                  <p className='text-sm text-yellow-700 dark:text-yellow-300'>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
                     Your profile is {profileCompletionPercentage()}% complete.
                     Complete it to get more job opportunities.
                   </p>
                 </div>
               </div>
-              <Link to='/vendor/profile/setup'>
-                <Button className='bg-yellow-600 hover:bg-yellow-700 text-white'>
-                  <User className='mr-2 h-4 w-4' />
+              <Link to="/vendor/profile/setup">
+                <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <User className="mr-2 h-4 w-4" />
                   Complete Profile
                 </Button>
               </Link>
@@ -284,9 +284,9 @@ const VendorDashboard = () => {
       )}
 
       {/* Summary Cards */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8'>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardHeader className='pb-2'>
+          <CardHeader className="pb-2">
             <CardTitle
               className={`text-lg font-medium ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -302,7 +302,7 @@ const VendorDashboard = () => {
           </CardHeader>
           <CardContent>
             {dashboardSummary.isLoading ? (
-              <Skeleton className='h-8 w-16' />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <p
                 className={`text-3xl font-bold ${
@@ -316,7 +316,7 @@ const VendorDashboard = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardHeader className='pb-2'>
+          <CardHeader className="pb-2">
             <CardTitle
               className={`text-lg font-medium ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -332,7 +332,7 @@ const VendorDashboard = () => {
           </CardHeader>
           <CardContent>
             {dashboardSummary.isLoading ? (
-              <Skeleton className='h-8 w-16' />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <p
                 className={`text-3xl font-bold ${
@@ -346,7 +346,7 @@ const VendorDashboard = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardHeader className='pb-2'>
+          <CardHeader className="pb-2">
             <CardTitle
               className={`text-lg font-medium ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -362,7 +362,7 @@ const VendorDashboard = () => {
           </CardHeader>
           <CardContent>
             {dashboardSummary.isLoading ? (
-              <Skeleton className='h-8 w-16' />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <p
                 className={`text-3xl font-bold ${
@@ -378,15 +378,15 @@ const VendorDashboard = () => {
 
       {/* Jobs Tabs */}
       <Tabs
-        defaultValue='available'
+        defaultValue="available"
         onValueChange={setActiveTab}
-        className='mt-6'
+        className="mt-6"
       >
         <TabsList
           className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
         >
           <TabsTrigger
-            value='available'
+            value="available"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -396,7 +396,7 @@ const VendorDashboard = () => {
             Available Jobs
           </TabsTrigger>
           <TabsTrigger
-            value='bids'
+            value="bids"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -406,7 +406,7 @@ const VendorDashboard = () => {
             My Bids
           </TabsTrigger>
           <TabsTrigger
-            value='awarded'
+            value="awarded"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -417,25 +417,25 @@ const VendorDashboard = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value='available' className='mt-4'>
+        <TabsContent value="available" className="mt-4">
           {availableJobs.isLoading ? (
             <LoadingSkeleton />
           ) : availableJobs.data?.data?.jobs?.length === 0 ? (
-            <div className='text-center py-12'>
-              <p className='text-gray-500 dark:text-gray-400'>
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">
                 No available jobs found.
               </p>
             </div>
           ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
               {availableJobs.data?.data?.jobs?.map((job) => (
                 <Card
                   key={job.id}
                   className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
                 >
-                  <CardHeader className='pb-3'>
-                    <div className='flex justify-between items-start'>
-                      <div className='min-w-0'>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0">
                         <CardTitle
                           className={
                             theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -454,7 +454,7 @@ const VendorDashboard = () => {
                         </CardDescription>
                       </div>
                       <Badge
-                        variant='outline'
+                        variant="outline"
                         className={`${
                           theme === 'dark'
                             ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
@@ -475,7 +475,7 @@ const VendorDashboard = () => {
                       {job.description}
                     </p>
 
-                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <p
                           className={`text-sm ${
@@ -510,19 +510,19 @@ const VendorDashboard = () => {
                       </div>
                     </div>
 
-                    <div className='flex space-x-3 mt-4'>
+                    <div className="flex space-x-3 mt-4">
                       <Link
                         to={`/vendor/jobs/${job.id}/details`}
-                        className='flex-1 min-w-0'
+                        className="flex-1 min-w-0"
                       >
-                        <Button variant='outline' className='w-full'>
+                        <Button variant="outline" className="w-full">
                           View Details
                         </Button>
                       </Link>
 
                       <Button
                         onClick={() => openBidModal(job)}
-                        className='flex-1 bg-bojj-primary hover:bg-bojj-primary/90'
+                        className="flex-1 bg-bojj-primary hover:bg-bojj-primary/90"
                       >
                         Submit Bid
                       </Button>
@@ -534,25 +534,25 @@ const VendorDashboard = () => {
           )}
         </TabsContent>
 
-        <TabsContent value='bids' className='mt-4'>
+        <TabsContent value="bids" className="mt-4">
           {activeBids.isLoading ? (
             <LoadingSkeleton />
           ) : activeBids.data?.bids?.length === 0 ? (
-            <div className='text-center py-12'>
-              <p className='text-gray-500 dark:text-gray-400'>
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">
                 No active bids found.
               </p>
             </div>
           ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
               {activeBids.data?.bids?.map((bid) => (
                 <Card
                   key={bid.id}
                   className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
                 >
-                  <CardHeader className='pb-3'>
-                    <div className='flex justify-between items-start'>
-                      <div className='min-w-0'>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0">
                         <CardTitle
                           className={
                             theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -569,7 +569,7 @@ const VendorDashboard = () => {
                         </CardDescription>
                       </div>
                       <Badge
-                        variant='outline'
+                        variant="outline"
                         className={getStatusBadge(bid.status)}
                       >
                         {bid.status}
@@ -578,7 +578,7 @@ const VendorDashboard = () => {
                   </CardHeader>
 
                   <CardContent>
-                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <p
                           className={`text-sm ${
@@ -622,12 +622,12 @@ const VendorDashboard = () => {
                       {bid.description}
                     </p>
 
-                    <div className='flex space-x-3 mt-4'>
+                    <div className="flex space-x-3 mt-4">
                       <Link
                         to={`/vendor/bids/${bid.id}/view`}
-                        className='flex-1 min-w-0'
+                        className="flex-1 min-w-0"
                       >
-                        <Button variant='outline' className='w-full'>
+                        <Button variant="outline" className="w-full">
                           View Details
                         </Button>
                       </Link>
@@ -638,10 +638,10 @@ const VendorDashboard = () => {
                         }&client=${encodeURIComponent(
                           `${bid.job.customer.firstName} ${bid.job.customer.lastName}`
                         )}`}
-                        className='flex-1 min-w-0'
+                        className="flex-1 min-w-0"
                       >
-                        <Button className='w-full'>
-                          <MessageSquare className='mr-2 h-4 w-4' />
+                        <Button className="w-full">
+                          <MessageSquare className="mr-2 h-4 w-4" />
                           Message Client
                         </Button>
                       </Link>
@@ -653,25 +653,25 @@ const VendorDashboard = () => {
           )}
         </TabsContent>
 
-        <TabsContent value='awarded' className='mt-4'>
+        <TabsContent value="awarded" className="mt-4">
           {awardedJobs.isLoading ? (
             <LoadingSkeleton />
           ) : awardedJobs.data?.jobs?.length === 0 ? (
-            <div className='text-center py-12'>
-              <p className='text-gray-500 dark:text-gray-400'>
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">
                 No awarded jobs found.
               </p>
             </div>
           ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6'>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
               {awardedJobs.data?.jobs?.map((job) => (
                 <Card
                   key={job.id}
                   className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
                 >
-                  <CardHeader className='pb-3'>
-                    <div className='flex justify-between items-start'>
-                      <div className='min-w-0'>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0">
                         <CardTitle
                           className={
                             theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -688,7 +688,7 @@ const VendorDashboard = () => {
                         </CardDescription>
                       </div>
                       <Badge
-                        variant='outline'
+                        variant="outline"
                         className={getStatusBadge(job.status)}
                       >
                         {job.status.replace('_', ' ')}
@@ -697,7 +697,7 @@ const VendorDashboard = () => {
                   </CardHeader>
 
                   <CardContent>
-                    <div className='grid grid-cols-2 gap-4 mb-4'>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <p
                           className={`text-sm ${
@@ -732,12 +732,12 @@ const VendorDashboard = () => {
                       </div>
                     </div>
 
-                    <div className='flex space-x-3 mt-4'>
+                    <div className="flex space-x-3 mt-4">
                       <Link
                         to={`/vendor/jobs/${job.id}/details`}
-                        className='flex-1 min-w-0'
+                        className="flex-1 min-w-0"
                       >
-                        <Button variant='outline' className='w-full'>
+                        <Button variant="outline" className="w-full">
                           View Details
                         </Button>
                       </Link>
@@ -748,10 +748,10 @@ const VendorDashboard = () => {
                         }&client=${encodeURIComponent(
                           `${job.customer.firstName} ${job.customer.lastName}`
                         )}`}
-                        className='flex-1 min-w-0'
+                        className="flex-1 min-w-0"
                       >
-                        <Button className='w-full'>
-                          <MessageSquare className='mr-2 h-4 w-4' />
+                        <Button className="w-full">
+                          <MessageSquare className="mr-2 h-4 w-4" />
                           Message Client
                         </Button>
                       </Link>
@@ -764,128 +764,124 @@ const VendorDashboard = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Earnings Overview */}
+      {/* Payment Tracking Overview */}
       <Card className={`mt-8 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-        <CardHeader className='flex flex-row items-center justify-between'>
+        <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle
               className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
             >
-              Earnings Overview
+              Payment Tracking
             </CardTitle>
             <CardDescription
               className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}
             >
-              Your financial summary
+              Track your manual payments (Cash, Venmo, Zelle)
             </CardDescription>
           </div>
-          <Link to='/vendor/earnings'>
-            <Button
-              variant='ghost'
-              className={
-                theme === 'dark'
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }
-            >
-              View All
-            </Button>
-          </Link>
         </CardHeader>
         <CardContent>
-          {earnings.isLoading ? (
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className='flex items-center gap-4'>
-                  <Skeleton className='h-12 w-12 rounded-full' />
-                  <div>
-                    <Skeleton className='h-4 w-20 mb-2' />
-                    <Skeleton className='h-8 w-24' />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-              <div className='flex items-center gap-4'>
-                <div
-                  className={`p-3 rounded-full ${
-                    theme === 'dark' ? 'bg-emerald-900/40' : 'bg-emerald-100'
-                  }`}
-                >
-                  <DollarSign className='h-6 w-6 text-emerald-600' />
-                </div>
-                <div>
-                  <p
-                    className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}
-                  >
-                    This Month
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
-                    }`}
-                  >
-                    {formatCurrency(earnings.data?.totalEarnings || 0)}
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-full ${
+                  theme === 'dark' ? 'bg-emerald-900/40' : 'bg-emerald-100'
+                }`}
+              >
+                <CheckCircle className="h-6 w-6 text-emerald-600" />
               </div>
-
-              <div className='flex items-center gap-4'>
-                <div
-                  className={`p-3 rounded-full ${
-                    theme === 'dark' ? 'bg-blue-900/40' : 'bg-blue-100'
+              <div>
+                <p
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                   }`}
                 >
-                  <Clock className='h-6 w-6 text-blue-600' />
-                </div>
-                <div>
-                  <p
-                    className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}
-                  >
-                    Pending
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                    }`}
-                  >
-                    {formatCurrency(earnings.data?.pendingPayments || 0)}
-                  </p>
-                </div>
-              </div>
-
-              <div className='flex items-center gap-4'>
-                <div
-                  className={`p-3 rounded-full ${
-                    theme === 'dark' ? 'bg-purple-900/40' : 'bg-purple-100'
+                  Completed Jobs
+                </p>
+                <p
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
                   }`}
                 >
-                  <Star className='h-6 w-6 text-purple-600' />
-                </div>
-                <div>
-                  <p
-                    className={`text-sm ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}
-                  >
-                    Rating
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-                    }`}
-                  >
-                    {dashboardSummary.data?.rating?.toFixed(1) || '0.0'}/5
-                  </p>
-                </div>
+                  {awardedJobs?.data?.filter(
+                    (job) => job.status === 'COMPLETED'
+                  ).length || 0}
+                </p>
               </div>
             </div>
-          )}
+
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-full ${
+                  theme === 'dark' ? 'bg-blue-900/40' : 'bg-blue-100'
+                }`}
+              >
+                <Clock className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  }`}
+                >
+                  Pending Approval
+                </p>
+                <p
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                  }`}
+                >
+                  {awardedJobs?.data?.filter(
+                    (job) => job.status === 'PENDING_APPROVAL'
+                  ).length || 0}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-full ${
+                  theme === 'dark' ? 'bg-orange-900/40' : 'bg-orange-100'
+                }`}
+              >
+                <RefreshCw className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p
+                  className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  }`}
+                >
+                  In Progress
+                </p>
+                <p
+                  className={`text-2xl font-bold ${
+                    theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
+                  }`}
+                >
+                  {awardedJobs?.data?.filter(
+                    (job) => job.status === 'IN_PROGRESS'
+                  ).length || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  Manual Payment System
+                </h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  All payments are handled manually between you and the customer
+                  using Cash, Venmo, or Zelle. When completing a job, you'll
+                  need to specify which payment method was used.
+                </p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

@@ -34,7 +34,6 @@ import UserManagement from './pages/admin/UserManagement';
 import JobManagement from './pages/admin/JobManagement';
 import VendorManagement from './pages/admin/VendorManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
-import PaymentManagement from './pages/admin/PaymentManagement';
 import Analytics from './pages/admin/Analytics';
 import Settings from './pages/admin/Settings';
 import SupportTickets from './pages/admin/SupportTickets';
@@ -46,8 +45,6 @@ import JobPostingForm from './pages/customer/JobPostingForm';
 import JobDetailPage from './pages/customer/JobDetailPage';
 import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
-import CustomerPaymentPage from './pages/customer/customerpaymentpage';
-import PaymentSuccessPage from './pages/customer/PaymentSuccessPage';
 import CustomerProfilePage from './pages/customer/CustomerProfilePage';
 
 // Vendor Features
@@ -62,7 +59,6 @@ import SubmitBidPage from './pages/vendor/SubmitBidPage';
 
 // Shared Features
 import MessagesPage from './pages/shared/MessagesPage';
-import PaymentsPage from './pages/shared/PaymentsPage';
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -117,10 +113,6 @@ const App = () => {
                             path='/customers'
                             element={<CustomerManagement />}
                           />
-                          <Route
-                            path='/payments'
-                            element={<PaymentManagement />}
-                          />
                           <Route path='/analytics' element={<Analytics />} />
                           <Route path='/settings' element={<Settings />} />
                           <Route path='/support' element={<SupportTickets />} />
@@ -154,14 +146,6 @@ const App = () => {
                             <Route
                               path='/messages'
                               element={<MessagesPage />}
-                            />
-                            <Route
-                              path='/payments'
-                              element={<CustomerPaymentPage />}
-                            />
-                            <Route
-                              path='/payment/:jobId'
-                              element={<CustomerPaymentPage />}
                             />
                             <Route path='/support' element={<SupportPage />} />
                             <Route
@@ -218,7 +202,6 @@ const App = () => {
                             element={<VendorProfileSetup />}
                           />
                           <Route path='/messages' element={<MessagesPage />} />
-                          <Route path='/earnings' element={<PaymentsPage />} />
                           <Route path='/support' element={<SupportPage />} />
                           <Route
                             path='/jobs/:id/view'

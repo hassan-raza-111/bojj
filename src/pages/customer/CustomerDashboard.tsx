@@ -61,8 +61,6 @@ interface DashboardStats {
   activeJobs: number;
   completedJobs: number;
   totalBids: number;
-  totalSpent: number;
-  pendingPayments: number;
 }
 
 const CustomerDashboard = () => {
@@ -139,8 +137,6 @@ const CustomerDashboard = () => {
     totalBids: Array.isArray(jobs)
       ? jobs.reduce((sum: number, job: Job) => sum + (job.bidCount || 0), 0)
       : 0,
-    totalSpent: 0, // This would come from payment data
-    pendingPayments: 0, // This would come from payment data
   };
 
   const recentJobs = Array.isArray(jobs) ? jobs.slice(0, 5) : [];
@@ -366,14 +362,6 @@ const CustomerDashboard = () => {
                 >
                   <Briefcase className='h-8 w-8' />
                   <span>View All Jobs</span>
-                </Button>
-                <Button
-                  variant='outline'
-                  className='h-24 flex-col space-y-2'
-                  onClick={() => navigate('/customer/payments')}
-                >
-                  <DollarSign className='h-8 w-8' />
-                  <span>Manage Payments</span>
                 </Button>
               </div>
             </CardContent>

@@ -270,20 +270,20 @@ const CustomerJobsPage = () => {
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <Loader2 className='h-8 w-8 animate-spin' />
-        <span className='ml-2'>Loading jobs...</span>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading jobs...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <AlertCircle className='h-12 w-12 text-red-500 mx-auto mb-4' />
-          <h2 className='text-xl font-semibold mb-2'>Error Loading Jobs</h2>
-          <p className='text-gray-600 mb-4'>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Error Loading Jobs</h2>
+          <p className="text-gray-600 mb-4">
             Failed to load your jobs. Please try again.
           </p>
           <Button onClick={() => refetch()}>Retry</Button>
@@ -300,11 +300,11 @@ const CustomerJobsPage = () => {
       data: jobs,
     });
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <AlertCircle className='h-12 w-12 text-yellow-500 mx-auto mb-4' />
-          <h2 className='text-xl font-semibold mb-2'>No Jobs Found</h2>
-          <p className='text-gray-600 mb-4'>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No Jobs Found</h2>
+          <p className="text-gray-600 mb-4">
             {jobsResponse?.message ||
               'No jobs available or API response format is unexpected.'}
           </p>
@@ -315,66 +315,66 @@ const CustomerJobsPage = () => {
   }
 
   return (
-    <div className='container mx-auto px-4 py-8'>
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8'>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-          <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             My Jobs
           </h1>
-          <p className='text-gray-600 dark:text-gray-300'>
+          <p className="text-gray-600 dark:text-gray-300">
             Manage and track all your posted jobs
           </p>
         </div>
         <Button
           onClick={() => navigate('/customer/jobs/post')}
-          className='w-full sm:w-auto'
+          className="w-full sm:w-auto"
         >
-          <Plus className='h-4 w-4 mr-2' />
+          <Plus className="h-4 w-4 mr-2" />
           Post New Job
         </Button>
       </div>
 
       {/* Stats Summary - Moved to top */}
       {filteredJobs.length > 0 && (
-        <Card className='mb-6'>
-          <CardContent className='p-6'>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className='text-2xl font-bold text-blue-600'>
+                <div className="text-2xl font-bold text-blue-600">
                   {filteredJobs.filter((j) => j.status === 'OPEN').length}
                 </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   Open Jobs
                 </div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-yellow-600'>
+                <div className="text-2xl font-bold text-yellow-600">
                   {
                     filteredJobs.filter((j) => j.status === 'IN_PROGRESS')
                       .length
                   }
                 </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   In Progress
                 </div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-green-600'>
+                <div className="text-2xl font-bold text-green-600">
                   {filteredJobs.filter((j) => j.status === 'COMPLETED').length}
                 </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   Completed
                 </div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-gray-600'>
+                <div className="text-2xl font-bold text-gray-600">
                   {filteredJobs.reduce(
                     (sum, job) => sum + (job.bidCount || 0),
                     0
                   )}
                 </div>
-                <div className='text-sm text-gray-600 dark:text-gray-400'>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   Total Bids
                 </div>
               </div>
@@ -384,65 +384,65 @@ const CustomerJobsPage = () => {
       )}
 
       {/* Filters and Search */}
-      <Card className='mb-6'>
-        <CardContent className='p-6'>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
-            <div className='relative'>
-              <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder='Search jobs...'
+                placeholder="Search jobs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className='pl-10'
+                className="pl-10"
               />
             </div>
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder='Filter by status' />
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='ALL'>All Statuses</SelectItem>
-                <SelectItem value='OPEN'>Open</SelectItem>
-                <SelectItem value='IN_PROGRESS'>In Progress</SelectItem>
-                <SelectItem value='COMPLETED'>Completed</SelectItem>
-                <SelectItem value='CANCELLED'>Cancelled</SelectItem>
-                <SelectItem value='DISPUTED'>Disputed</SelectItem>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="OPEN">Open</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="DISPUTED">Disputed</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Category Filter */}
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger>
-                <SelectValue placeholder='Filter by category' />
+                <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='ALL'>All Categories</SelectItem>
-                <SelectItem value='Home Maintenance and Repairs'>
+                <SelectItem value="ALL">All Categories</SelectItem>
+                <SelectItem value="Home Maintenance and Repairs">
                   Home Maintenance
                 </SelectItem>
-                <SelectItem value='Cleaning Services'>
+                <SelectItem value="Cleaning Services">
                   Cleaning Services
                 </SelectItem>
-                <SelectItem value='Landscaping and Outdoor Services'>
+                <SelectItem value="Landscaping and Outdoor Services">
                   Landscaping
                 </SelectItem>
-                <SelectItem value='Other Services'>Other Services</SelectItem>
+                <SelectItem value="Other Services">Other Services</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
-                <SelectValue placeholder='Sort by' />
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='createdAt'>Date Posted</SelectItem>
-                <SelectItem value='budget'>Budget</SelectItem>
-                <SelectItem value='title'>Title</SelectItem>
-                <SelectItem value='status'>Status</SelectItem>
+                <SelectItem value="createdAt">Date Posted</SelectItem>
+                <SelectItem value="budget">Budget</SelectItem>
+                <SelectItem value="title">Title</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -450,21 +450,21 @@ const CustomerJobsPage = () => {
       </Card>
 
       {/* Jobs Grid */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredJobs.map((job: Job) => (
-          <Card key={job.id} className='hover:shadow-lg transition-shadow'>
-            <CardHeader className='pb-3'>
-              <div className='flex justify-between items-start'>
-                <div className='flex-1'>
-                  <CardTitle className='text-lg font-semibold line-clamp-2'>
+          <Card key={job.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="text-lg font-semibold line-clamp-2">
                     {job.title}
                   </CardTitle>
-                  <CardDescription className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
+                  <CardDescription className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {job.category}
                     {job.subcategory && ` • ${job.subcategory}`}
                   </CardDescription>
                 </div>
-                <div className='flex items-center space-x-2'>
+                <div className="flex items-center space-x-2">
                   <Badge className={getStatusColor(job.status)}>
                     {job.status.replace('_', ' ')}
                   </Badge>
@@ -475,35 +475,35 @@ const CustomerJobsPage = () => {
               </div>
             </CardHeader>
 
-            <CardContent className='pb-3'>
-              <p className='text-gray-700 dark:text-gray-300 text-sm line-clamp-3 mb-4'>
+            <CardContent className="pb-3">
+              <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-3 mb-4">
                 {job.description}
               </p>
 
-              <div className='space-y-2 text-sm'>
+              <div className="space-y-2 text-sm">
                 {job.budget && (
-                  <div className='flex items-center text-gray-600 dark:text-gray-400'>
-                    <DollarSign className='h-4 w-4 mr-2' />
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <DollarSign className="h-4 w-4 mr-2" />
                     <span>${job.budget.toLocaleString()}</span>
                   </div>
                 )}
 
                 {job.location && (
-                  <div className='flex items-center text-gray-600 dark:text-gray-400'>
-                    <MapPin className='h-4 w-4 mr-2' />
-                    <span className='line-clamp-1'>{job.location}</span>
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <span className="line-clamp-1">{job.location}</span>
                   </div>
                 )}
 
                 {job.timeline && (
-                  <div className='flex items-center text-gray-600 dark:text-gray-400'>
-                    <Clock className='h-4 w-4 mr-2' />
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <Clock className="h-4 w-4 mr-2" />
                     <span>{job.timeline}</span>
                   </div>
                 )}
 
-                <div className='flex items-center text-gray-600 dark:text-gray-400'>
-                  <Calendar className='h-4 w-4 mr-2' />
+                <div className="flex items-center text-gray-600 dark:text-gray-400">
+                  <Calendar className="h-4 w-4 mr-2" />
                   <span>
                     Posted{' '}
                     {formatDistanceToNow(new Date(job.createdAt), {
@@ -514,64 +514,51 @@ const CustomerJobsPage = () => {
               </div>
 
               {/* Stats */}
-              <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700'>
-                <div className='flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400'>
-                  <div className='flex items-center'>
-                    <Eye className='h-4 w-4 mr-1' />
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center">
+                    <Eye className="h-4 w-4 mr-1" />
                     <span>{job.viewCount}</span>
                   </div>
-                  <div className='flex items-center'>
-                    <MessageSquare className='h-4 w-4 mr-1' />
+                  <div className="flex items-center">
+                    <MessageSquare className="h-4 w-4 mr-1" />
                     <span>{job.bidCount} bids</span>
                   </div>
                 </div>
               </div>
             </CardContent>
 
-            <CardFooter className='pt-3'>
-              <div className='flex w-full space-x-2'>
+            <CardFooter className="pt-3">
+              <div className="flex w-full space-x-2">
                 <Button
-                  variant='outline'
-                  size='sm'
-                  className='flex-1'
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
                   onClick={() => navigate(`/customer/jobs/${job.id}/details`)}
                 >
                   View Details
                 </Button>
 
-                {/* Payment Button - Show when job is IN_PROGRESS or COMPLETED */}
-                {(job.status === 'IN_PROGRESS' || job.status === 'COMPLETED') &&
-                  job.assignedVendor && (
-                    <Button
-                      size='sm'
-                      className='bg-green-600 hover:bg-green-700'
-                      onClick={() => navigate(`/customer/payment/${job.id}`)}
-                    >
-                      <CreditCard className='h-4 w-4 mr-1' />
-                      Pay
-                    </Button>
-                  )}
-
                 {job.status === 'OPEN' && (
                   <Button
-                    variant='outline'
-                    size='sm'
+                    variant="outline"
+                    size="sm"
                     onClick={() => navigate(`/customer/jobs/${job.id}/edit`)}
                   >
-                    <Edit className='h-4 w-4' />
+                    <Edit className="h-4 w-4" />
                   </Button>
                 )}
 
                 <Button
-                  variant='outline'
-                  size='sm'
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleDeleteJob(job.id)}
                   disabled={deleteJobMutation.isPending}
                 >
                   {deleteJobMutation.isPending ? (
-                    <Loader2 className='h-4 w-4 animate-spin' />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Trash2 className='h-4 w-4' />
+                    <Trash2 className="h-4 w-4" />
                   )}
                 </Button>
               </div>
@@ -582,14 +569,14 @@ const CustomerJobsPage = () => {
 
       {/* Empty State */}
       {filteredJobs.length === 0 && (
-        <div className='text-center py-12'>
-          <div className='mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4'>
-            <AlertCircle className='h-12 w-12 text-gray-400' />
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="h-12 w-12 text-gray-400" />
           </div>
-          <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             No jobs found
           </h3>
-          <p className='text-gray-600 dark:text-gray-400 mb-4'>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             {searchTerm || statusFilter !== 'ALL' || categoryFilter !== 'ALL'
               ? 'Try adjusting your filters or search terms.'
               : "You haven't posted any jobs yet. Get started by posting your first job!"}
@@ -598,7 +585,7 @@ const CustomerJobsPage = () => {
             statusFilter === 'ALL' &&
             categoryFilter === 'ALL' && (
               <Button onClick={() => navigate('/customer/jobs/post')}>
-                <Plus className='h-4 w-4 mr-2' />
+                <Plus className="h-4 w-4 mr-2" />
                 Post Your First Job
               </Button>
             )}

@@ -121,6 +121,11 @@ model Job {
   customerRating     Float?
   estimatedDuration  String?
   urgency            String?
+  // Manual payment tracking fields
+  paymentMethod      ManualPaymentMethod?
+  paymentReceived    Boolean       @default(false)
+  paymentReceivedAt  DateTime?
+  paymentNotes       String?
   bids               Bid[]
   chatRooms          ChatRoom?
   analytics          JobAnalytics?
@@ -468,4 +473,10 @@ enum PayoutMethod {
   BANK_TRANSFER
   PAYPAL
   CHECK
+}
+
+enum ManualPaymentMethod {
+  CASH
+  VENMO
+  ZELLE
 }

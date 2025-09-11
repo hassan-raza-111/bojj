@@ -73,12 +73,6 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       description: 'Communication hub',
     },
     {
-      name: 'Payments',
-      href: '/customer/payments',
-      icon: CreditCard,
-      description: 'Payment history',
-    },
-    {
       name: 'Support',
       href: '/customer/support',
       icon: HeadphonesIcon,
@@ -123,8 +117,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             : 'bg-gradient-to-br from-gray-50 to-gray-100'
         }`}
       >
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4'></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
           <p
             className={`${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -139,12 +133,12 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to='/login' replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Role-based access control - only CUSTOMER users can access
   if (user?.role !== 'CUSTOMER') {
-    return <Navigate to='/' replace />;
+    return <Navigate to="/" replace />;
   }
 
   const firstName = user?.firstName || 'Customer';
@@ -160,7 +154,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className='fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden'
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -171,15 +165,15 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
           theme === 'dark' ? 'bg-gray-800' : 'bg-white'
         } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className='flex h-full flex-col'>
+        <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div
             className={`flex h-16 items-center justify-between px-6 border-b ${
               theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
             }`}
           >
-            <div className='flex items-center space-x-3'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white font-bold text-xl'>
+            <div className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white font-bold text-xl">
                 B
               </div>
               <div>
@@ -200,8 +194,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               </div>
             </div>
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               className={`lg:hidden ${
                 theme === 'dark'
                   ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -209,7 +203,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              <X className='h-5 w-5' />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
@@ -219,11 +213,11 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
             }`}
           >
-            <div className='flex items-center space-x-3'>
-              <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white font-semibold text-lg'>
+            <div className="flex items-center space-x-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white font-semibold text-lg">
                 {user?.firstName?.charAt(0) || 'C'}
               </div>
-              <div className='flex-1 min-w-0'>
+              <div className="flex-1 min-w-0">
                 <p
                   className={`text-sm font-medium truncate ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -238,9 +232,9 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 >
                   {user?.email || 'customer@example.com'}
                 </p>
-                <div className='flex items-center space-x-2 mt-1'>
+                <div className="flex items-center space-x-2 mt-1">
                   <Badge
-                    variant='outline'
+                    variant="outline"
                     className={`text-xs ${
                       theme === 'dark'
                         ? 'bg-purple-900/20 text-purple-300 border-purple-700'
@@ -250,18 +244,18 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     {user?.status || 'ACTIVE'}
                   </Badge>
                   {user?.location && (
-                    <div className='flex items-center space-x-1'>
-                      <MapPin className='h-3 w-3 text-gray-400' />
-                      <span className='text-xs text-gray-500 truncate max-w-20'>
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-3 w-3 text-gray-400" />
+                      <span className="text-xs text-gray-500 truncate max-w-20">
                         {user.location}
                       </span>
                     </div>
                   )}
                 </div>
                 {user?.createdAt && (
-                  <div className='flex items-center space-x-1 mt-1'>
-                    <Calendar className='h-3 w-3 text-gray-400' />
-                    <span className='text-xs text-gray-500'>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <Calendar className="h-3 w-3 text-gray-400" />
+                    <span className="text-xs text-gray-500">
                       Joined {format(new Date(user.createdAt), 'MMM yyyy')}
                     </span>
                   </div>
@@ -271,7 +265,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
           </div>
 
           {/* Navigation */}
-          <nav className='flex-1 space-y-1 px-3 py-4'>
+          <nav className="flex-1 space-y-1 px-3 py-4">
             {navigation.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -302,8 +296,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                         : 'text-gray-400 group-hover:text-gray-500'
                     }`}
                   />
-                  <div className='flex-1'>
-                    <div className='flex items-center justify-between'>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
                       <span>{item.name}</span>
                       {active && (
                         <div
@@ -341,14 +335,14 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  variant='ghost'
+                  variant="ghost"
                   className={`w-full justify-start ${
                     theme === 'dark'
                       ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <LogOut className='mr-3 h-5 w-5' />
+                  <LogOut className="mr-3 h-5 w-5" />
                   Logout
                 </Button>
               </AlertDialogTrigger>
@@ -373,7 +367,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       </div>
 
       {/* Main Content Area */}
-      <div className='flex-1 lg:ml-64'>
+      <div className="flex-1 lg:ml-64">
         {/* Fixed Top Header */}
         <header
           className={`fixed top-0 right-0 left-0 lg:left-64 z-30 shadow-sm border-b ${
@@ -382,11 +376,11 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               : 'bg-white border-gray-200'
           }`}
         >
-          <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
+          <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             {/* Mobile menu button */}
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               className={`lg:hidden ${
                 theme === 'dark'
                   ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -394,11 +388,11 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               }`}
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu className='h-5 w-5' />
+              <Menu className="h-5 w-5" />
             </Button>
 
             {/* Page Title */}
-            <div className='flex-1 min-w-0 lg:ml-0'>
+            <div className="flex-1 min-w-0 lg:ml-0">
               <h1
                 className={`text-lg font-semibold ${
                   theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -406,7 +400,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               >
                 Customer Dashboard
               </h1>
-              <div className='flex items-center space-x-4'>
+              <div className="flex items-center space-x-4">
                 <p
                   className={`text-sm ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
@@ -415,15 +409,15 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                   Welcome back, {firstName}
                 </p>
                 {user?.phone && (
-                  <div className='flex items-center space-x-1'>
-                    <Phone className='h-3 w-3 text-gray-400' />
-                    <span className='text-xs text-gray-500'>{user.phone}</span>
+                  <div className="flex items-center space-x-1">
+                    <Phone className="h-3 w-3 text-gray-400" />
+                    <span className="text-xs text-gray-500">{user.phone}</span>
                   </div>
                 )}
                 {user?.location && (
-                  <div className='flex items-center space-x-1'>
-                    <MapPin className='h-3 w-3 text-gray-400' />
-                    <span className='text-xs text-gray-500'>
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="h-3 w-3 text-gray-400" />
+                    <span className="text-xs text-gray-500">
                       {user.location}
                     </span>
                   </div>
@@ -432,53 +426,53 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             </div>
 
             {/* Right side actions */}
-            <div className='flex items-center space-x-4'>
+            <div className="flex items-center space-x-4">
               {/* Notifications */}
               <Button
-                variant='ghost'
-                size='sm'
+                variant="ghost"
+                size="sm"
                 className={`relative ${
                   theme === 'dark'
                     ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
-                <Bell className='h-5 w-5' />
-                <span className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white'>
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                   3
                 </span>
               </Button>
 
               {/* User menu */}
-              <div className='flex items-center space-x-3'>
+              <div className="flex items-center space-x-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant='ghost'
+                      variant="ghost"
                       className={`relative h-10 w-10 rounded-full p-0 ${
                         theme === 'dark'
                           ? 'hover:bg-gray-700'
                           : 'hover:bg-gray-100'
                       }`}
                     >
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white text-sm font-semibold shadow-md'>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white text-sm font-semibold shadow-md">
                         {user?.firstName?.charAt(0) || 'C'}
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className='w-56' align='end' forceMount>
-                    <DropdownMenuLabel className='font-normal'>
-                      <div className='flex flex-col space-y-1'>
-                        <p className='text-sm font-medium leading-none'>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
                           {fullName}
                         </p>
-                        <p className='text-xs leading-none text-muted-foreground'>
+                        <p className="text-xs leading-none text-muted-foreground">
                           {user?.email || 'customer@example.com'}
                         </p>
                         {user?.location && (
-                          <div className='flex items-center space-x-1'>
-                            <MapPin className='h-3 w-3 text-gray-400' />
-                            <span className='text-xs text-gray-500'>
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-3 w-3 text-gray-400" />
+                            <span className="text-xs text-gray-500">
                               {user.location}
                             </span>
                           </div>
@@ -487,13 +481,13 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to='/customer/profile' className='w-full'>
-                        <User className='mr-2 h-4 w-4' />
+                      <Link to="/customer/profile" className="w-full">
+                        <User className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => toggleTheme()}>
-                      <Sun className='mr-2 h-4 w-4' />
+                      <Sun className="mr-2 h-4 w-4" />
                       <span>
                         {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                       </span>
@@ -502,10 +496,10 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem
-                          className='text-red-600 focus:text-red-600'
+                          className="text-red-600 focus:text-red-600"
                           onSelect={(e) => e.preventDefault()}
                         >
-                          <LogOut className='mr-2 h-4 w-4' />
+                          <LogOut className="mr-2 h-4 w-4" />
                           <span>Logout</span>
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
@@ -538,7 +532,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
           }`}
         >
-          <div className='p-6'>{children}</div>
+          <div className="p-6">{children}</div>
         </main>
       </div>
     </div>
