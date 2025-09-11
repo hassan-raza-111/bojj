@@ -191,26 +191,6 @@ const VendorDashboard = () => {
 
     const total = requiredFields.length;
 
-    console.log('🔍 Profile Completion Debug:', {
-      user: user?.email,
-      vendorProfile: vendorProfile ? 'exists' : 'missing',
-      userData: {
-        phone: user?.phone,
-        location: user?.location,
-      },
-      vendorProfileData: {
-        companyName: vendorProfile?.companyName,
-        businessType: vendorProfile?.businessType,
-        description: vendorProfile?.description,
-        experience: vendorProfile?.experience,
-        skills: vendorProfile?.skills,
-      },
-      fieldStatus: requiredFields.map((f) => ({ [f.name]: f.value })),
-      completed,
-      total,
-      percentage: Math.round((completed / total) * 100),
-    });
-
     return Math.round((completed / total) * 100);
   };
 
@@ -220,8 +200,23 @@ const VendorDashboard = () => {
     setSelectedJob(null);
   };
 
+  // Simple error handling
   if (isError) {
-    return <ErrorComponent />;
+    console.error('❌ VendorDashboard Error:', isError);
+    return (
+      <div className="p-4 md:p-8 min-h-screen bg-gray-50">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-gray-600 mb-4">Please check console for details</p>
+          <Button onClick={refreshAll} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -803,7 +798,7 @@ const VendorDashboard = () => {
                     theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'
                   }`}
                 >
-                  {awardedJobs?.data?.filter(
+                  {awardedJobs?.data?.jobs?.filter(
                     (job) => job.status === 'COMPLETED'
                   ).length || 0}
                 </p>
@@ -831,7 +826,7 @@ const VendorDashboard = () => {
                     theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
                   }`}
                 >
-                  {awardedJobs?.data?.filter(
+                  {awardedJobs?.data?.jobs?.filter(
                     (job) => job.status === 'PENDING_APPROVAL'
                   ).length || 0}
                 </p>
@@ -859,7 +854,7 @@ const VendorDashboard = () => {
                     theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
                   }`}
                 >
-                  {awardedJobs?.data?.filter(
+                  {awardedJobs?.data?.jobs?.filter(
                     (job) => job.status === 'IN_PROGRESS'
                   ).length || 0}
                 </p>
