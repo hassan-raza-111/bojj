@@ -42,7 +42,7 @@ router.get('/profile', VendorController.getProfile);
 router.put('/profile', VendorController.updateProfile);
 router.post(
   '/profile/picture',
-  uploadProfilePicture,
+  uploadProfilePicture as any,
   VendorController.uploadProfilePicture
 );
 

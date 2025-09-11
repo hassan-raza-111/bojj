@@ -587,7 +587,6 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         assignedVendorId: true,
         status: true,
         customerId: true,
-        paymentStatus: true,
       },
     });
 
@@ -622,7 +621,6 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         where: { id },
         data: {
           status: 'PENDING_APPROVAL',
-          completedAt: new Date(),
         },
       });
 
@@ -642,25 +640,24 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         where: { id },
         data: {
           status: 'COMPLETED',
-          approvedAt: new Date(),
         },
       });
 
-      // Release payment to vendor if paid
-      if (job.paymentStatus === 'PAID') {
-        const payment = await prisma.payment.findFirst({
-          where: { jobId: id },
+      // Release payment to vendor if payment exists
+      const payment = await prisma.payment.findFirst({
+        where: { jobId: id },
+      });
+
+      if (payment) {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'RELEASED',
+            releasedAt: new Date(),
+          },
         });
 
-        if (payment) {
-          await prisma.payment.update({
-            where: { id: payment.id },
-            data: {
-              status: 'RELEASED',
-              releasedAt: new Date(),
-            },
-          });
-        }
+        logger.info(`Payment released for job: ${id}`);
       }
 
       logger.info(`Job approved by customer: ${id} by customer: ${customerId}`);
@@ -758,7 +755,6 @@ export const getCustomerJobs: RequestHandler = async (req, res, next) => {
     return;
   } catch (error) {
     logger.error('Error retrieving customer jobs:', error);
-    next(error);
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve customer jobs',

@@ -593,6 +593,17 @@ const JobDetailsPage = () => {
                               </>
                             )}
 
+                            <Button
+                              onClick={() =>
+                                navigate(`/vendor/public/${bid.vendor.id}`)
+                              }
+                              variant='outline'
+                              className='flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20'
+                            >
+                              <User className='mr-2 h-4 w-4' />
+                              View Profile
+                            </Button>
+
                             <MessageButton
                               jobId={job.id}
                               vendorId={bid.vendor.id}

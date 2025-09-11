@@ -121,9 +121,6 @@ model Job {
   customerRating     Float?
   estimatedDuration  String?
   urgency            String?
-  approvedAt         DateTime?
-  completedAt        DateTime?
-  paymentStatus      String?
   bids               Bid[]
   chatRooms          ChatRoom?
   analytics          JobAnalytics?

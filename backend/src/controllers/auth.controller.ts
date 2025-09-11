@@ -272,19 +272,6 @@ export const getCurrentUser: RequestHandler = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        bio: true,
-        phone: true,
-        location: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
       include: {
         vendorProfile: {
           select: {

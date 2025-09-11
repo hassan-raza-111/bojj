@@ -4,7 +4,6 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import path from 'path';
 import { config } from './config';
-import { swaggerDocument, swaggerUi } from './config/swagger';
 import { errorHandler } from './middleware/error.middleware';
 import { authRouter } from './routes/auth.routes';
 import adminRouter from './routes/admin.routes';
@@ -108,9 +107,6 @@ app.use(
     },
   })
 );
-
-// Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

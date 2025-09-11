@@ -320,10 +320,14 @@ const CustomerProfilePage = () => {
 
   if (profileLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <Loader2 className='h-8 w-8 animate-spin mx-auto mb-4' />
-          <p className='text-gray-600 dark:text-gray-400'>Loading profile...</p>
+      <div className='max-w-6xl mx-auto'>
+        <div className='flex items-center justify-center min-h-[400px]'>
+          <div className='text-center'>
+            <Loader2 className='h-8 w-8 animate-spin mx-auto mb-4 text-purple-600' />
+            <p className='text-gray-600 dark:text-gray-400'>
+              Loading profile...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -331,12 +335,14 @@ const CustomerProfilePage = () => {
 
   if (profileError) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <AlertCircle className='h-8 w-8 text-red-500 mx-auto mb-4' />
-          <p className='text-red-600 dark:text-red-400'>
-            Failed to load profile
-          </p>
+      <div className='max-w-6xl mx-auto'>
+        <div className='flex items-center justify-center min-h-[400px]'>
+          <div className='text-center'>
+            <AlertCircle className='h-8 w-8 text-red-500 mx-auto mb-4' />
+            <p className='text-red-600 dark:text-red-400'>
+              Failed to load profile
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -348,19 +354,21 @@ const CustomerProfilePage = () => {
 
   if (!user) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <User className='h-8 w-8 text-gray-400 mx-auto mb-4' />
-          <p className='text-gray-600 dark:text-gray-400'>
-            No profile data found
-          </p>
+      <div className='max-w-6xl mx-auto'>
+        <div className='flex items-center justify-center min-h-[400px]'>
+          <div className='text-center'>
+            <User className='h-8 w-8 text-gray-400 mx-auto mb-4' />
+            <p className='text-gray-600 dark:text-gray-400'>
+              No profile data found
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='max-w-6xl mx-auto space-y-6'>
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div>
@@ -387,39 +395,61 @@ const CustomerProfilePage = () => {
         onValueChange={setActiveTab}
         className='space-y-6'
       >
-        <TabsList className='grid w-full grid-cols-4'>
-          <TabsTrigger value='overview'>Overview</TabsTrigger>
-          <TabsTrigger value='personal'>Personal Info</TabsTrigger>
-          <TabsTrigger value='security'>Security</TabsTrigger>
-          <TabsTrigger value='activity'>Activity</TabsTrigger>
+        <TabsList className='grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800'>
+          <TabsTrigger
+            value='overview'
+            className='data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700'
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value='personal'
+            className='data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700'
+          >
+            Personal Info
+          </TabsTrigger>
+          <TabsTrigger
+            value='security'
+            className='data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700'
+          >
+            Security
+          </TabsTrigger>
+          <TabsTrigger
+            value='activity'
+            className='data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700'
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value='overview' className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             {/* Profile Card */}
-            <Card className='lg:col-span-1'>
-              <CardHeader className='text-center'>
+            <Card className='lg:col-span-1 border-0 shadow-lg'>
+              <CardHeader className='text-center pb-4'>
                 <div className='flex justify-center mb-4'>
                   <div className='relative'>
-                    <div className='w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-white text-2xl font-bold'>
+                    <div className='w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg'>
                       {user.firstName?.charAt(0) || 'U'}
                     </div>
                     <Button
                       size='sm'
-                      className='absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0'
+                      className='absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-700 shadow-md hover:shadow-lg'
                       variant='outline'
                     >
-                      <Camera className='h-4 w-4' />
+                      <Camera className='h-4 w-4 text-purple-600 dark:text-purple-400' />
                     </Button>
                   </div>
                 </div>
-                <CardTitle className='text-xl'>
+                <CardTitle className='text-xl text-gray-900 dark:text-white'>
                   {user.firstName} {user.lastName}
                 </CardTitle>
-                <CardDescription>{user.email}</CardDescription>
+                <CardDescription className='text-gray-600 dark:text-gray-400'>
+                  {user.email}
+                </CardDescription>
                 {user.bio && (
-                  <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
+                  <p className='text-sm text-gray-600 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg'>
                     {user.bio}
                   </p>
                 )}
@@ -449,12 +479,14 @@ const CustomerProfilePage = () => {
             {/* Stats Cards */}
             <div className='lg:col-span-2 space-y-6'>
               <div className='grid grid-cols-2 gap-4'>
-                <Card>
+                <Card className='border-0 shadow-md hover:shadow-lg transition-shadow'>
                   <CardContent className='p-6'>
-                    <div className='flex items-center space-x-2'>
-                      <Briefcase className='h-5 w-5 text-blue-600' />
+                    <div className='flex items-center space-x-3'>
+                      <div className='p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg'>
+                        <Briefcase className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+                      </div>
                       <div>
-                        <p className='text-2xl font-bold'>
+                        <p className='text-2xl font-bold text-gray-900 dark:text-white'>
                           {stats?.postedJobs || 0}
                         </p>
                         <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -465,12 +497,14 @@ const CustomerProfilePage = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className='border-0 shadow-md hover:shadow-lg transition-shadow'>
                   <CardContent className='p-6'>
-                    <div className='flex items-center space-x-2'>
-                      <CheckCircle className='h-5 w-5 text-green-600' />
+                    <div className='flex items-center space-x-3'>
+                      <div className='p-2 bg-green-100 dark:bg-green-900/20 rounded-lg'>
+                        <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />
+                      </div>
                       <div>
-                        <p className='text-2xl font-bold'>
+                        <p className='text-2xl font-bold text-gray-900 dark:text-white'>
                           {stats?.completedJobs || 0}
                         </p>
                         <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -481,12 +515,14 @@ const CustomerProfilePage = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className='border-0 shadow-md hover:shadow-lg transition-shadow'>
                   <CardContent className='p-6'>
-                    <div className='flex items-center space-x-2'>
-                      <Clock className='h-5 w-5 text-orange-600' />
+                    <div className='flex items-center space-x-3'>
+                      <div className='p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg'>
+                        <Clock className='h-5 w-5 text-orange-600 dark:text-orange-400' />
+                      </div>
                       <div>
-                        <p className='text-2xl font-bold'>
+                        <p className='text-2xl font-bold text-gray-900 dark:text-white'>
                           {stats?.activeJobs || 0}
                         </p>
                         <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -497,12 +533,14 @@ const CustomerProfilePage = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className='border-0 shadow-md hover:shadow-lg transition-shadow'>
                   <CardContent className='p-6'>
-                    <div className='flex items-center space-x-2'>
-                      <DollarSign className='h-5 w-5 text-green-600' />
+                    <div className='flex items-center space-x-3'>
+                      <div className='p-2 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg'>
+                        <DollarSign className='h-5 w-5 text-emerald-600 dark:text-emerald-400' />
+                      </div>
                       <div>
-                        <p className='text-2xl font-bold'>
+                        <p className='text-2xl font-bold text-gray-900 dark:text-white'>
                           ${stats?.totalSpent?.toLocaleString() || 0}
                         </p>
                         <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -515,10 +553,14 @@ const CustomerProfilePage = () => {
               </div>
 
               {/* Recent Jobs */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Jobs</CardTitle>
-                  <CardDescription>Your latest job postings</CardDescription>
+              <Card className='border-0 shadow-lg'>
+                <CardHeader className='pb-4'>
+                  <CardTitle className='text-lg text-gray-900 dark:text-white'>
+                    Recent Jobs
+                  </CardTitle>
+                  <CardDescription className='text-gray-600 dark:text-gray-400'>
+                    Your latest job postings
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {stats?.recentJobs?.length > 0 ? (

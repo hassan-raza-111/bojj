@@ -223,7 +223,6 @@ export const getCustomerDashboard: RequestHandler = async (req, res, next) => {
     return;
   } catch (error) {
     logger.error('Error fetching customer dashboard:', error);
-    next(error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch dashboard data',

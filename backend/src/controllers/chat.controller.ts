@@ -5,7 +5,7 @@ import { io } from '../server';
 const prisma = new PrismaClient();
 
 export class ChatController {
-  // Create a chat room when a customer accepts a vendor's bid
+  // Create a chat room when a customer accepts a vendor's bid or contacts vendor
   static async createChatRoom(req: Request, res: Response) {
     try {
       const { jobId, vendorId } = req.body;
@@ -15,7 +15,89 @@ export class ChatController {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      // Verify that the customer owns the job
+      // Check if this is a general contact (not job-specific)
+      const isGeneralContact = jobId.startsWith('contact-');
+
+      if (isGeneralContact) {
+        // For general contact, just verify vendor exists
+        const vendor = await prisma.user.findFirst({
+          where: {
+            id: vendorId,
+            role: 'VENDOR',
+          },
+        });
+
+        if (!vendor) {
+          return res.status(404).json({ message: 'Vendor not found' });
+        }
+
+        // Check if general chat room already exists
+        const existingChatRoom = await prisma.chatRoom.findFirst({
+          where: {
+            customerId: customerId,
+            vendorId: vendorId,
+            jobId: jobId,
+          },
+        });
+
+        if (existingChatRoom) {
+          return res.json({
+            success: true,
+            message: 'Chat room already exists',
+            chatRoom: existingChatRoom,
+          });
+        }
+
+        // Create general chat room with dummy job data
+        const chatRoom = await prisma.chatRoom.create({
+          data: {
+            jobId: jobId,
+            customerId: customerId,
+            vendorId: vendorId,
+            status: 'ACTIVE',
+          },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+            messages: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        });
+
+        // Add dummy job data for general contact
+        const chatRoomWithJob = {
+          ...chatRoom,
+          job: {
+            id: jobId,
+            title: 'General Contact',
+            status: 'ACTIVE',
+          },
+        };
+
+        return res.json({
+          success: true,
+          message: 'General chat room created successfully',
+          chatRoom: chatRoomWithJob,
+        });
+      }
+
+      // For job-specific chat rooms, verify that the customer owns the job
       const job = await prisma.job.findFirst({
         where: {
           id: jobId,

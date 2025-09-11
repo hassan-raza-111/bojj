@@ -34,7 +34,7 @@ router.patch('/change-password', authenticateToken, changePassword);
 
 // Enhanced profile management routes
 router.get('/profile', authenticateToken, getProfileData);
-router.post('/profile/picture', authenticateToken, uploadProfilePicture);
+router.post('/profile/picture', authenticateToken, uploadProfilePicture as any);
 router.delete('/account', authenticateToken, deleteAccount);
 
 export const authRouter = router;

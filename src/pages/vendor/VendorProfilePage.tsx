@@ -1,33 +1,49 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useChat } from '@/contexts/ChatContext';
 import { vendorApi } from '@/config/vendorApi';
 import { toast } from 'sonner';
-import { Star, MapPin, Calendar, Phone, Mail } from 'lucide-react';
+import {
+  Star,
+  MapPin,
+  Calendar,
+  Phone,
+  Mail,
+  User,
+  Loader2,
+  MessageSquare,
+} from 'lucide-react';
 import { getImageUrl } from '@/utils/imageUtils';
 import { formatDistanceToNow } from 'date-fns';
 
 const VendorProfilePage = () => {
   const { theme } = useTheme();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { createChatRoom, loadChatRooms, chatRooms, setCurrentChatRoom } =
+    useChat();
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [contactLoading, setContactLoading] = useState(false);
 
   // Load profile data
   useEffect(() => {
     const loadProfile = async () => {
-      if (!user) return;
+      if (!id) return;
 
       try {
         setLoading(true);
-        const response = await vendorApi.getProfile();
+        const response = await vendorApi.getPublicProfile(id);
 
         if (response.success && response.data) {
           setProfileData(response.data);
-          console.log('📋 Profile Page Data:', response.data);
+          console.log('📋 Public Profile Data:', response.data);
         } else {
           toast.error('Failed to load profile data');
         }
@@ -40,20 +56,93 @@ const VendorProfilePage = () => {
     };
 
     loadProfile();
-  }, [user]);
+  }, [id]);
+
+  // Handle contact vendor
+  const handleContactVendor = async () => {
+    if (!user) {
+      toast.error('Please log in to contact vendor');
+      navigate('/auth/login');
+      return;
+    }
+
+    if (user.role !== 'CUSTOMER') {
+      toast.error('Only customers can contact vendors');
+      return;
+    }
+
+    if (!id) {
+      toast.error('Vendor ID not found');
+      return;
+    }
+
+    setContactLoading(true);
+    try {
+      // For contact from profile page, we need to create a general chat room
+      // We'll use a dummy job ID or create a general contact room
+      const generalJobId = `contact-${user.id}-${id}`;
+
+      console.log('Contacting vendor:', {
+        vendorId: id,
+        jobId: generalJobId,
+        userId: user.id,
+      });
+
+      // Try to create a chat room
+      await createChatRoom(generalJobId, id);
+
+      // Reload chat rooms to get the latest data
+      await loadChatRooms();
+
+      // Find the chat room for this vendor
+      const chatRoom = chatRooms.find(
+        (room) => room.vendorId === id && room.customerId === user.id
+      );
+
+      if (chatRoom) {
+        // Set this as the current chat room
+        setCurrentChatRoom(chatRoom);
+      }
+
+      toast.success('Chat room opened!');
+
+      // Navigate to messages page
+      navigate('/customer/messages');
+    } catch (error) {
+      console.log(
+        'Chat room creation failed (probably already exists):',
+        error
+      );
+
+      // If chat room already exists, just reload chat rooms and find it
+      await loadChatRooms();
+
+      // Find the existing chat room
+      const chatRoom = chatRooms.find(
+        (room) => room.vendorId === id && room.customerId === user.id
+      );
+
+      if (chatRoom) {
+        setCurrentChatRoom(chatRoom);
+      }
+
+      toast.success('Chat room opened!');
+
+      // Navigate to messages page
+      navigate('/customer/messages');
+    } finally {
+      setContactLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div
-        className={`container py-8 sm:py-12 ${
-          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-        }`}
-      >
-        <div className='w-full max-w-4xl mx-auto'>
-          <div className='animate-pulse'>
-            <div className='h-8 bg-gray-300 rounded w-1/3 mb-4'></div>
-            <div className='h-64 bg-gray-300 rounded'></div>
-          </div>
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <Loader2 className='h-8 w-8 animate-spin mx-auto mb-4 text-purple-600' />
+          <p className='text-gray-600 dark:text-gray-400'>
+            Loading vendor profile...
+          </p>
         </div>
       </div>
     );
@@ -61,18 +150,11 @@ const VendorProfilePage = () => {
 
   if (!profileData) {
     return (
-      <div
-        className={`container py-8 sm:py-12 ${
-          theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-        }`}
-      >
-        <div className='w-full max-w-4xl mx-auto text-center'>
-          <p
-            className={`text-lg ${
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-            }`}
-          >
-            No profile data available
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <User className='h-8 w-8 text-gray-400 mx-auto mb-4' />
+          <p className='text-gray-600 dark:text-gray-400'>
+            No profile data found
           </p>
         </div>
       </div>
@@ -105,8 +187,22 @@ const VendorProfilePage = () => {
               `${userData.firstName} ${userData.lastName}`}
           </CardTitle>
           <div className='flex gap-2'>
-            <Button className='bg-emerald-600 hover:bg-emerald-700'>
-              Contact Vendor
+            <Button
+              onClick={handleContactVendor}
+              disabled={contactLoading}
+              className='bg-emerald-600 hover:bg-emerald-700'
+            >
+              {contactLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Opening Chat...
+                </>
+              ) : (
+                <>
+                  <MessageSquare className='mr-2 h-4 w-4' />
+                  Contact Vendor
+                </>
+              )}
             </Button>
           </div>
         </CardHeader>

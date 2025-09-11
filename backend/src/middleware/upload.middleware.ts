@@ -4,9 +4,9 @@ import { Request } from 'express';
 
 // Configure storage
 const storage = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb) => {
+  destination: (req: any, file: Express.Multer.File, cb) => {
     let uploadPath = '';
-    
+
     if (file.fieldname === 'profilePicture') {
       uploadPath = path.join(__dirname, '../../uploads/profiles');
     } else if (file.fieldname === 'portfolioImages') {
@@ -14,20 +14,24 @@ const storage = multer.diskStorage({
     } else {
       uploadPath = path.join(__dirname, '../../uploads');
     }
-    
+
     cb(null, uploadPath);
   },
-  filename: (req: Request, file: Express.Multer.File, cb) => {
+  filename: (req: any, file: Express.Multer.File, cb) => {
     // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const extension = path.extname(file.originalname);
     const filename = `${file.fieldname}-${uniqueSuffix}${extension}`;
     cb(null, filename);
-  }
+  },
 });
 
 // File filter for images only
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (
+  req: any,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -41,7 +45,7 @@ const upload = multer({
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
+  },
 });
 
 // Middleware for single profile picture upload
