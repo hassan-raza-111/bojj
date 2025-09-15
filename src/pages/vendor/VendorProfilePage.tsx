@@ -17,6 +17,9 @@ import {
   User,
   Loader2,
   MessageSquare,
+  Award,
+  Clock,
+  CheckCircle,
 } from 'lucide-react';
 import { getImageUrl } from '@/utils/imageUtils';
 import { formatDistanceToNow } from 'date-fns';
@@ -137,10 +140,10 @@ const VendorProfilePage = () => {
 
   if (loading) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <Loader2 className='h-8 w-8 animate-spin mx-auto mb-4 text-purple-600' />
-          <p className='text-gray-600 dark:text-gray-400'>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-400">
             Loading vendor profile...
           </p>
         </div>
@@ -150,10 +153,10 @@ const VendorProfilePage = () => {
 
   if (!profileData) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <User className='h-8 w-8 text-gray-400 mx-auto mb-4' />
-          <p className='text-gray-600 dark:text-gray-400'>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <User className="h-8 w-8 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">
             No profile data found
           </p>
         </div>
@@ -177,7 +180,7 @@ const VendorProfilePage = () => {
             : 'bg-white border-gray-200'
         }`}
       >
-        <CardHeader className='flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-2'>
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
           <CardTitle
             className={`text-2xl font-bold ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -186,20 +189,20 @@ const VendorProfilePage = () => {
             {vendorProfile?.companyName ||
               `${userData.firstName} ${userData.lastName}`}
           </CardTitle>
-          <div className='flex gap-2'>
+          <div className="flex gap-2">
             <Button
               onClick={handleContactVendor}
               disabled={contactLoading}
-              className='bg-emerald-600 hover:bg-emerald-700'
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               {contactLoading ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Opening Chat...
                 </>
               ) : (
                 <>
-                  <MessageSquare className='mr-2 h-4 w-4' />
+                  <MessageSquare className="mr-2 h-4 w-4" />
                   Contact Vendor
                 </>
               )}
@@ -207,14 +210,14 @@ const VendorProfilePage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-            <div className='md:col-span-1'>
-              <div className='h-24 w-24 mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden'>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <div className="h-24 w-24 mb-4 bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
                 {userData.avatar ? (
                   <img
                     src={getImageUrl(userData.avatar)}
-                    alt='Profile Picture'
-                    className='w-full h-full object-cover'
+                    alt="Profile Picture"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -224,7 +227,7 @@ const VendorProfilePage = () => {
                   />
                 ) : null}
                 <div
-                  className='w-full h-full flex items-center justify-center'
+                  className="w-full h-full flex items-center justify-center"
                   style={{ display: userData.avatar ? 'none' : 'flex' }}
                 >
                   {userData.firstName?.charAt(0) ||
@@ -233,22 +236,22 @@ const VendorProfilePage = () => {
                 </div>
               </div>
 
-              <div className='space-y-3'>
-                <div className='flex items-center space-x-2'>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
                   <Badge
-                    variant='secondary'
+                    variant="secondary"
                     className={`${
                       theme === 'dark'
                         ? 'bg-yellow-900/20 text-yellow-300 border border-yellow-700'
                         : 'bg-yellow-100 text-yellow-800'
                     }`}
                   >
-                    <Star className='w-3 h-3 mr-1' />
+                    <Star className="w-3 h-3 mr-1" />
                     {vendorProfile?.rating?.toFixed(1) || '0.0'} (
                     {vendorProfile?.totalReviews || 0} reviews)
                   </Badge>
                   <Badge
-                    variant='secondary'
+                    variant="secondary"
                     className={`${
                       theme === 'dark'
                         ? 'bg-green-900/20 text-green-300 border border-green-700'
@@ -259,7 +262,7 @@ const VendorProfilePage = () => {
                   </Badge>
                 </div>
 
-                <div className='flex items-center space-x-2'>
+                <div className="flex items-center space-x-2">
                   <MapPin
                     className={`w-4 h-4 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -274,7 +277,7 @@ const VendorProfilePage = () => {
                   </span>
                 </div>
 
-                <div className='flex items-center space-x-2'>
+                <div className="flex items-center space-x-2">
                   <Calendar
                     className={`w-4 h-4 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -290,7 +293,7 @@ const VendorProfilePage = () => {
                   </span>
                 </div>
 
-                <div className='flex items-center space-x-2'>
+                <div className="flex items-center space-x-2">
                   <Phone
                     className={`w-4 h-4 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -305,7 +308,7 @@ const VendorProfilePage = () => {
                   </span>
                 </div>
 
-                <div className='flex items-center space-x-2'>
+                <div className="flex items-center space-x-2">
                   <Mail
                     className={`w-4 h-4 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -321,7 +324,7 @@ const VendorProfilePage = () => {
                 </div>
               </div>
             </div>
-            <div className='md:col-span-2'>
+            <div className="md:col-span-2">
               <p
                 className={`mb-4 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -329,7 +332,38 @@ const VendorProfilePage = () => {
               >
                 {vendorProfile?.description || 'No description provided'}
               </p>
-              <div className='space-y-2'>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                  <Award className="h-6 w-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {vendorProfile?.completedJobs || 0}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Jobs Completed
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {vendorProfile?.experience || 0}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Years Experience
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    {vendorProfile?.rating?.toFixed(1) || '0.0'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Rating
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <p
                   className={`${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -338,36 +372,23 @@ const VendorProfilePage = () => {
                   Business Type:{' '}
                   {vendorProfile?.businessType || 'Not specified'}
                 </p>
-                <p
-                  className={`${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                >
-                  Experience: {vendorProfile?.experience || 0} years
-                </p>
-                <p
-                  className={`${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                >
-                  Completed Jobs: {vendorProfile?.completedJobs || 0}
-                </p>
               </div>
 
-              <div className='mt-4'>
+              {/* Skills & Services */}
+              <div className="mt-6">
                 <h4
-                  className={`font-semibold mb-2 ${
+                  className={`font-semibold mb-3 ${
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                   }`}
                 >
                   Skills & Services
                 </h4>
-                <div className='flex flex-wrap gap-2'>
+                <div className="flex flex-wrap gap-2">
                   {vendorProfile?.skills && vendorProfile.skills.length > 0 ? (
                     vendorProfile.skills.map((skill: string, index: number) => (
                       <Badge
                         key={index}
-                        variant='secondary'
+                        variant="secondary"
                         className={`${
                           theme === 'dark'
                             ? 'bg-gray-700 text-gray-300 border border-gray-600'
@@ -388,6 +409,42 @@ const VendorProfilePage = () => {
                   )}
                 </div>
               </div>
+
+              {/* Portfolio Section */}
+              {vendorProfile?.portfolioImages &&
+                vendorProfile.portfolioImages.length > 0 && (
+                  <div className="mt-6">
+                    <h4
+                      className={`font-semibold mb-3 ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      Portfolio
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {vendorProfile.portfolioImages.map(
+                        (image: string, index: number) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={getImageUrl(image)}
+                              alt={`Portfolio ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <CheckCircle className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </CardContent>
