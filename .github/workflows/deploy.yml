@@ -1,0 +1,47 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main # jis branch pe deploy karna ho
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ~/apps/venbid || exit 1
+
+            # Clone or pull repo
+            if [ -d .git ]; then
+              git reset --hard
+              git pull origin main
+            else
+              git clone https://github.com/username/repo.git .
+            fi
+
+            # Backend setup
+            cd backend
+            npm install --legacy-peer-deps
+            npx prisma migrate deploy
+            pm2 restart backend || pm2 start npm --name "backend" -- run start
+
+            # Frontend build
+            cd ../frontend
+            npm install --legacy-peer-deps
+            npm run build
+
+            # Restart Nginx
+            sudo systemctl restart nginx
+          EOF
