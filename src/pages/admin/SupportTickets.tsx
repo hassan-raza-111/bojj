@@ -61,110 +61,30 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
+import { useSupportTickets } from '@/hooks/useSupportTickets';
+import TicketDetailsModal from '@/components/admin/TicketDetailsModal';
 
 const SupportTickets = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all-tickets');
 
-  // Mock data for demonstration
-  const tickets = [
-    {
-      id: 'TICKET-001',
-      title: 'Payment not received for completed job',
-      description:
-        "I completed the website development job but haven't received payment yet. The job was marked as completed 3 days ago.",
-      customer: 'John Doe',
-      customerEmail: 'john@example.com',
-      customerPhone: '+1-555-0123',
-      assignedTo: 'Admin Support',
-      status: 'OPEN',
-      priority: 'HIGH',
-      category: 'Payment Issue',
-      createdAt: '2024-01-25 10:30:00',
-      updatedAt: '2024-01-25 14:20:00',
-      lastResponse: '2 hours ago',
-      responses: 3,
-      attachments: ['payment_proof.pdf'],
-      tags: ['payment', 'urgent', 'website'],
-    },
-    {
-      id: 'TICKET-002',
-      title: 'Account verification pending',
-      description:
-        'I submitted all required documents for vendor verification but my account is still pending after 5 days.',
-      customer: 'Jane Smith',
-      customerEmail: 'jane@example.com',
-      customerPhone: '+1-555-0124',
-      assignedTo: 'Vendor Support',
-      status: 'IN_PROGRESS',
-      priority: 'MEDIUM',
-      category: 'Account Issue',
-      createdAt: '2024-01-23 15:45:00',
-      updatedAt: '2024-01-25 09:15:00',
-      lastResponse: '1 day ago',
-      responses: 5,
-      attachments: ['id_proof.pdf', 'business_license.pdf'],
-      tags: ['verification', 'vendor', 'pending'],
-    },
-    {
-      id: 'TICKET-003',
-      title: 'Job posting not appearing in search',
-      description:
-        "I posted a new job for logo design but it's not showing up in the search results. I can see it in my dashboard though.",
-      customer: 'Mike Johnson',
-      customerEmail: 'mike@example.com',
-      customerPhone: '+1-555-0125',
-      assignedTo: 'Technical Support',
-      status: 'RESOLVED',
-      priority: 'LOW',
-      category: 'Technical Issue',
-      createdAt: '2024-01-20 11:20:00',
-      updatedAt: '2024-01-22 16:30:00',
-      lastResponse: '3 days ago',
-      responses: 4,
-      attachments: [],
-      tags: ['technical', 'search', 'resolved'],
-    },
-    {
-      id: 'TICKET-004',
-      title: 'Dispute with vendor over project quality',
-      description:
-        "The delivered project doesn't meet the requirements specified in the job description. I need help resolving this dispute.",
-      customer: 'Sarah Wilson',
-      customerEmail: 'sarah@example.com',
-      customerPhone: '+1-555-0126',
-      assignedTo: 'Dispute Resolution',
-      status: 'ESCALATED',
-      priority: 'HIGH',
-      category: 'Dispute',
-      createdAt: '2024-01-24 08:15:00',
-      updatedAt: '2024-01-25 12:45:00',
-      lastResponse: '4 hours ago',
-      responses: 7,
-      attachments: ['job_description.pdf', 'delivered_project.zip'],
-      tags: ['dispute', 'quality', 'escalated'],
-    },
-    {
-      id: 'TICKET-005',
-      title: 'Unable to withdraw earnings',
-      description:
-        "I'm trying to withdraw my earnings but getting an error message. My account is verified and I have sufficient balance.",
-      customer: 'David Brown',
-      customerEmail: 'david@example.com',
-      customerPhone: '+1-555-0127',
-      assignedTo: 'Payment Support',
-      status: 'OPEN',
-      priority: 'MEDIUM',
-      category: 'Payment Issue',
-      createdAt: '2024-01-25 13:00:00',
-      updatedAt: '2024-01-25 13:00:00',
-      lastResponse: 'No responses yet',
-      responses: 0,
-      attachments: ['error_screenshot.png'],
-      tags: ['withdrawal', 'payment', 'error'],
-    },
-  ];
+  const {
+    tickets,
+    stats,
+    loading,
+    error,
+    pagination,
+    fetchTickets,
+    getTicketsByStatus,
+  } = useSupportTickets({
+    isAdmin: true,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    priority: priorityFilter === 'all' ? undefined : priorityFilter,
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -200,6 +120,8 @@ const SupportTickets = () => {
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
+      case 'URGENT':
+        return <AlertCircle className='h-4 w-4 text-red-600' />;
       case 'HIGH':
         return <AlertCircle className='h-4 w-4 text-red-600' />;
       case 'MEDIUM':
@@ -215,23 +137,35 @@ const SupportTickets = () => {
     const matchesSearch =
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${ticket.user.firstName} ${ticket.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'all' || ticket.status === statusFilter;
-    const matchesPriority =
-      priorityFilter === 'all' || ticket.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch;
   });
 
-  const openTickets = tickets.filter((t) => t.status === 'OPEN').length;
-  const inProgressTickets = tickets.filter(
-    (t) => t.status === 'IN_PROGRESS'
-  ).length;
-  const resolvedTickets = tickets.filter((t) => t.status === 'RESOLVED').length;
-  const escalatedTickets = tickets.filter(
-    (t) => t.status === 'ESCALATED'
-  ).length;
+  const handleTicketClick = (ticket: any) => {
+    setSelectedTicket(ticket);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (value !== 'all-tickets') {
+      const status = value.toUpperCase().replace('-', '_');
+      getTicketsByStatus(status);
+    } else {
+      fetchTickets();
+    }
+  };
+
+  const handleTicketUpdated = () => {
+    fetchTickets();
+  };
+
+  // Use stats from API or fallback to 0
+  const openTickets = stats?.openTickets || 0;
+  const inProgressTickets = stats?.inProgressTickets || 0;
+  const resolvedTickets = stats?.resolvedTickets || 0;
+  const closedTickets = stats?.closedTickets || 0;
 
   return (
     <div className='space-y-6'>
@@ -307,13 +241,13 @@ const SupportTickets = () => {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue='all-tickets' className='space-y-4'>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className='space-y-4'>
         <TabsList className='grid w-full grid-cols-5'>
           <TabsTrigger value='all-tickets'>All Tickets</TabsTrigger>
           <TabsTrigger value='open'>Open</TabsTrigger>
           <TabsTrigger value='in-progress'>In Progress</TabsTrigger>
           <TabsTrigger value='resolved'>Resolved</TabsTrigger>
-          <TabsTrigger value='escalated'>Escalated</TabsTrigger>
+          <TabsTrigger value='closed'>Closed</TabsTrigger>
         </TabsList>
 
         <TabsContent value='all-tickets' className='space-y-6'>
@@ -431,108 +365,113 @@ const SupportTickets = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTickets.map((ticket) => (
-                      <TableRow key={ticket.id}>
-                        <TableCell>
-                          <div className='space-y-2'>
-                            <div className='font-medium'>{ticket.title}</div>
-                            <div className='text-sm text-gray-500 line-clamp-2'>
-                              {ticket.description}
-                            </div>
-                            <div className='flex items-center gap-2'>
-                              <Badge variant='outline' className='text-xs'>
-                                {ticket.category}
-                              </Badge>
-                              {ticket.tags.slice(0, 2).map((tag, index) => (
-                                <Badge
-                                  key={index}
-                                  variant='outline'
-                                  className='text-xs'
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                            <div className='text-xs text-gray-500'>
-                              {ticket.attachments.length > 0 && (
-                                <span className='flex items-center gap-1'>
-                                  <Tag className='h-3 w-3' />
-                                  {ticket.attachments.length} attachment(s)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='space-y-2'>
-                            <div className='font-medium'>{ticket.customer}</div>
-                            <div className='text-sm text-gray-500 flex items-center gap-2'>
-                              <Mail className='h-3 w-3' />
-                              {ticket.customerEmail}
-                            </div>
-                            <div className='text-sm text-gray-500 flex items-center gap-2'>
-                              <User className='h-3 w-3' />
-                              {ticket.customerPhone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='space-y-2'>
-                            {getStatusBadge(ticket.status)}
-                            {getPriorityBadge(ticket.priority)}
-                            <div className='flex items-center gap-1 text-xs text-gray-500'>
-                              {getPriorityIcon(ticket.priority)}
-                              {ticket.priority} Priority
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='space-y-1'>
-                            <div className='font-medium'>
-                              {ticket.assignedTo}
-                            </div>
-                            <div className='text-xs text-gray-500'>
-                              Assigned {ticket.createdAt}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='space-y-2 text-sm'>
-                            <div className='flex items-center gap-1'>
-                              <Calendar className='h-3 w-3' />
-                              Created: {ticket.createdAt}
-                            </div>
-                            <div className='flex items-center gap-1'>
-                              <Clock className='h-3 w-3' />
-                              Updated: {ticket.updatedAt}
-                            </div>
-                            <div className='flex items-center gap-1'>
-                              <MessageSquare className='h-3 w-3' />
-                              {ticket.responses} responses
-                            </div>
-                            <div className='text-xs text-gray-500'>
-                              Last: {ticket.lastResponse}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className='flex items-center gap-2'>
-                            <Button variant='ghost' size='sm'>
-                              <Eye className='h-4 w-4' />
-                            </Button>
-                            <Button variant='ghost' size='sm'>
-                              <Reply className='h-4 w-4' />
-                            </Button>
-                            <Button variant='ghost' size='sm'>
-                              <Forward className='h-4 w-4' />
-                            </Button>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='h-4 w-4' />
-                            </Button>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className='text-center py-8'>
+                          <div className='flex items-center justify-center gap-2'>
+                            <Activity className='h-4 w-4 animate-spin' />
+                            Loading tickets...
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredTickets.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className='text-center py-8'>
+                          <div className='text-gray-500'>No tickets found</div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredTickets.map((ticket) => (
+                        <TableRow key={ticket.id}>
+                          <TableCell>
+                            <div className='space-y-2'>
+                              <div className='font-medium'>{ticket.title}</div>
+                              <div className='text-sm text-gray-500 line-clamp-2'>
+                                {ticket.description}
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Badge variant='outline' className='text-xs'>
+                                  {ticket.category}
+                                </Badge>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='space-y-2'>
+                              <div className='font-medium'>
+                                {ticket.user.firstName} {ticket.user.lastName}
+                              </div>
+                              <div className='text-sm text-gray-500 flex items-center gap-2'>
+                                <Mail className='h-3 w-3' />
+                                {ticket.user.email}
+                              </div>
+                              <div className='text-xs text-gray-500'>
+                                <Badge variant='outline' className='text-xs'>
+                                  {ticket.user.role}
+                                </Badge>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='space-y-2'>
+                              {getStatusBadge(ticket.status)}
+                              {getPriorityBadge(ticket.priority)}
+                              <div className='flex items-center gap-1 text-xs text-gray-500'>
+                                {getPriorityIcon(ticket.priority)}
+                                {ticket.priority} Priority
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='space-y-1'>
+                              <div className='font-medium'>
+                                {ticket.assignedTo ? 
+                                  `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}` : 
+                                  'Unassigned'
+                                }
+                              </div>
+                              {ticket.assignedTo && (
+                                <div className='text-xs text-gray-500'>
+                                  {ticket.assignedTo.email}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='space-y-2 text-sm'>
+                              <div className='flex items-center gap-1'>
+                                <Calendar className='h-3 w-3' />
+                                Created: {new Date(ticket.createdAt).toLocaleDateString()}
+                              </div>
+                              <div className='flex items-center gap-1'>
+                                <Clock className='h-3 w-3' />
+                                Updated: {new Date(ticket.updatedAt).toLocaleDateString()}
+                              </div>
+                              {ticket.resolvedAt && (
+                                <div className='flex items-center gap-1'>
+                                  <CheckCircle className='h-3 w-3' />
+                                  Resolved: {new Date(ticket.resolvedAt).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className='flex items-center gap-2'>
+                              <Button 
+                                variant='ghost' 
+                                size='sm'
+                                onClick={() => handleTicketClick(ticket)}
+                              >
+                                <Eye className='h-4 w-4' />
+                              </Button>
+                              <Button variant='ghost' size='sm'>
+                                <Reply className='h-4 w-4' />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -540,14 +479,27 @@ const SupportTickets = () => {
               {/* Pagination */}
               <div className='flex items-center justify-between mt-6'>
                 <div className='text-sm text-gray-500'>
-                  Showing 1 to {filteredTickets.length} of {tickets.length}{' '}
-                  results
+                  Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
                 </div>
                 <div className='flex gap-2'>
-                  <Button variant='outline' size='sm'>
+                  <Button 
+                    variant='outline' 
+                    size='sm'
+                    disabled={pagination.page <= 1}
+                    onClick={() => {
+                      // Handle previous page
+                    }}
+                  >
                     Previous
                   </Button>
-                  <Button variant='outline' size='sm'>
+                  <Button 
+                    variant='outline' 
+                    size='sm'
+                    disabled={pagination.page >= pagination.pages}
+                    onClick={() => {
+                      // Handle next page
+                    }}
+                  >
                     Next
                   </Button>
                 </div>
@@ -561,30 +513,23 @@ const SupportTickets = () => {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <AlertCircle className='h-5 w-5' />
-                Open Tickets
+                Open Tickets ({openTickets})
               </CardTitle>
               <CardDescription>
                 Tickets that require immediate attention
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                <Button className='flex items-center gap-2'>
-                  <MessageSquare className='h-4 w-4' />
-                  Respond to Tickets
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <BarChart3 className='h-4 w-4' />
-                  Open Tickets Analytics
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <TrendingUp className='h-4 w-4' />
-                  Response Metrics
-                </Button>
-              </div>
-              <p className='text-gray-500 text-center py-8'>
-                Open tickets management interface will be implemented here
-              </p>
+              {loading ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Activity className='h-6 w-6 animate-spin mr-2' />
+                  Loading open tickets...
+                </div>
+              ) : (
+                <div className='text-center py-8 text-gray-500'>
+                  {filteredTickets.length} open tickets found
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -594,31 +539,23 @@ const SupportTickets = () => {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Clock className='h-5 w-5' />
-                In Progress Tickets
+                In Progress Tickets ({inProgressTickets})
               </CardTitle>
               <CardDescription>
                 Tickets currently being handled by support team
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                <Button className='flex items-center gap-2'>
-                  <Activity className='h-4 w-4' />
-                  Monitor Progress
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <BarChart3 className='h-4 w-4' />
-                  Progress Analytics
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <TrendingUp className='h-4 w-4' />
-                  Performance Metrics
-                </Button>
-              </div>
-              <p className='text-gray-500 text-center py-8'>
-                In-progress tickets management interface will be implemented
-                here
-              </p>
+              {loading ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Activity className='h-6 w-6 animate-spin mr-2' />
+                  Loading in-progress tickets...
+                </div>
+              ) : (
+                <div className='text-center py-8 text-gray-500'>
+                  {filteredTickets.length} in-progress tickets found
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -628,67 +565,64 @@ const SupportTickets = () => {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <CheckCircle className='h-5 w-5' />
-                Resolved Tickets
+                Resolved Tickets ({resolvedTickets})
               </CardTitle>
               <CardDescription>
                 Successfully resolved support tickets
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                <Button className='flex items-center gap-2'>
-                  <CheckCircle className='h-4 w-4' />
-                  Review Resolved
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <BarChart3 className='h-4 w-4' />
-                  Resolution Analytics
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <TrendingUp className='h-4 w-4' />
-                  Success Metrics
-                </Button>
-              </div>
-              <p className='text-gray-500 text-center py-8'>
-                Resolved tickets management interface will be implemented here
-              </p>
+              {loading ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Activity className='h-6 w-6 animate-spin mr-2' />
+                  Loading resolved tickets...
+                </div>
+              ) : (
+                <div className='text-center py-8 text-gray-500'>
+                  {filteredTickets.length} resolved tickets found
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value='escalated' className='space-y-6'>
+        <TabsContent value='closed' className='space-y-6'>
           <Card>
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
-                <AlertTriangle className='h-5 w-5' />
-                Escalated Tickets
+                <XCircle className='h-5 w-5' />
+                Closed Tickets ({closedTickets})
               </CardTitle>
               <CardDescription>
-                Tickets that require escalation to senior staff
+                Closed support tickets
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
-                <Button className='flex items-center gap-2'>
-                  <AlertCircle className='h-4 w-4' />
-                  Handle Escalations
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <BarChart3 className='h-4 w-4' />
-                  Escalation Analytics
-                </Button>
-                <Button variant='outline' className='flex items-center gap-2'>
-                  <TrendingDown className='h-4 w-4' />
-                  Escalation Trends
-                </Button>
-              </div>
-              <p className='text-gray-500 text-center py-8'>
-                Escalated tickets management interface will be implemented here
-              </p>
+              {loading ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Activity className='h-6 w-6 animate-spin mr-2' />
+                  Loading closed tickets...
+                </div>
+              ) : (
+                <div className='text-center py-8 text-gray-500'>
+                  {filteredTickets.length} closed tickets found
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Ticket Details Modal */}
+      <TicketDetailsModal
+        ticket={selectedTicket}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedTicket(null);
+        }}
+        onTicketUpdated={handleTicketUpdated}
+      />
     </div>
   );
 };

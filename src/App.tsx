@@ -36,7 +36,9 @@ import VendorManagement from './pages/admin/VendorManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
 import Analytics from './pages/admin/Analytics';
 import Settings from './pages/admin/Settings';
-import SupportTickets from './pages/admin/SupportTickets';
+import AdminSupportTickets from './pages/admin/SupportTickets';
+import CustomerSupportTickets from './pages/customer/SupportTickets';
+import VendorSupportTickets from './pages/vendor/SupportTickets';
 
 // Customer Features
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -82,15 +84,15 @@ const App = () => {
               <Routes>
                 {/* Public routes */}
                 <Route element={<MainLayout />}>
-                  <Route path='/' element={<HomePage />} />
-                  <Route path='/login' element={<LoginPage />} />
-                  <Route path='/signup' element={<SignUpPage />} />
-                  <Route path='/about' element={<AboutPage />} />
-                  <Route path='/faq' element={<FAQPage />} />
-                  <Route path='/contact' element={<ContactPage />} />
-                  <Route path='/support' element={<SupportPage />} />
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/support" element={<SupportPage />} />
                   <Route
-                    path='/vendor/public/:id'
+                    path="/vendor/public/:id"
                     element={<VendorProfilePage />}
                   />
                 </Route>
@@ -98,24 +100,27 @@ const App = () => {
                 {/* Protected Admin routes - Only ADMIN users can access */}
                 <Route element={<AdminProtectedRoute />}>
                   <Route
-                    path='/admin/*'
+                    path="/admin/*"
                     element={
                       <AdminLayout>
                         <Routes>
-                          <Route path='/' element={<AdminDashboard />} />
-                          <Route path='/users' element={<UserManagement />} />
-                          <Route path='/jobs' element={<JobManagement />} />
+                          <Route path="/" element={<AdminDashboard />} />
+                          <Route path="/users" element={<UserManagement />} />
+                          <Route path="/jobs" element={<JobManagement />} />
                           <Route
-                            path='/vendors'
+                            path="/vendors"
                             element={<VendorManagement />}
                           />
                           <Route
-                            path='/customers'
+                            path="/customers"
                             element={<CustomerManagement />}
                           />
-                          <Route path='/analytics' element={<Analytics />} />
-                          <Route path='/settings' element={<Settings />} />
-                          <Route path='/support' element={<SupportTickets />} />
+                          <Route path="/analytics" element={<Analytics />} />
+                          <Route path="/settings" element={<Settings />} />
+                          <Route
+                            path="/support"
+                            element={<AdminSupportTickets />}
+                          />
                         </Routes>
                       </AdminLayout>
                     }
@@ -125,51 +130,58 @@ const App = () => {
                 {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
                 <Route element={<ProtectedRoute />}>
                   <Route
-                    path='/customer/*'
+                    path="/customer/*"
                     element={
                       <CustomerProvider>
                         <CustomerLayout>
                           <Routes>
-                            <Route path='/' element={<CustomerDashboard />} />
+                            <Route path="/" element={<CustomerDashboard />} />
                             <Route
-                              path='/jobs'
+                              path="/jobs"
                               element={<CustomerJobsPage />}
                             />
                             <Route
-                              path='/jobs/post'
+                              path="/jobs/post"
                               element={<JobPostingForm />}
                             />
                             <Route
-                              path='/jobs/:id/details'
+                              path="/jobs/:id/details"
                               element={<JobDetailsPage />}
                             />
                             <Route
-                              path='/messages'
+                              path="/messages"
                               element={<MessagesPage />}
                             />
-                            <Route path='/support' element={<SupportPage />} />
                             <Route
-                              path='/jobs/new'
+                              path="/support"
+                              element={<CustomerSupportTickets />}
+                            />
+                            <Route
+                              path="/support/contact"
+                              element={<SupportPage />}
+                            />
+                            <Route
+                              path="/jobs/new"
                               element={<JobPostingForm />}
                             />
                             <Route
-                              path='/jobs/:id/edit'
+                              path="/jobs/:id/edit"
                               element={<JobPostingForm />}
                             />
                             <Route
-                              path='/jobs/:id'
+                              path="/jobs/:id"
                               element={<JobDetailPage />}
                             />
                             <Route
-                              path='/jobs/:id/bids'
+                              path="/jobs/:id/bids"
                               element={<BidsPage />}
                             />
                             <Route
-                              path='/jobs/:id/bid'
+                              path="/jobs/:id/bid"
                               element={<SubmitBidPage />}
                             />
                             <Route
-                              path='/profile'
+                              path="/profile"
                               element={<CustomerProfilePage />}
                             />
                           </Routes>
@@ -182,37 +194,44 @@ const App = () => {
                 {/* Protected vendor routes - Only authenticated VENDOR users can access */}
                 <Route element={<ProtectedRoute />}>
                   <Route
-                    path='/vendor/*'
+                    path="/vendor/*"
                     element={
                       <VendorLayout>
                         <Routes>
-                          <Route path='/' element={<VendorDashboard />} />
-                          <Route path='/jobs' element={<VendorJobsPage />} />
+                          <Route path="/" element={<VendorDashboard />} />
+                          <Route path="/jobs" element={<VendorJobsPage />} />
                           <Route
-                            path='/jobs/search'
+                            path="/jobs/search"
                             element={<VendorJobsPage />}
                           />
-                          <Route path='/bids' element={<VendorBidsPage />} />
+                          <Route path="/bids" element={<VendorBidsPage />} />
                           <Route
-                            path='/profile'
+                            path="/profile"
                             element={<VendorProfileManagement />}
                           />
                           <Route
-                            path='/profile/setup'
+                            path="/profile/setup"
                             element={<VendorProfileSetup />}
                           />
-                          <Route path='/messages' element={<MessagesPage />} />
-                          <Route path='/support' element={<SupportPage />} />
+                          <Route path="/messages" element={<MessagesPage />} />
                           <Route
-                            path='/jobs/:id/view'
+                            path="/support"
+                            element={<VendorSupportTickets />}
+                          />
+                          <Route
+                            path="/support/contact"
+                            element={<SupportPage />}
+                          />
+                          <Route
+                            path="/jobs/:id/view"
                             element={<JobDetailPage />}
                           />
                           <Route
-                            path='/jobs/:id/bid'
+                            path="/jobs/:id/bid"
                             element={<SubmitBidPage />}
                           />
                           <Route
-                            path='/bids/:id/view'
+                            path="/bids/:id/view"
                             element={<VendorJobDetailPage />}
                           />
                         </Routes>
@@ -222,7 +241,7 @@ const App = () => {
                 </Route>
 
                 {/* 404 - Catch all unmatched routes */}
-                <Route path='*' element={<NotFound />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
           </ChatProvider>

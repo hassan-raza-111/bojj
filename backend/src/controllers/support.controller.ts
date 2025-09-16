@@ -27,7 +27,7 @@ export const createTicket: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const ticket = await prisma.ticket.create({
+    const ticket = await prisma.supportTicket.create({
       data: {
         title,
         description,
@@ -83,7 +83,7 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
     const where: any = { userId };
     if (status) where.status = status;
 
-    const tickets = await prisma.ticket.findMany({
+    const tickets = await prisma.supportTicket.findMany({
       where,
       include: {
         user: {
@@ -103,7 +103,7 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
       },
     });
 
-    const total = await prisma.ticket.count({ where });
+    const total = await prisma.supportTicket.count({ where });
 
     res.json({
       success: true,
@@ -128,22 +128,24 @@ export const getUserTickets: RequestHandler = async (req, res, next) => {
 };
 
 // Get ticket details
-export const getTicketDetails: RequestHandler = async (req, res, next) => {
+export const getTicketById: RequestHandler = async (req, res, next) => {
   try {
-    const { ticketId } = req.params;
-    const userId = req.query.userId as string;
-    if (!userId) {
-      res.status(400).json({
-        success: false,
-        message: 'userId is required',
-      });
-      return;
-    }
+    const { id } = req.params;
+    const userId = req.user?.id; // Get from authenticated user
 
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: ticketId },
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id },
       include: {
         user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        assignedTo: {
           select: {
             id: true,
             firstName: true,
@@ -163,8 +165,8 @@ export const getTicketDetails: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Users can only view their own tickets
-    if (ticket.userId !== userId) {
+    // Users can only view their own tickets, admins can view all
+    if (ticket.userId !== userId && req.user?.role !== 'ADMIN') {
       res.status(403).json({
         success: false,
         message: 'You can only view your own tickets',
@@ -199,7 +201,7 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
     if (priority) where.priority = priority;
     if (category) where.category = category;
 
-    const tickets = await prisma.ticket.findMany({
+    const tickets = await prisma.supportTicket.findMany({
       where,
       include: {
         user: {
@@ -219,7 +221,7 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
       },
     });
 
-    const total = await prisma.ticket.count({ where });
+    const total = await prisma.supportTicket.count({ where });
 
     res.json({
       success: true,
@@ -247,9 +249,9 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
 export const updateTicket: RequestHandler = async (req, res, next) => {
   try {
     const { ticketId } = req.params;
-    const { status, priority, adminResponse } = req.body;
+    const { status, priority } = req.body;
 
-    const ticket = await prisma.ticket.findUnique({
+    const ticket = await prisma.supportTicket.findUnique({
       where: { id: ticketId },
     });
 
@@ -261,12 +263,11 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    const updatedTicket = await prisma.ticket.update({
+    const updatedTicket = await prisma.supportTicket.update({
       where: { id: ticketId },
       data: {
         status: status as TicketStatus,
         priority: priority as TicketPriority,
-        adminResponse,
         resolvedAt: status === 'RESOLVED' ? new Date() : null,
       },
       include: {
@@ -310,11 +311,11 @@ export const getTicketStats: RequestHandler = async (req, res, next) => {
       resolvedTickets,
       closedTickets,
     ] = await Promise.all([
-      prisma.ticket.count(),
-      prisma.ticket.count({ where: { status: 'OPEN' } }),
-      prisma.ticket.count({ where: { status: 'IN_PROGRESS' } }),
-      prisma.ticket.count({ where: { status: 'RESOLVED' } }),
-      prisma.ticket.count({ where: { status: 'CLOSED' } }),
+      prisma.supportTicket.count(),
+      prisma.supportTicket.count({ where: { status: 'OPEN' } }),
+      prisma.supportTicket.count({ where: { status: 'IN_PROGRESS' } }),
+      prisma.supportTicket.count({ where: { status: 'RESOLVED' } }),
+      prisma.supportTicket.count({ where: { status: 'CLOSED' } }),
     ]);
 
     res.json({
@@ -374,6 +375,195 @@ export const getTicketPriorities: RequestHandler = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch ticket priorities',
+    });
+    return;
+  }
+};
+
+// Delete ticket (only for ticket owner or admin)
+export const deleteTicket: RequestHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id },
+    });
+
+    if (!ticket) {
+      res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+      return;
+    }
+
+    // Only ticket owner or admin can delete
+    if (ticket.userId !== userId && userRole !== 'ADMIN') {
+      res.status(403).json({
+        success: false,
+        message: 'You can only delete your own tickets',
+      });
+      return;
+    }
+
+    await prisma.supportTicket.delete({
+      where: { id },
+    });
+
+    logger.info(`Ticket deleted: ${id} by user: ${userId}`);
+    res.json({
+      success: true,
+      message: 'Ticket deleted successfully',
+    });
+    return;
+  } catch (error) {
+    logger.error('Error deleting ticket:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete ticket',
+    });
+    return;
+  }
+};
+
+// Assign ticket to admin
+export const assignTicket: RequestHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { assignedToId } = req.body;
+
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id },
+    });
+
+    if (!ticket) {
+      res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+      return;
+    }
+
+    // Verify assigned user is an admin
+    if (assignedToId) {
+      const assignedUser = await prisma.user.findUnique({
+        where: { id: assignedToId },
+      });
+
+      if (!assignedUser || assignedUser.role !== 'ADMIN') {
+        res.status(400).json({
+          success: false,
+          message: 'Can only assign to admin users',
+        });
+        return;
+      }
+    }
+
+    const updatedTicket = await prisma.supportTicket.update({
+      where: { id },
+      data: {
+        assignedToId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    logger.info(`Ticket assigned: ${id} to admin: ${assignedToId}`);
+    res.json({
+      success: true,
+      data: updatedTicket,
+      message: 'Ticket assigned successfully',
+    });
+    return;
+  } catch (error) {
+    logger.error('Error assigning ticket:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign ticket',
+    });
+    return;
+  }
+};
+
+// Get tickets by status for dashboard
+export const getTicketsByStatus: RequestHandler = async (req, res, next) => {
+  try {
+    const { status } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    const tickets = await prisma.supportTicket.findMany({
+      where: { status: status as TicketStatus },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+      skip,
+      take: parseInt(limit as string),
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const total = await prisma.supportTicket.count({
+      where: { status: status as TicketStatus },
+    });
+
+    res.json({
+      success: true,
+      data: tickets,
+      pagination: {
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        total,
+        pages: Math.ceil(total / parseInt(limit as string)),
+      },
+    });
+    return;
+  } catch (error) {
+    logger.error('Error fetching tickets by status:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tickets',
     });
     return;
   }

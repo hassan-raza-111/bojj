@@ -64,8 +64,13 @@ export const API_CONFIG = {
       GET_BY_ID: (id: string) => `/api/support/tickets/${id}`,
       CREATE: '/api/support/tickets',
       UPDATE: (id: string) => `/api/support/tickets/${id}`,
+      DELETE: (id: string) => `/api/support/tickets/${id}`,
       ADMIN_TICKETS: '/api/support/admin/tickets',
       ADMIN_STATS: '/api/support/admin/tickets/stats',
+      ADMIN_TICKETS_BY_STATUS: (status: string) => `/api/support/admin/tickets/status/${status}`,
+      ASSIGN_TICKET: (id: string) => `/api/support/admin/tickets/${id}/assign`,
+      CATEGORIES: '/api/support/categories',
+      PRIORITIES: '/api/support/priorities',
     },
     DASHBOARD: {
       CUSTOMER: '/api/dashboard/customer',
