@@ -190,7 +190,9 @@ export const useSupportTickets = (options: UseSupportTicketsOptions = {}) => {
     async (id: string, ticketData: any): Promise<boolean> => {
       setLoading(true);
       try {
-        const response = await apiService.support.updateTicket(id, ticketData);
+        const response = options.isAdmin
+          ? await apiService.support.updateTicketAdmin(id, ticketData)
+          : await apiService.support.updateTicket(id, ticketData);
         if (response.success) {
           toast({
             title: 'Success',
@@ -217,7 +219,7 @@ export const useSupportTickets = (options: UseSupportTicketsOptions = {}) => {
         setLoading(false);
       }
     },
-    [fetchTickets, toast]
+    [fetchTickets, toast, options.isAdmin]
   );
 
   const deleteTicket = useCallback(

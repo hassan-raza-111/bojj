@@ -12,13 +12,8 @@ const prisma = new PrismaClient();
 // Create a support ticket
 export const createTicket: RequestHandler = async (req, res, next) => {
   try {
-    const {
-      title,
-      description,
-      category,
-      priority = 'MEDIUM',
-    } = req.body;
-    
+    const { title, description, category, priority = 'MEDIUM' } = req.body;
+
     const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({
@@ -249,11 +244,16 @@ export const getAllTickets: RequestHandler = async (req, res, next) => {
 // Admin: Update ticket status
 export const updateTicket: RequestHandler = async (req, res, next) => {
   try {
-    const { ticketId } = req.params;
+    const { id, ticketId } = req.params as { id?: string; ticketId?: string };
+    const targetId = id || ticketId;
+    if (!targetId) {
+      res.status(400).json({ success: false, message: 'Ticket ID required' });
+      return;
+    }
     const { status, priority } = req.body;
 
     const ticket = await prisma.supportTicket.findUnique({
-      where: { id: ticketId },
+      where: { id: targetId },
     });
 
     if (!ticket) {
@@ -265,7 +265,7 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
     }
 
     const updatedTicket = await prisma.supportTicket.update({
-      where: { id: ticketId },
+      where: { id: targetId },
       data: {
         status: status as TicketStatus,
         priority: priority as TicketPriority,
@@ -284,7 +284,7 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
       },
     });
 
-    logger.info(`Ticket updated: ${ticketId} with status: ${status}`);
+    logger.info(`Ticket updated: ${targetId} with status: ${status}`);
     res.json({
       success: true,
       data: updatedTicket,
@@ -294,10 +294,6 @@ export const updateTicket: RequestHandler = async (req, res, next) => {
   } catch (error) {
     logger.error('Error updating ticket:', error);
     next(error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update ticket',
-    });
     return;
   }
 };

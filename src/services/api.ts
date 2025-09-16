@@ -460,6 +460,17 @@ export const apiService = {
       );
     },
 
+    updateTicketAdmin: async (id: string, ticketData: any) => {
+      return apiCall(
+        `/api/support/admin/tickets/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(ticketData),
+        },
+        true
+      );
+    },
+
     deleteTicket: async (id: string) => {
       return apiCall(
         API_CONFIG.ENDPOINTS.SUPPORT.DELETE(id),
