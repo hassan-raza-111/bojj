@@ -39,6 +39,7 @@ import {
   TrendingUp,
   DollarSign,
   Activity,
+  User,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -51,6 +52,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { theme } = useTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const navigation = [
     {
@@ -89,6 +91,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       icon: HeadphonesIcon,
       description: 'Handle support requests',
     },
+    {
+      name: 'Profile',
+      href: '/admin/profile',
+      icon: User,
+      description: 'Manage your admin profile',
+    },
   ];
 
   const isActive = (href: string) => {
@@ -107,6 +115,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
     // Call logout function
     logout();
+
+    // Close dialog
+    setShowLogoutDialog(false);
 
     // Redirect to login
     window.location.href = '/login';
@@ -323,7 +334,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
               }`}
-              onClick={handleLogout}
+              onClick={() => setShowLogoutDialog(true)}
             >
               <LogOut className="mr-3 h-5 w-5" />
               Logout
@@ -413,32 +424,20 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600"
-                        onSelect={(e) => e.preventDefault()}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Logout</span>
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to logout? You will need to sign
-                          in again to access your account.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleLogout}>
-                          Logout
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/profile" className="w-full">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -454,6 +453,28 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <div className="p-6">{children}</div>
         </main>
       </div>
+
+      {/* Shared Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You will need to sign in again to
+              access the admin panel.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

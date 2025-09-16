@@ -35,6 +35,7 @@ import JobManagement from './pages/admin/JobManagement';
 import VendorManagement from './pages/admin/VendorManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
 import AdminSupportTickets from './pages/admin/SupportTickets';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
 import CustomerSupportTickets from './pages/customer/SupportTickets';
 import VendorSupportTickets from './pages/vendor/SupportTickets';
 
@@ -116,6 +117,10 @@ const App = () => {
                           <Route
                             path="/support"
                             element={<AdminSupportTickets />}
+                          />
+                          <Route
+                            path="/profile"
+                            element={<AdminProfilePage />}
                           />
                         </Routes>
                       </AdminLayout>
