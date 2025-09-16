@@ -128,17 +128,14 @@ export const createReviewSchema = z.object({
 export const createTicketSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
-  category: z.enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL', 'FEEDBACK']),
+  category: z.enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
-  userId: idSchema,
 });
 
 export const updateTicketSchema = z.object({
   status: z.enum(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  category: z
-    .enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL', 'FEEDBACK'])
-    .optional(),
+  category: z.enum(['TECHNICAL', 'BILLING', 'DISPUTE', 'GENERAL']).optional(),
   adminResponse: z.string().optional(),
 });
 

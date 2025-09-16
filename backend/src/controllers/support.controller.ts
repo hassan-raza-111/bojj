@@ -17,12 +17,13 @@ export const createTicket: RequestHandler = async (req, res, next) => {
       description,
       category,
       priority = 'MEDIUM',
-      userId,
     } = req.body;
+    
+    const userId = req.user?.id;
     if (!userId) {
-      res.status(400).json({
+      res.status(401).json({
         success: false,
-        message: 'userId is required',
+        message: 'User not authenticated',
       });
       return;
     }
