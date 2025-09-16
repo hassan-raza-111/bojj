@@ -75,6 +75,7 @@ interface TicketDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTicketUpdated: () => void;
+  mode?: 'view' | 'edit';
 }
 
 const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
@@ -82,12 +83,14 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
   isOpen,
   onClose,
   onTicketUpdated,
+  mode = 'view',
 }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
   const [priority, setPriority] = useState('');
   const [adminResponse, setAdminResponse] = useState('');
+  const isEditing = mode === 'edit';
 
   useEffect(() => {
     if (ticket) {
@@ -178,7 +181,12 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getStatusIcon(ticket.status)}
-            Ticket #{ticket.id.slice(0, 8)}
+            Ticket #{ticket.id.slice(0, 8)}{' '}
+            {isEditing && (
+              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                Edit Mode
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription>{ticket.title}</DialogDescription>
         </DialogHeader>
@@ -228,7 +236,7 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
                 <label className="text-sm font-medium text-gray-600">
                   Description
                 </label>
-                <div className="mt-1 p-3 bg-gray-50 rounded-md text-sm">
+                <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed whitespace-pre-line dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200">
                   {ticket.description}
                 </div>
               </div>
@@ -259,76 +267,77 @@ const TicketDetailsModal: React.FC<TicketDetailsModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Admin Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Admin Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Update Status
-                  </label>
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="OPEN">Open</SelectItem>
-                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                      <SelectItem value="RESOLVED">Resolved</SelectItem>
-                      <SelectItem value="CLOSED">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {isEditing && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Edit Ticket</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Update Status
+                    </label>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="OPEN">Open</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="RESOLVED">Resolved</SelectItem>
+                        <SelectItem value="CLOSED">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Update Priority
+                    </label>
+                    <Select value={priority} onValueChange={setPriority}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LOW">Low</SelectItem>
+                        <SelectItem value="MEDIUM">Medium</SelectItem>
+                        <SelectItem value="HIGH">High</SelectItem>
+                        <SelectItem value="URGENT">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium text-gray-600">
-                    Update Priority
+                    Admin Response
                   </label>
-                  <Select value={priority} onValueChange={setPriority}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="LOW">Low</SelectItem>
-                      <SelectItem value="MEDIUM">Medium</SelectItem>
-                      <SelectItem value="HIGH">High</SelectItem>
-                      <SelectItem value="URGENT">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Textarea
+                    value={adminResponse}
+                    onChange={(e) => setAdminResponse(e.target.value)}
+                    placeholder="Add a response or notes..."
+                    className="mt-1"
+                    rows={4}
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  Admin Response
-                </label>
-                <Textarea
-                  value={adminResponse}
-                  onChange={(e) => setAdminResponse(e.target.value)}
-                  placeholder="Add a response or notes..."
-                  className="mt-1"
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateTicket}
-                  disabled={loading}
-                  className="flex items-center gap-2"
-                >
-                  <Send className="h-4 w-4" />
-                  Update Ticket
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateTicket}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    Save Changes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -49,7 +49,6 @@ import {
   Tag,
   Plus,
   MoreHorizontal,
-  Reply,
   Forward,
   Archive,
   Trash2,
@@ -70,6 +69,7 @@ const SupportTickets = () => {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all-tickets');
 
   const {
@@ -148,6 +148,11 @@ const SupportTickets = () => {
   const handleTicketClick = (ticket: any) => {
     setSelectedTicket(ticket);
     setIsDetailsModalOpen(true);
+  };
+
+  const handleEditClick = (ticket: any) => {
+    setSelectedTicket(ticket);
+    setIsEditModalOpen(true);
   };
 
   const handleTabChange = (value: string) => {
@@ -488,29 +493,13 @@ const SupportTickets = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm">
-                                <Reply className="h-4 w-4" />
-                              </Button>
-                              <Select
-                                value={'' as any}
-                                onValueChange={(v) =>
-                                  handleQuickStatus(ticket.id, v)
-                                }
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditClick(ticket)}
                               >
-                                <SelectTrigger className="h-8 w-[140px]">
-                                  <SelectValue placeholder="Change status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="IN_PROGRESS">
-                                    Start
-                                  </SelectItem>
-                                  <SelectItem value="RESOLVED">
-                                    Resolve
-                                  </SelectItem>
-                                  <SelectItem value="CLOSED">Close</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              {/* Assignment removed for single-admin system */}
+                                Edit
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -669,6 +658,18 @@ const SupportTickets = () => {
           setSelectedTicket(null);
         }}
         onTicketUpdated={handleTicketUpdated}
+        mode="view"
+      />
+
+      <TicketDetailsModal
+        ticket={selectedTicket}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTicket(null);
+        }}
+        onTicketUpdated={handleTicketUpdated}
+        mode="edit"
       />
     </div>
   );
