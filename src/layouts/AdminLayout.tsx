@@ -1,7 +1,26 @@
 import { ReactNode } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
@@ -180,9 +199,17 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-semibold text-lg">
-                {user?.firstName?.charAt(0) || 'A'}
-              </div>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={fullName}
+                  className="h-12 w-12 rounded-full object-cover border border-blue-200"
+                />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-semibold text-lg">
+                  {user?.firstName?.charAt(0) || 'A'}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p
                   className={`text-sm font-medium truncate ${
@@ -191,8 +218,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 >
                   {fullName}
                 </p>
-                <p className="text-xs text-blue-600 font-medium">
-                  System Administrator
+                <p className="text-xs text-blue-600 font-medium truncate">
+                  {user?.email}
                 </p>
                 <div className="flex items-center mt-1">
                   <Badge
@@ -204,7 +231,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     }`}
                   >
                     <Shield className="w-3 h-3 mr-1" />
-                    Admin
+                    {user?.role || 'ADMIN'}
                   </Badge>
                   <Badge
                     variant="outline"
@@ -346,44 +373,74 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
-              {/* Quick Stats */}
-              <div className="hidden md:flex items-center space-x-4 text-sm">
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <Users className="h-4 w-4" />
-                  <span className="font-medium">1,247 Users</span>
-                </div>
-                <div className="flex items-center space-x-1 text-green-600">
-                  <Briefcase className="h-4 w-4" />
-                  <span className="font-medium">89 Jobs</span>
-                </div>
-                <div className="flex items-center space-x-1 text-purple-600">
-                  <DollarSign className="h-4 w-4" />
-                  <span className="font-medium">$12.5K</span>
-                </div>
-              </div>
-
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm">
                 <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                  8
-                </span>
               </Button>
 
-              {/* User menu */}
-              <div className="flex items-center space-x-3">
-                <span
-                  className={`text-sm font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  {fullName}
-                </span>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
+              {/* User dropdown (match customer style) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={`relative h-10 w-10 rounded-full p-0 ${
+                      theme === 'dark'
+                        ? 'hover:bg-gray-700'
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={fullName}
+                        className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-sm font-semibold">
+                        {user?.firstName?.charAt(0) || 'A'}
+                      </div>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {fullName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600"
+                        onSelect={(e) => e.preventDefault()}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to logout? You will need to sign
+                          in again to access your account.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleLogout}>
+                          Logout
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
