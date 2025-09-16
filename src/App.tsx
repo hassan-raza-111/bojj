@@ -34,8 +34,6 @@ import UserManagement from './pages/admin/UserManagement';
 import JobManagement from './pages/admin/JobManagement';
 import VendorManagement from './pages/admin/VendorManagement';
 import CustomerManagement from './pages/admin/CustomerManagement';
-import Analytics from './pages/admin/Analytics';
-import Settings from './pages/admin/Settings';
 import AdminSupportTickets from './pages/admin/SupportTickets';
 import CustomerSupportTickets from './pages/customer/SupportTickets';
 import VendorSupportTickets from './pages/vendor/SupportTickets';
@@ -115,8 +113,6 @@ const App = () => {
                             path="/customers"
                             element={<CustomerManagement />}
                           />
-                          <Route path="/analytics" element={<Analytics />} />
-                          <Route path="/settings" element={<Settings />} />
                           <Route
                             path="/support"
                             element={<AdminSupportTickets />}
