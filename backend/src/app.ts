@@ -14,7 +14,7 @@ import chatRouter from './routes/chat.routes';
 // Temporarily commented out due to TypeScript compilation issues
 // import { paymentRouter } from './routes/payment.routes';
 // import { serviceRouter } from './routes/service.routes';
-// import { supportRouter } from './routes/support.routes';
+import { supportRouter } from './routes/support.routes';
 // import { userRouter } from './routes/user.routes';
 
 const app: Express = express();
@@ -140,7 +140,7 @@ app.use('/api/chat', chatRouter); // Chat routes
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);
 // app.use('/api/payments', paymentRouter);
-// app.use('/api/support', supportRouter);
+app.use('/api/support', supportRouter);
 
 // 404 handler for undefined routes
 app.use('/*', (req, res) => {

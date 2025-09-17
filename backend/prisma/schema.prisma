@@ -41,6 +41,7 @@ model User {
   services         Service[]
   assignedTickets  SupportTicket[]  @relation("AssignedTickets")
   supportTickets   SupportTicket[]
+  ticketResponses  TicketResponse[]
   vendorPayouts    VendorPayout[]   @relation("VendorPayouts")
   vendorProfile    VendorProfile?
 
@@ -239,8 +240,23 @@ model SupportTicket {
   resolvedAt   DateTime?
   assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses    TicketResponse[]
 
   @@map("support_tickets")
+}
+
+model TicketResponse {
+  id        String   @id @default(uuid())
+  ticketId  String
+  userId    String
+  message   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_responses")
 }
 
 model RefreshToken {

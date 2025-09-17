@@ -9,6 +9,8 @@ import {
   getTicketStats,
   getTicketCategories,
   getTicketPriorities,
+  assignTicket,
+  getTicketsByStatus,
 } from '../controllers/support.controller';
 import {
   authenticateToken,
@@ -59,11 +61,18 @@ router.delete(
 
 // Admin routes
 router.get('/admin/tickets', authenticateToken, requireAdmin, getAllTickets);
+router.get('/admin/tickets/status/:status', authenticateToken, requireAdmin, getTicketsByStatus);
 router.patch(
   '/admin/tickets/:id',
   authenticateToken,
   requireAdmin,
   updateTicket
+);
+router.patch(
+  '/admin/tickets/:id/assign',
+  authenticateToken,
+  requireAdmin,
+  assignTicket
 );
 router.get(
   '/admin/tickets/stats',
