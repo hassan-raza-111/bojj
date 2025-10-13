@@ -24,12 +24,12 @@ async function main() {
 
   // Create default admin user
   console.log('👑 Creating default admin user...');
-  const adminPassword = await bcrypt.hash('admin123', 12);
+  const password = await bcrypt.hash('11223344', 12);
 
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@bojj.com',
-      password: adminPassword,
+      email: 'admin@gmail.com',
+      password: password,
       firstName: 'Admin',
       lastName: 'User',
       role: 'ADMIN',
@@ -45,11 +45,10 @@ async function main() {
 
   // Create sample customer
   console.log('👥 Creating sample customer...');
-  const customerPassword = await bcrypt.hash('customer123', 12);
   const customer = await prisma.user.create({
     data: {
-      email: 'customer@example.com',
-      password: customerPassword,
+      email: 'customer@gmail.com',
+      password: password,
       firstName: 'John',
       lastName: 'Doe',
       role: 'CUSTOMER',
@@ -71,11 +70,10 @@ async function main() {
 
   // Create sample vendor
   console.log('🛠️ Creating sample vendor...');
-  const vendorPassword = await bcrypt.hash('vendor123', 12);
   const vendor = await prisma.user.create({
     data: {
-      email: 'vendor@example.com',
-      password: vendorPassword,
+      email: 'vendor@gmail.com',
+      password: password,
       firstName: 'Mike',
       lastName: 'Johnson',
       role: 'VENDOR',
@@ -105,9 +103,9 @@ async function main() {
   console.log(`   👥 Customer users: 1`);
   console.log(`   🛠️ Vendor users: 1`);
   console.log('\n🔑 Default credentials:');
-  console.log(`   Admin: admin@bojj.com / admin123`);
-  console.log(`   Customer: customer@example.com / customer123`);
-  console.log(`   Vendor: vendor@example.com / vendor123`);
+  console.log(`   Admin: admin@gmail.com / 11223344`);
+  console.log(`   Customer: customer@gmail.com / 11223344`);
+  console.log(`   Vendor: vendor@gmail.com / 11223344`);
 }
 
 main()
