@@ -1,23 +1,28 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 // import { motion } from "framer-motion";
-import { useToast } from "@/components/ui/use-toast";
-import { MessageSquare, Mail, Phone, MapPin } from "lucide-react";
+import { useToast } from '@/components/ui/use-toast';
+import { MessageSquare, Mail, Phone, MapPin } from 'lucide-react';
 
 const ContactPage = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-    userType: "",
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+    userType: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -32,16 +37,16 @@ const ContactPage = () => {
     // Simulate API call
     setTimeout(() => {
       toast({
-        title: "Message sent successfully!",
+        title: 'Message sent successfully!',
         description: "We'll get back to you as soon as possible.",
       });
       setLoading(false);
       setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-        userType: "",
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+        userType: '',
       });
     }, 1000);
   };
@@ -74,18 +79,18 @@ const ContactPage = () => {
             <Card>
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="bg-bojj-primary/10 p-3 rounded-full">
-                    <Mail className="h-6 w-6 text-bojj-primary" />
+                  <div className="bg-venbid-primary/10 p-3 rounded-full">
+                    <Mail className="h-6 w-6 text-venbid-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-600">support@bojj.com</p>
+                    <p className="text-gray-600">support@venbid.com</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="bg-bojj-primary/10 p-3 rounded-full">
-                    <Phone className="h-6 w-6 text-bojj-primary" />
+                  <div className="bg-venbid-primary/10 p-3 rounded-full">
+                    <Phone className="h-6 w-6 text-venbid-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Phone</h3>
@@ -94,13 +99,13 @@ const ContactPage = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="bg-bojj-primary/10 p-3 rounded-full">
-                    <MapPin className="h-6 w-6 text-bojj-primary" />
+                  <div className="bg-venbid-primary/10 p-3 rounded-full">
+                    <MapPin className="h-6 w-6 text-venbid-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Address</h3>
                     <p className="text-gray-600">
-                      123 Bojj Street
+                      123 venbid Street
                       <br />
                       Chicago, IL 60601
                     </p>
@@ -108,8 +113,8 @@ const ContactPage = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="bg-bojj-primary/10 p-3 rounded-full">
-                    <MessageSquare className="h-6 w-6 text-bojj-primary" />
+                  <div className="bg-venbid-primary/10 p-3 rounded-full">
+                    <MessageSquare className="h-6 w-6 text-venbid-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Live Chat</h3>
@@ -174,7 +179,7 @@ const ContactPage = () => {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
+                      onChange={(e) => handleChange('name', e.target.value)}
                       required
                       placeholder="Enter your name"
                     />
@@ -186,7 +191,7 @@ const ContactPage = () => {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
+                      onChange={(e) => handleChange('email', e.target.value)}
                       required
                       placeholder="Enter your email"
                     />
@@ -197,7 +202,7 @@ const ContactPage = () => {
                   <Label htmlFor="userType">I am a</Label>
                   <Select
                     value={formData.userType}
-                    onValueChange={(value) => handleChange("userType", value)}
+                    onValueChange={(value) => handleChange('userType', value)}
                   >
                     <SelectTrigger id="userType">
                       <SelectValue placeholder="Select user type" />
@@ -214,7 +219,7 @@ const ContactPage = () => {
                   <Label htmlFor="subject">Subject</Label>
                   <Select
                     value={formData.subject}
-                    onValueChange={(value) => handleChange("subject", value)}
+                    onValueChange={(value) => handleChange('subject', value)}
                   >
                     <SelectTrigger id="subject">
                       <SelectValue placeholder="Select a subject" />
@@ -234,7 +239,7 @@ const ContactPage = () => {
                   <Textarea
                     id="message"
                     value={formData.message}
-                    onChange={(e) => handleChange("message", e.target.value)}
+                    onChange={(e) => handleChange('message', e.target.value)}
                     required
                     placeholder="Please describe your issue or question in detail"
                     rows={6}
@@ -243,10 +248,10 @@ const ContactPage = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-bojj-primary hover:bg-bojj-primary/90"
+                  className="w-full bg-venbid-primary hover:bg-venbid-primary/90"
                   disabled={loading}
                 >
-                  {loading ? "Sending..." : "Send Message"}
+                  {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </CardContent>
@@ -254,8 +259,6 @@ const ContactPage = () => {
         </>
         {/* </motion.div> */}
       </div>
-
-     
     </div>
   );
 };

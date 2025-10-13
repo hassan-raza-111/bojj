@@ -186,7 +186,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                   }`}
                 >
-                  BOJJ
+                  venbid
                 </h1>
                 <p className="text-xs text-blue-600 font-medium">
                   Admin Portal

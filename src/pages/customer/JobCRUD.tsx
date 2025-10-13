@@ -61,7 +61,7 @@ const initialJobs: JobData[] = [
     postedDate: '2023-04-25',
     bidsCount: 5,
     unreadMessages: 2,
-    company: 'BOJJ Construction',
+    company: 'venbid Construction',
     serviceCategory: 'Home Renovation',
     serviceType: 'Kitchen',
   },
@@ -85,7 +85,7 @@ const initialJobs: JobData[] = [
     postedDate: '2023-04-23',
     bidsCount: 3,
     unreadMessages: 0,
-    company: 'BOJJ Construction',
+    company: 'venbid Construction',
     serviceCategory: 'Home Renovation',
     serviceType: 'Bathroom',
   },
@@ -137,25 +137,25 @@ const JobCRUD = () => {
   });
 
   const jobContent = (
-    <div className='w-full'>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-xl font-semibold'>Jobs</h2>
-        <Link to='/customer/jobs/new'>
-          <Button className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white transition-colors flex items-center gap-2'>
-            <Plus className='h-4 w-4' /> Add a Job
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Jobs</h2>
+        <Link to="/customer/jobs/new">
+          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white transition-colors flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Add a Job
           </Button>
         </Link>
       </div>
-      <div className='mb-4 flex items-center justify-between gap-2'>
+      <div className="mb-4 flex items-center justify-between gap-2">
         <input
-          type='text'
-          placeholder='Search jobs by title, type, location, or company...'
+          type="text"
+          placeholder="Search jobs by title, type, location, or company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className='w-full max-w-md px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-bojj-primary'
+          className="w-full max-w-md px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-venbid-primary"
         />
       </div>
-      <div className='bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-800 overflow-x-auto'>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-800 overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -175,7 +175,7 @@ const JobCRUD = () => {
               <TableRow>
                 <TableCell
                   colSpan={9}
-                  className='text-center text-gray-500 py-8'
+                  className="text-center text-gray-500 py-8"
                 >
                   No jobs found.
                 </TableCell>
@@ -183,7 +183,7 @@ const JobCRUD = () => {
             ) : (
               filteredJobs.map((job) => (
                 <TableRow key={job.id}>
-                  <TableCell className='font-medium'>{job.title}</TableCell>
+                  <TableCell className="font-medium">{job.title}</TableCell>
                   <TableCell>{job.category}</TableCell>
                   <TableCell>
                     {job.city}, {job.state}
@@ -208,19 +208,19 @@ const JobCRUD = () => {
                   <TableCell>{job.serviceCategory}</TableCell>
                   <TableCell>{job.serviceType}</TableCell>
                   <TableCell>
-                    <div className='flex gap-2'>
+                    <div className="flex gap-2">
                       <Link to={`/customer/jobs/${job.id}/edit`}>
-                        <Button size='icon' variant='ghost' title='Edit'>
-                          <Pencil className='h-4 w-4' />
+                        <Button size="icon" variant="ghost" title="Edit">
+                          <Pencil className="h-4 w-4" />
                         </Button>
                       </Link>
                       <Button
-                        size='icon'
-                        variant='ghost'
+                        size="icon"
+                        variant="ghost"
                         onClick={() => handleDelete(job.id)}
-                        title='Delete'
+                        title="Delete"
                       >
-                        <Trash2 className='h-4 w-4 text-red-500' />
+                        <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
                   </TableCell>

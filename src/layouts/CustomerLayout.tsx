@@ -182,7 +182,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                   }`}
                 >
-                  BOJJ
+                  venbid
                 </h1>
                 <p
                   className={`text-xs ${

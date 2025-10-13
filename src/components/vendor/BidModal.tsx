@@ -133,7 +133,7 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className='space-y-6'>
+        <div className="space-y-6">
           {/* Job Details */}
           <div
             className={`p-4 rounded-lg ${
@@ -147,7 +147,7 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
             >
               Job Details
             </h4>
-            <div className='grid grid-cols-2 gap-4 text-sm'>
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span
                   className={`${
@@ -213,7 +213,7 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
                 </p>
               </div>
             </div>
-            <div className='mt-3'>
+            <div className="mt-3">
               <span
                 className={`${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -232,21 +232,21 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
           </div>
 
           {/* Bid Form */}
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='grid grid-cols-2 gap-4'>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label
-                  htmlFor='amount'
+                  htmlFor="amount"
                   className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
                 >
                   Bid Amount
                 </Label>
-                <div className='relative'>
-                  <DollarSign className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id='amount'
-                    type='number'
-                    placeholder='0.00'
+                    id="amount"
+                    type="number"
+                    placeholder="0.00"
                     value={formData.amount || ''}
                     onChange={(e) =>
                       setFormData({
@@ -254,11 +254,11 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
                         amount: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className='pl-10'
+                    className="pl-10"
                     required
                   />
                 </div>
-                <p className='text-xs text-gray-500 mt-1'>
+                <p className="text-xs text-gray-500 mt-1">
                   Suggested: {formatCurrency(job.budget * 0.8)} -{' '}
                   {formatCurrency(job.budget * 1.2)}
                 </p>
@@ -266,7 +266,7 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
 
               <div>
                 <Label
-                  htmlFor='timeline'
+                  htmlFor="timeline"
                   className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
                 >
                   Timeline
@@ -278,15 +278,15 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='Select timeline' />
+                    <SelectValue placeholder="Select timeline" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='1-3 days'>1-3 days</SelectItem>
-                    <SelectItem value='1 week'>1 week</SelectItem>
-                    <SelectItem value='2 weeks'>2 weeks</SelectItem>
-                    <SelectItem value='1 month'>1 month</SelectItem>
-                    <SelectItem value='2-3 months'>2-3 months</SelectItem>
-                    <SelectItem value='3+ months'>3+ months</SelectItem>
+                    <SelectItem value="1-3 days">1-3 days</SelectItem>
+                    <SelectItem value="1 week">1 week</SelectItem>
+                    <SelectItem value="2 weeks">2 weeks</SelectItem>
+                    <SelectItem value="1 month">1 month</SelectItem>
+                    <SelectItem value="2-3 months">2-3 months</SelectItem>
+                    <SelectItem value="3+ months">3+ months</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -294,13 +294,13 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
 
             <div>
               <Label
-                htmlFor='description'
+                htmlFor="description"
                 className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
               >
                 Proposal Description
               </Label>
               <Textarea
-                id='description'
+                id="description"
                 placeholder="Describe your approach, experience, and why you're the best fit for this job..."
                 value={formData.description}
                 onChange={(e) =>
@@ -313,14 +313,14 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
 
             <div>
               <Label
-                htmlFor='milestones'
+                htmlFor="milestones"
                 className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
               >
                 Milestones (Optional)
               </Label>
               <Textarea
-                id='milestones'
-                placeholder='Break down the project into key milestones and deliverables...'
+                id="milestones"
+                placeholder="Break down the project into key milestones and deliverables..."
                 value={formData.milestones}
                 onChange={(e) =>
                   setFormData({ ...formData, milestones: e.target.value })
@@ -333,27 +333,27 @@ const BidModal = ({ isOpen, onClose, job, onSubmitBid }: BidModalProps) => {
 
         <DialogFooter>
           <Button
-            type='button'
-            variant='outline'
+            type="button"
+            variant="outline"
             onClick={onClose}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button
-            type='submit'
+            type="submit"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className='bg-bojj-primary hover:bg-bojj-primary/90'
+            className="bg-venbid-primary hover:bg-venbid-primary/90"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...
               </>
             ) : (
               <>
-                <DollarSign className='mr-2 h-4 w-4' />
+                <DollarSign className="mr-2 h-4 w-4" />
                 Submit Bid
               </>
             )}

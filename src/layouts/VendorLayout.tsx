@@ -199,7 +199,7 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
                     theme === 'dark' ? 'text-white' : 'text-gray-900'
                   }`}
                 >
-                  BOJJ
+                  venbid
                 </h1>
                 <p
                   className={`text-xs ${

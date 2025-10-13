@@ -28,8 +28,8 @@ export default {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          'bojj-primary': '#6366f1', // Modern indigo
-          'bojj-dark': '#1e293b', // Slate 800
+          'venbid-primary': '#6366f1', // Modern indigo
+          'venbid-dark': '#1e293b', // Slate 800
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -55,7 +55,7 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        bojj: {
+        venbid: {
           primary: '#6366f1', // Modern indigo
           secondary: '#8b5cf6', // Purple
           accent: '#06b6d4', // Cyan
@@ -71,12 +71,12 @@ export default {
         },
       },
       backgroundImage: {
-        'bojj-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'bojj-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        'bojj-accent': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'bojj-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-        'bojj-warning': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-        'bojj-error': 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+        'venbid-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'venbid-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'venbid-accent': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        'venbid-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+        'venbid-warning': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        'venbid-error': 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
         glass:
           'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
         'glass-dark':
@@ -90,10 +90,11 @@ export default {
         '3xl': '1.5rem',
       },
       boxShadow: {
-        bojj: '0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06)',
-        'bojj-lg':
+        venbid:
+          '0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06)',
+        'venbid-lg':
           '0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -2px rgba(99, 102, 241, 0.05)',
-        'bojj-xl':
+        'venbid-xl':
           '0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04)',
         glass: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
         'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',

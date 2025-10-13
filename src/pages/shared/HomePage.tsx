@@ -193,7 +193,7 @@ const HomePage = () => {
     },
     {
       quote:
-        "Bojj has transformed my business. I'm getting new clients every week now.",
+        "venbid has transformed my business. I'm getting new clients every week now.",
       name: 'Michael Williams',
       role: 'Vendor',
       rating: 5,
@@ -211,7 +211,7 @@ const HomePage = () => {
     },
     {
       quote:
-        'As a small business owner, Bojj has helped me reach more clients than I ever could before.',
+        'As a small business owner, venbid has helped me reach more clients than I ever could before.',
       name: 'David Chen',
       role: 'Vendor',
       rating: 4,
@@ -229,7 +229,7 @@ const HomePage = () => {
     },
     {
       quote:
-        "I've been able to grow my landscaping company by 40% since joining Bojj last year.",
+        "I've been able to grow my landscaping company by 40% since joining venbid last year.",
       name: 'James Wilson',
       role: 'Vendor',
       rating: 5,
@@ -247,7 +247,7 @@ const HomePage = () => {
           size={16}
           className={
             index < rating
-              ? 'fill-bojj-primary text-bojj-primary'
+              ? 'fill-venbid-primary text-venbid-primary'
               : 'text-gray-300'
           }
         />
@@ -358,49 +358,49 @@ const HomePage = () => {
   };
 
   return (
-    <div className='min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300'>
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
       {/* Hero Section */}
-      <section className='py-10 md:py-14 bg-gradient-to-b from-white via-gray-50/50 to-gray-50 dark:from-gray-950 dark:via-gray-900/50 dark:to-gray-900'>
-        <div className='container mx-auto px-4 md:px-6'>
-          <div className='flex flex-col-reverse lg:flex-row gap-8 items-center'>
+      <section className="py-10 md:py-14 bg-gradient-to-b from-white via-gray-50/50 to-gray-50 dark:from-gray-950 dark:via-gray-900/50 dark:to-gray-900">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex flex-col-reverse lg:flex-row gap-8 items-center">
             {/* Form Side */}
             {/* <motion.div className="w-full lg:w-1/2"> */}
-            <div className='w-full lg:w-1/2'>
-              <h1 className='text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6 text-center lg:text-left'>
+            <div className="w-full lg:w-1/2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6 text-center lg:text-left">
                 Get the Job Done – On Your Terms
               </h1>
-              <p className='text-base md:text-lg text-gray-600 dark:text-gray-300 mb-8 text-center lg:text-left'>
+              <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 mb-8 text-center lg:text-left">
                 Tell us what you need, set your budget, and get competitive bids
                 from trusted vendors in your area.
               </p>
 
               {/* <motion.form onSubmit={handleFormSubmit} className="flex flex-col gap-4"> */}
-              <form onSubmit={handleFormSubmit} className='flex flex-col gap-4'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    type='text'
-                    placeholder='First Name'
+                    type="text"
+                    placeholder="First Name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className='h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-bojj-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400'
+                    className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-venbid-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     required
                   />
                   <Input
-                    type='text'
-                    placeholder='Last Name'
+                    type="text"
+                    placeholder="Last Name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className='h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-bojj-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400'
+                    className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-venbid-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     required
                   />
                 </div>
 
                 {/* Service Dropdown */}
-                <div className='relative'>
+                <div className="relative">
                   <button
-                    type='button'
+                    type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className='h-12 w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-sm flex items-center justify-between hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-white'
+                    className="h-12 w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-sm flex items-center justify-between hover:border-gray-300 dark:hover:border-gray-600 text-gray-900 dark:text-white"
                   >
                     <span
                       className={`${
@@ -419,21 +419,21 @@ const HomePage = () => {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className='absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700'>
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700">
                       {Object.entries(serviceCategories).map(
                         ([category, services]) => (
                           <div
                             key={category}
-                            className='group relative'
+                            className="group relative"
                             onMouseEnter={() => setActiveCategory(category)}
                             onMouseLeave={() => setActiveCategory(null)}
                           >
                             <button
-                              type='button'
-                              className='w-full text-left px-4 py-2.5 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-between'
+                              type="button"
+                              className="w-full text-left px-4 py-2.5 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-between"
                             >
                               <span>{category}</span>
-                              <ChevronRight className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+                              <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                             </button>
 
                             <div
@@ -444,12 +444,12 @@ const HomePage = () => {
                               {services.map((service) => (
                                 <button
                                   key={service}
-                                  type='button'
+                                  type="button"
                                   onClick={() => {
                                     setService(service);
                                     setIsDropdownOpen(false);
                                   }}
-                                  className='w-full text-left px-4 py-2.5 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm'
+                                  className="w-full text-left px-4 py-2.5 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm"
                                 >
                                   {service}
                                 </button>
@@ -463,21 +463,21 @@ const HomePage = () => {
                 </div>
 
                 {/* Location and Phone Inputs */}
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    type='text'
-                    placeholder='ZIP Code'
+                    type="text"
+                    placeholder="ZIP Code"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className='h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-bojj-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400'
+                    className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-venbid-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   />
-                  <div className='flex gap-2'>
+                  <div className="flex gap-2">
                     <Input
-                      type='tel'
-                      placeholder='Phone Number'
+                      type="tel"
+                      placeholder="Phone Number"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className='h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-bojj-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400'
+                      className="h-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-venbid-primary/20 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       required
                     />
                     {/* <Button
@@ -498,41 +498,43 @@ const HomePage = () => {
                       navigate('/customer/jobs/new');
                     } else {
                       // If user is not logged in, redirect to login with customer type
-                      navigate('/login?type=customer&redirect=/customer/jobs/new');
+                      navigate(
+                        '/login?type=customer&redirect=/customer/jobs/new'
+                      );
                     }
                   }}
-                  className='h-12 bg-bojj-primary hover:bg-bojj-primary/90 text-white dark:text-white px-6 w-full transition-all duration-200'
+                  className="h-12 bg-venbid-primary hover:bg-venbid-primary/90 text-white dark:text-white px-6 w-full transition-all duration-200"
                 >
                   Get Bids Now
                 </Button>
 
                 {/* Login/Signup Buttons */}
-                <div className='flex flex-col sm:flex-row gap-3 mt-4'>
-                  <Link to='/signup?type=customer' className='flex-1'>
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <Link to="/signup?type=customer" className="flex-1">
                     <Button
-                      variant='outline'
-                      className='h-12 w-full border-bojj-primary text-bojj-primary hover:bg-bojj-primary/10 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700'
+                      variant="outline"
+                      className="h-12 w-full border-venbid-primary text-venbid-primary hover:bg-venbid-primary/10 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                     >
                       Sign Up as Customer
                     </Button>
                   </Link>
-                  <Link to='/signup?type=vendor' className='flex-1'>
+                  <Link to="/signup?type=vendor" className="flex-1">
                     <Button
-                      variant='outline'
-                      className='h-12 w-full border-bojj-primary text-bojj-primary hover:bg-bojj-primary/10 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700'
+                      variant="outline"
+                      className="h-12 w-full border-venbid-primary text-venbid-primary hover:bg-venbid-primary/10 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
                     >
                       Sign Up as Vendor
                     </Button>
                   </Link>
                 </div>
 
-                <div className='text-center mt-4'>
-                  <span className='text-sm text-gray-600 dark:text-gray-400'>
+                <div className="text-center mt-4">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
                     Already have an account?{' '}
                   </span>
                   <Link
-                    to='/login?type=customer'
-                    className='text-bojj-primary hover:underline font-medium'
+                    to="/login?type=customer"
+                    className="text-venbid-primary hover:underline font-medium"
                   >
                     Login here
                   </Link>
@@ -542,11 +544,11 @@ const HomePage = () => {
 
             {/* Image Side */}
             {/* <motion.div className="w-full lg:w-1/2 flex justify-center"> */}
-            <div className='w-full lg:w-1/2 flex justify-center'>
+            <div className="w-full lg:w-1/2 flex justify-center">
               <img
-                src='https://images.unsplash.com/photo-1676311396794-f14881e9daaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                alt='Professional Services'
-                className='rounded-lg shadow-lg w-full max-w-[600px] h-auto dark:opacity-90 dark:shadow-gray-800/30'
+                src="https://images.unsplash.com/photo-1676311396794-f14881e9daaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="Professional Services"
+                className="rounded-lg shadow-lg w-full max-w-[600px] h-auto dark:opacity-90 dark:shadow-gray-800/30"
               />
             </div>
           </div>
@@ -554,25 +556,25 @@ const HomePage = () => {
       </section>
 
       {/* How it Works Section */}
-      <section className='py-12 md:py-16 bg-white dark:bg-gray-900'>
-        <div className='container mx-auto px-4 md:px-6'>
+      <section className="py-12 md:py-16 bg-white dark:bg-gray-900">
+        <div className="container mx-auto px-4 md:px-6">
           {/* <motion.div className="text-center mb-8 md:mb-12"> */}
-          <div className='text-center mb-8 md:mb-12'>
-            <h2 className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white'>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               How It Works
             </h2>
           </div>
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 md:gap-8'>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 md:gap-8">
             {howItWorks.map((item, i) => (
-              <div key={item.step} className='text-center relative'>
-                <div className='bg-bojj-primary dark:bg-bojj-primary/90 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mx-auto'>
+              <div key={item.step} className="text-center relative">
+                <div className="bg-venbid-primary dark:bg-venbid-primary/90 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mx-auto">
                   {item.step}
                 </div>
-                <h3 className='mt-3 md:mt-4 font-medium text-lg text-gray-900 dark:text-white'>
+                <h3 className="mt-3 md:mt-4 font-medium text-lg text-gray-900 dark:text-white">
                   {item.title}
                 </h3>
-                <p className='text-sm text-gray-600 dark:text-gray-300'>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   {item.description}
                 </p>
               </div>
@@ -582,74 +584,74 @@ const HomePage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className='py-12 md:py-16 bg-gray-50 dark:bg-gray-800/50'>
-        <div className='container mx-auto px-4 md:px-6'>
+      <section className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800/50">
+        <div className="container mx-auto px-4 md:px-6">
           {/* <motion.div className="text-center mb-8 md:mb-12"> */}
-          <div className='text-center mb-8 md:mb-12'>
-            <h2 className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white'>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               What People Say
             </h2>
-            <p className='text-gray-600 dark:text-gray-300 mt-2'>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
               Real experiences from our community
             </p>
           </div>
 
           <Carousel
-            className='w-full'
+            className="w-full"
             opts={{
               align: 'start',
               loop: true,
             }}
             setApi={setCarouselApi}
           >
-            <CarouselContent className='-ml-2 md:-ml-4'>
+            <CarouselContent className="-ml-2 md:-ml-4">
               {testimonials.map((testimonial, i) => (
                 <CarouselItem
                   key={i}
-                  className='pl-2 md:pl-4 sm:basis-1/1 md:basis-1/2 lg:basis-1/3'
+                  className="pl-2 md:pl-4 sm:basis-1/1 md:basis-1/2 lg:basis-1/3"
                 >
-                  <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 h-full'>
-                    <div className='flex items-center gap-4'>
-                      <div className='h-12 w-12 rounded-full overflow-hidden'>
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full overflow-hidden">
                         <img
                           src={testimonial.image}
                           alt={testimonial.name}
-                          className='w-full h-full object-cover'
+                          className="w-full h-full object-cover"
                         />
                       </div>
                       <div>
-                        <p className='font-medium text-gray-900 dark:text-white'>
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {testimonial.name}
                         </p>
-                        <p className='text-sm text-bojj-primary dark:text-bojj-primary/90'>
+                        <p className="text-sm text-venbid-primary dark:text-venbid-primary/90">
                           {testimonial.role}
                         </p>
                       </div>
                     </div>
-                    <div className='flex mt-4'>
+                    <div className="flex mt-4">
                       {renderStars(testimonial.rating)}
                     </div>
-                    <p className='mt-4 text-gray-600 dark:text-gray-300'>
+                    <p className="mt-4 text-gray-600 dark:text-gray-300">
                       {testimonial.quote}
                     </p>
-                    <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                       {testimonial.location}
                     </p>
                   </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <div className='mt-6 flex justify-center gap-2'>
+            <div className="mt-6 flex justify-center gap-2">
               <CarouselPrevious
-                className='relative static transform-none mx-2 transition-all hover:scale-110'
-                variant='outline'
+                className="relative static transform-none mx-2 transition-all hover:scale-110"
+                variant="outline"
               />
               <CarouselNext
-                className='relative static transform-none mx-2 transition-all hover:scale-110'
-                variant='outline'
+                className="relative static transform-none mx-2 transition-all hover:scale-110"
+                variant="outline"
               />
             </div>
-            <div className='flex justify-center gap-1 mt-4'>
+            <div className="flex justify-center gap-1 mt-4">
               {testimonials
                 .slice(0, Math.min(6, Math.ceil(testimonials.length / 3)))
                 .map((_, i) => (
@@ -657,7 +659,7 @@ const HomePage = () => {
                     key={i}
                     className={`h-2 w-2 rounded-full transition-colors duration-300 ${
                       Math.floor(currentCarouselSlide / 3) === i
-                        ? 'bg-bojj-primary'
+                        ? 'bg-venbid-primary'
                         : 'bg-gray-300'
                     }`}
                   />
@@ -669,29 +671,29 @@ const HomePage = () => {
 
       {/* CTA Section */}
 
-      <section className='py-12 md:py-16 bg-bojj-primary dark:bg-bojj-primary/90'>
-        <div className='container mx-auto px-4 md:px-6 text-center'>
-          <h2 className='text-2xl md:text-3xl font-bold text-white mb-4'>
+      <section className="py-12 md:py-16 bg-venbid-primary dark:bg-venbid-primary/90">
+        <div className="container mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
             Ready to Get Started?
           </h2>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-            <Link to='/signup?type=customer'>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/signup?type=customer">
               <Button
-                variant='outline'
-                className='bg-white text-bojj-primary border border-white 
+                variant="outline"
+                className="bg-white text-venbid-primary border border-white 
                    dark:bg-transparent dark:text-white dark:border-white 
                    transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg 
-                   hover:bg-gray-50 dark:hover:bg-white/10'
+                   hover:bg-gray-50 dark:hover:bg-white/10"
               >
                 I Need a Service
               </Button>
             </Link>
-            <Link to='/signup?type=vendor'>
+            <Link to="/signup?type=vendor">
               <Button
-                className='bg-white text-bojj-primary 
-                   dark:bg-white dark:text-bojj-primary 
+                className="bg-white text-venbid-primary 
+                   dark:bg-white dark:text-venbid-primary 
                    transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg 
-                   hover:bg-gray-100 dark:hover:bg-gray-200'
+                   hover:bg-gray-100 dark:hover:bg-gray-200"
               >
                 I'm a Service Provider
               </Button>

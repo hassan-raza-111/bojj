@@ -188,7 +188,7 @@ const SupportPage = () => {
               {!ticketCreated ? (
                 <>
                   <div className="flex items-center gap-2 mb-6">
-                    <TicketCheck className="h-6 w-6 text-bojj-primary" />
+                    <TicketCheck className="h-6 w-6 text-venbid-primary" />
                     <h2 className="text-2xl font-semibold">
                       Create a Support Ticket
                     </h2>
@@ -355,7 +355,7 @@ const SupportPage = () => {
 
                       <Button
                         type="submit"
-                        className="w-full bg-bojj-primary hover:bg-bojj-primary/90"
+                        className="w-full bg-venbid-primary hover:bg-venbid-primary/90"
                         disabled={loading}
                       >
                         {loading ? 'Submitting...' : 'Submit Ticket'}
@@ -426,8 +426,8 @@ const SupportPage = () => {
           <Card>
             <CardContent className="p-6 space-y-6">
               <div className="flex flex-col items-center text-center gap-2 mb-4">
-                <div className="bg-bojj-primary/10 p-3 rounded-full">
-                  <LifeBuoy className="h-6 w-6 text-bojj-primary" />
+                <div className="bg-venbid-primary/10 p-3 rounded-full">
+                  <LifeBuoy className="h-6 w-6 text-venbid-primary" />
                 </div>
                 <h3 className="font-medium text-lg">How Can We Help?</h3>
                 <p className="text-sm text-gray-600">
@@ -458,7 +458,7 @@ const SupportPage = () => {
                 <h4 className="font-medium mb-2">Contact Information</h4>
                 <div className="flex items-center gap-3 mb-2">
                   <Mail className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm">support@bojj.com</span>
+                  <span className="text-sm">support@venbid.com</span>
                 </div>
                 <p className="text-xs text-gray-600">
                   Our support hours are Monday to Friday, 9:00 AM - 5:00 PM CT.
@@ -472,7 +472,7 @@ const SupportPage = () => {
                     <Link
                       // to="/faq?category=Account%20%26%20Profile&question=How%20do%20I%20reset%20my%20password"
                       to="/faq?category=Account%20%26%20Profile&question=How%20do%20I%20reset%20my%20password"
-                      className="text-bojj-primary hover:underline cursor-pointer"
+                      className="text-venbid-primary hover:underline cursor-pointer"
                     >
                       How do I reset my password?
                     </Link>
@@ -480,7 +480,7 @@ const SupportPage = () => {
                   <li>
                     <Link
                       to="/faq?category=Account%20%26%20Profile&question=Where%20can%20I%20find%20my%20invoice"
-                      className="text-bojj-primary hover:underline cursor-pointer"
+                      className="text-venbid-primary hover:underline cursor-pointer"
                     >
                       Where can I find my invoice?
                     </Link>
@@ -488,7 +488,7 @@ const SupportPage = () => {
                   <li>
                     <Link
                       to="/faq?category=Account%20%26%20Profile&question=How%20to%20update%20my%20profile"
-                      className="text-bojj-primary hover:underline cursor-pointer"
+                      className="text-venbid-primary hover:underline cursor-pointer"
                     >
                       How to update my profile?
                     </Link>
@@ -496,7 +496,7 @@ const SupportPage = () => {
                   <li>
                     <Link
                       to="/faq"
-                      className="text-bojj-primary hover:underline cursor-pointer"
+                      className="text-venbid-primary hover:underline cursor-pointer"
                     >
                       View all FAQs →
                     </Link>

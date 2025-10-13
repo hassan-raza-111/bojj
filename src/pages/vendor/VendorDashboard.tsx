@@ -236,7 +236,7 @@ const VendorDashboard = () => {
             Refresh
           </Button>
           <Link to="/vendor/jobs/search">
-            <Button className="bg-bojj-primary hover:bg-bojj-primary/90">
+            <Button className="bg-venbid-primary hover:bg-venbid-primary/90">
               <Search className="mr-2 h-4 w-4" />
               Find Jobs
             </Button>
@@ -517,7 +517,7 @@ const VendorDashboard = () => {
 
                       <Button
                         onClick={() => openBidModal(job)}
-                        className="flex-1 bg-bojj-primary hover:bg-bojj-primary/90"
+                        className="flex-1 bg-venbid-primary hover:bg-venbid-primary/90"
                       >
                         Submit Bid
                       </Button>

@@ -32,7 +32,7 @@ const SubmitBidPage = () => {
   };
 
   return (
-    <div className='max-w-xl mx-auto py-10'>
+    <div className="max-w-xl mx-auto py-10">
       <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
         <CardHeader>
           <CardTitle
@@ -48,11 +48,11 @@ const SubmitBidPage = () => {
         </CardHeader>
         <CardContent>
           {success ? (
-            <div className='text-center text-green-600 font-semibold py-8'>
+            <div className="text-center text-green-600 font-semibold py-8">
               Bid submitted successfully!
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className='space-y-6'>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label
                   className={`block text-sm font-medium mb-1 ${
@@ -62,8 +62,8 @@ const SubmitBidPage = () => {
                   Bid Amount
                 </label>
                 <Input
-                  type='text'
-                  placeholder='$0.00'
+                  type="text"
+                  placeholder="$0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
@@ -83,7 +83,7 @@ const SubmitBidPage = () => {
                   Message to Client
                 </label>
                 <Textarea
-                  placeholder='Describe your approach, timeline, or ask questions...'
+                  placeholder="Describe your approach, timeline, or ask questions..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
@@ -95,16 +95,16 @@ const SubmitBidPage = () => {
                   }
                 />
               </div>
-              <div className='flex gap-2 mt-6'>
+              <div className="flex gap-2 mt-6">
                 <Button
-                  type='submit'
-                  className='bg-bojj-primary hover:bg-bojj-primary/90 w-full'
+                  type="submit"
+                  className="bg-venbid-primary hover:bg-venbid-primary/90 w-full"
                   disabled={submitting}
                 >
                   {submitting ? 'Submitting...' : 'Submit Bid'}
                 </Button>
-                <Link to='/vendor'>
-                  <Button variant='outline' type='button' className='w-full'>
+                <Link to="/vendor">
+                  <Button variant="outline" type="button" className="w-full">
                     Cancel
                   </Button>
                 </Link>
