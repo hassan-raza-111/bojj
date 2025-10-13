@@ -1,4 +1,5 @@
 // Utility functions for handling image URLs
+import { ENV_CONFIG } from '@/config/env';
 
 /**
  * Converts a relative image URL to a full URL
@@ -17,9 +18,7 @@ export const getImageUrl = (
 
   // If it's a relative path starting with /uploads/, convert to full URL
   if (imageUrl.startsWith('/uploads/')) {
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    return `${backendUrl}${imageUrl}`;
+    return `${ENV_CONFIG.BACKEND_URL}${imageUrl}`;
   }
 
   // Return as is for other cases
@@ -31,5 +30,5 @@ export const getImageUrl = (
  * @returns Backend URL
  */
 export const getBackendUrl = (): string => {
-  return import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  return ENV_CONFIG.BACKEND_URL;
 };

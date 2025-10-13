@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/hooks/useAuth';
+import { ENV_CONFIG } from '@/config/env';
 
 interface ChatMessage {
   id: string;
@@ -92,14 +93,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   // Initialize socket connection
   useEffect(() => {
     if (user && token && isAuthenticated) {
-      const newSocket = io(
-        import.meta.env.VITE_SERVER_URL || 'http://localhost:5000',
-        {
-          auth: {
-            token: token,
-          },
-        }
-      );
+      const newSocket = io(ENV_CONFIG.BACKEND_URL, {
+        auth: {
+          token: token,
+        },
+      });
 
       newSocket.on('connect', () => {
         console.log('Connected to chat server');
@@ -156,14 +154,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
     console.log('Loading chat rooms...');
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/chat/rooms`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${ENV_CONFIG.BACKEND_URL}/api/chat/rooms`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -187,9 +182,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_SERVER_URL
-        }/api/chat/rooms/${chatRoomId}/messages`,
+        `${ENV_CONFIG.BACKEND_URL}/api/chat/rooms/${chatRoomId}/messages`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -215,7 +208,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/chat/messages`,
+        `${ENV_CONFIG.BACKEND_URL}/api/chat/messages`,
         {
           method: 'POST',
           headers: {
@@ -269,7 +262,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
     try {
       await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/chat/rooms/${chatRoomId}/read`,
+        `${ENV_CONFIG.BACKEND_URL}/api/chat/rooms/${chatRoomId}/read`,
         {
           method: 'PUT',
           headers: {
@@ -289,20 +282,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     if (!token) return;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/chat/rooms`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            jobId,
-            vendorId,
-          }),
-        }
-      );
+      const response = await fetch(`${ENV_CONFIG.BACKEND_URL}/api/chat/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          jobId,
+          vendorId,
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
