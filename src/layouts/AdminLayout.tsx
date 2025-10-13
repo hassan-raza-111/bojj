@@ -177,17 +177,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl">
-                A
-              </div>
+              <img
+                src="/assets/logos/venbid.png"
+                alt="VenBid Logo"
+                className="h-10 w-auto"
+              />
               <div>
-                <h1
-                  className={`text-lg font-semibold ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  venbid
-                </h1>
                 <p className="text-xs text-blue-600 font-medium">
                   Admin Portal
                 </p>

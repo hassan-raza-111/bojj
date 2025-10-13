@@ -26,13 +26,12 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-venbid-primary to-venbid-secondary text-white font-bold text-xl shadow-lg">
-                B
-              </div>
-              <span className="hidden sm:block text-2xl font-bold bg-gradient-to-r from-venbid-primary to-venbid-secondary bg-clip-text text-transparent">
-                venbid
-              </span>
+            <Link to="/" className="flex items-center space-x-3">
+              <img
+                src="/assets/logos/venbid.png"
+                alt="VenBid Logo"
+                className="h-10 w-auto"
+              />
             </Link>
           </div>
 

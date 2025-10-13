@@ -6,9 +6,11 @@ const Footer = () => {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4 dark:text-white">
-              venbid
-            </h3>
+            <img
+              src="/assets/logos/venbid.png"
+              alt="VenBid Logo"
+              className="h-8 w-auto mb-4"
+            />
             <p className="text-gray-600 dark:text-gray-400">
               Connecting customers with trusted service providers since 2023.
             </p>

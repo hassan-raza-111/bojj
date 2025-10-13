@@ -97,7 +97,11 @@ export const Sidebar = ({ userType }: SidebarProps) => {
     >
       <SidebarHeader className="p-4 border-b">
         <div className="flex justify-center items-center h-10">
-          <span className="text-2xl font-bold text-venbid-primary">venbid</span>
+          <img
+            src="/assets/logos/venbid.png"
+            alt="VenBid Logo"
+            className="h-8 w-auto"
+          />
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">

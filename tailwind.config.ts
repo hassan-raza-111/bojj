@@ -56,27 +56,27 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
         venbid: {
-          primary: '#6366f1', // Modern indigo
-          secondary: '#8b5cf6', // Purple
-          accent: '#06b6d4', // Cyan
-          success: '#10b981', // Emerald
-          warning: '#f59e0b', // Amber
-          error: '#ef4444', // Red
-          light: '#f8fafc', // Slate 50
-          dark: '#0f172a', // Slate 900
-          gray: '#64748b', // Slate 500
-          muted: '#f1f5f9', // Slate 100
-          border: '#e2e8f0', // Slate 200
-          'border-dark': '#334155', // Slate 700
+          primary: '#FF0000', // Exact Logo Red - Use sparingly
+          secondary: '#1F2937', // Dark Gray - Professional
+          accent: '#3B82F6', // Blue for info/links
+          success: '#10B981', // Green for success
+          warning: '#F59E0B', // Amber for warnings
+          error: '#DC2626', // Red for errors
+          light: '#F9FAFB', // Very light gray
+          dark: '#111827', // Almost black
+          gray: '#6B7280', // Mid gray
+          muted: '#F3F4F6', // Light gray background
+          border: '#E5E7EB', // Light gray border
+          'border-dark': '#374151', // Dark gray border
         },
       },
       backgroundImage: {
-        'venbid-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'venbid-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        'venbid-accent': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'venbid-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-        'venbid-warning': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-        'venbid-error': 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+        'venbid-primary': 'linear-gradient(135deg, #FF0000 0%, #CC0000 100%)', // Pure red gradient
+        'venbid-secondary': 'linear-gradient(135deg, #1F2937 0%, #111827 100%)', // Dark gray gradient
+        'venbid-accent': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', // Blue gradient
+        'venbid-success': 'linear-gradient(135deg, #10B981 0%, #059669 100%)', // Green gradient
+        'venbid-warning': 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', // Amber gradient
+        'venbid-error': 'linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)', // Error red gradient
         glass:
           'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
         'glass-dark':
@@ -91,12 +91,14 @@ export default {
       },
       boxShadow: {
         venbid:
-          '0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06)',
+          '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
         'venbid-lg':
-          '0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -2px rgba(99, 102, 241, 0.05)',
+          '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
         'venbid-xl':
-          '0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04)',
-        glass: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        'venbid-red':
+          '0 10px 15px -3px rgba(255, 0, 0, 0.1), 0 4px 6px -4px rgba(255, 0, 0, 0.1)',
+        glass: '0 8px 32px 0 rgba(0, 0, 0, 0.05)',
         'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
       },
       keyframes: {
@@ -133,8 +135,8 @@ export default {
           '50%': { transform: 'translateY(-10px)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)' },
-          '50%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 15px rgba(255, 0, 0, 0.2)' },
+          '50%': { boxShadow: '0 0 25px rgba(255, 0, 0, 0.3)' },
         },
       },
       animation: {
