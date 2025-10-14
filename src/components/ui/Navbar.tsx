@@ -30,7 +30,7 @@ const Navbar = () => {
               <img
                 src="/assets/logos/venbid.png"
                 alt="VenBid Logo"
-                className="h-10 w-auto"
+                className="h-7 w-auto"
               />
             </Link>
           </div>

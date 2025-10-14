@@ -1,6 +1,15 @@
 import { RequestHandler } from 'express';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
+import {
+  notifyNewBid,
+  notifyBidAccepted,
+  notifyBidRejected,
+  notifyJobCompleted,
+  notifyJobAssigned,
+  notifyJobCancelled,
+  notifyPaymentReceived,
+} from '../services/notificationService';
 
 // Create a new job (Customer only)
 export const createJob: RequestHandler = async (req, res, next) => {
@@ -300,8 +309,24 @@ export const submitBid: RequestHandler = async (req, res, next) => {
             },
           },
         },
+        job: {
+          select: {
+            title: true,
+            customerId: true,
+          },
+        },
       },
     });
+
+    // Send notification to customer about new bid
+    const vendorName = `${bid.vendor.firstName} ${bid.vendor.lastName}`;
+    await notifyNewBid(
+      bid.job.customerId,
+      bid.job.title,
+      bid.amount,
+      vendorName,
+      id
+    );
 
     logger.info(
       `Bid submitted: ${bid.id} for job: ${id} by vendor: ${vendorId}`
@@ -388,6 +413,7 @@ export const acceptBid: RequestHandler = async (req, res, next) => {
             id: true,
             customerId: true,
             status: true,
+            title: true,
           },
         },
       },
@@ -483,6 +509,54 @@ export const acceptBid: RequestHandler = async (req, res, next) => {
         messageType: 'SYSTEM',
       },
     });
+
+    // Get customer and vendor names for notifications
+    const customer = await prisma.user.findUnique({
+      where: { id: customerId },
+      select: { firstName: true, lastName: true },
+    });
+
+    const vendor = await prisma.user.findUnique({
+      where: { id: bid.vendorId },
+      select: { firstName: true, lastName: true },
+    });
+
+    // Send notification to vendor about bid acceptance
+    if (customer && vendor) {
+      const customerName = `${customer.firstName} ${customer.lastName}`;
+      await notifyBidAccepted(
+        bid.vendorId,
+        bid.job.title,
+        customerName,
+        bid.job.id
+      );
+
+      // Also notify about job assignment
+      await notifyJobAssigned(
+        bid.vendorId,
+        bid.job.title,
+        customerName,
+        bid.job.id
+      );
+
+      // Notify other vendors that their bids were not selected
+      const otherBids = await prisma.bid.findMany({
+        where: {
+          jobId: bid.job.id,
+          id: { not: bidId },
+          status: 'PENDING',
+        },
+      });
+
+      for (const otherBid of otherBids) {
+        await notifyBidRejected(otherBid.vendorId, bid.job.title, customerName);
+        // Update status of other bids
+        await prisma.bid.update({
+          where: { id: otherBid.id },
+          data: { status: 'REJECTED' },
+        });
+      }
+    }
 
     logger.info(`Bid accepted: ${bidId} for job: ${bid.job.id}`);
     res.status(200).json({
@@ -588,6 +662,8 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         status: true,
         customerId: true,
         paymentReceived: true,
+        budget: true,
+        title: true,
       },
     });
 
@@ -636,7 +712,7 @@ export const completeJob: RequestHandler = async (req, res, next) => {
         return;
       }
 
-      await prisma.job.update({
+      const updatedJob = await prisma.job.update({
         where: { id },
         data: {
           status: 'PENDING_APPROVAL',
@@ -645,7 +721,34 @@ export const completeJob: RequestHandler = async (req, res, next) => {
           paymentReceivedAt: new Date(),
           paymentNotes: paymentNotes || null,
         },
+        include: {
+          assignedVendor: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
       });
+
+      // Send notification to customer
+      if (updatedJob.assignedVendor) {
+        const vendorName = `${updatedJob.assignedVendor.firstName} ${updatedJob.assignedVendor.lastName}`;
+        await notifyJobCompleted(
+          updatedJob.customerId,
+          updatedJob.title,
+          vendorName,
+          id
+        );
+
+        // Notify vendor about payment received
+        await notifyPaymentReceived(
+          vendorId,
+          job.budget || 0,
+          updatedJob.title,
+          paymentMethod
+        );
+      }
 
       logger.info(
         `Job marked as completed by vendor: ${id} by vendor: ${vendorId} with payment method: ${paymentMethod}`
@@ -1002,7 +1105,13 @@ export const deleteJob: RequestHandler = async (req, res, next) => {
     // Find the job and verify ownership
     const job = await prisma.job.findUnique({
       where: { id },
-      select: { id: true, customerId: true, status: true },
+      select: {
+        id: true,
+        customerId: true,
+        status: true,
+        title: true,
+        assignedVendorId: true,
+      },
     });
 
     if (!job) {
@@ -1027,6 +1136,16 @@ export const deleteJob: RequestHandler = async (req, res, next) => {
         message: 'You can only delete open jobs',
       });
       return;
+    }
+
+    // Notify vendor if job was assigned
+    if (job.assignedVendorId) {
+      await notifyJobCancelled(
+        job.assignedVendorId,
+        job.title,
+        'Job was deleted by customer',
+        'VENDOR'
+      );
     }
 
     // Delete the job (cascades to bids)

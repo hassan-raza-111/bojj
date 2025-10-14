@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { notifyAccountVerified } from '../services/notificationService';
 
 const prisma = new PrismaClient();
 
@@ -3359,6 +3360,11 @@ export class AdminController {
           phoneVerified: true,
         },
       });
+
+      // Send notification if email was just verified
+      if (!user.emailVerified && updatedUser.emailVerified) {
+        await notifyAccountVerified(userId);
+      }
 
       // Log admin action
       await this.logAdminAction(

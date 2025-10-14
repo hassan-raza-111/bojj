@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { io } from '../server';
+import { notifyNewMessage } from '../services/notificationService';
 
 const prisma = new PrismaClient();
 
@@ -417,6 +418,22 @@ export class ChatController {
         message,
         chatRoomId,
       });
+
+      // Send notification to recipient (only if not system message)
+      if (messageType !== 'SYSTEM') {
+        const job = await prisma.job.findUnique({
+          where: { id: chatRoom.jobId },
+          select: { title: true },
+        });
+
+        const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+        await notifyNewMessage(
+          recipientId,
+          senderName,
+          job?.title || 'Chat',
+          chatRoomId
+        );
+      }
 
       res.status(201).json({
         message: 'Message sent successfully',

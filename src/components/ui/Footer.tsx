@@ -9,7 +9,7 @@ const Footer = () => {
             <img
               src="/assets/logos/venbid.png"
               alt="VenBid Logo"
-              className="h-8 w-auto mb-4"
+              className="h-7 w-auto mb-4"
             />
             <p className="text-gray-600 dark:text-gray-400">
               Connecting customers with trusted service providers since 2023.

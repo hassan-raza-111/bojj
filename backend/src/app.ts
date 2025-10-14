@@ -11,6 +11,7 @@ import { dashboardRouter } from './routes/dashboard.routes';
 import { jobRouter } from './routes/job.routes';
 import vendorRouter from './routes/vendor.routes';
 import chatRouter from './routes/chat.routes';
+import notificationRouter from './routes/notification.routes';
 // Temporarily commented out due to TypeScript compilation issues
 // import { paymentRouter } from './routes/payment.routes';
 // import { serviceRouter } from './routes/service.routes';
@@ -136,6 +137,7 @@ app.use('/api/jobs', jobRouter); // Customer side needs this
 app.use('/api/dashboard', dashboardRouter); // Customer side needs this
 app.use('/api/vendor', vendorRouter); // Vendor dashboard routes (includes public profile)
 app.use('/api/chat', chatRouter); // Chat routes
+app.use('/api/notifications', notificationRouter); // Notification routes
 // Temporarily commented out due to TypeScript compilation issues
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);

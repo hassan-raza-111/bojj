@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 import {
   LayoutDashboard,
   Briefcase,
@@ -176,7 +177,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               <img
                 src="/assets/logos/venbid.png"
                 alt="VenBid Logo"
-                className="h-10 w-auto"
+                className="h-7 w-auto"
               />
               <div>
                 <p
@@ -423,20 +424,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`relative ${
-                  theme === 'dark'
-                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                  3
-                </span>
-              </Button>
+              <NotificationBell />
 
               {/* User menu */}
               <div className="flex items-center space-x-3">

@@ -100,7 +100,7 @@ export const Sidebar = ({ userType }: SidebarProps) => {
           <img
             src="/assets/logos/venbid.png"
             alt="VenBid Logo"
-            className="h-8 w-auto"
+            className="h-6 w-auto"
           />
         </div>
       </SidebarHeader>

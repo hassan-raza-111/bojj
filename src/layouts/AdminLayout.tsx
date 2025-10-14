@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 import {
   LayoutDashboard,
   Users,
@@ -180,7 +181,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               <img
                 src="/assets/logos/venbid.png"
                 alt="VenBid Logo"
-                className="h-10 w-auto"
+                className="h-7 w-auto"
               />
               <div>
                 <p className="text-xs text-blue-600 font-medium">
@@ -379,9 +380,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="h-5 w-5" />
-              </Button>
+              <NotificationBell />
 
               {/* User dropdown (match customer style) */}
               <DropdownMenu>
