@@ -4714,4 +4714,339 @@ export class AdminController {
     }
   }
   */
+
+  // ========================================
+  // BID NEGOTIATION MANAGEMENT (ADMIN)
+  // ========================================
+
+  // Get All Active Negotiations
+  async getAllNegotiations(req: Request, res: Response) {
+    try {
+      const { status, page = 1, limit = 20 } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Build where clause
+      const where: any = {
+        negotiationRound: { gt: 1 }, // Only bids with negotiations
+      };
+
+      if (status) {
+        where.negotiationStatus = status;
+      }
+
+      // Get negotiations with job and user details
+      const [negotiations, total] = await Promise.all([
+        prisma.bid.findMany({
+          where,
+          select: {
+            id: true,
+            amount: true,
+            description: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            // Negotiation fields
+            initialAmount: true,
+            currentAmount: true,
+            counterOffers: true,
+            lastCounteredBy: true,
+            negotiationRound: true,
+            maxNegotiationRounds: true,
+            negotiationStatus: true,
+            job: {
+              select: {
+                id: true,
+                title: true,
+                budget: true,
+                customerId: true,
+                customer: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+          skip,
+          take: limitNum,
+          orderBy: { updatedAt: 'desc' },
+        }),
+        prisma.bid.count({ where }),
+      ]);
+
+      res.json({
+        success: true,
+        data: negotiations,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      });
+    } catch (error) {
+      logger.error('Error fetching negotiations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch negotiations',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // Get Negotiation Details (Full History)
+  async getNegotiationDetails(req: Request, res: Response) {
+    try {
+      const { bidId } = req.params;
+
+      const bid = await prisma.bid.findUnique({
+        where: { id: bidId },
+        select: {
+          id: true,
+          amount: true,
+          description: true,
+          timeline: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          // Negotiation fields
+          initialAmount: true,
+          currentAmount: true,
+          counterOffers: true,
+          lastCounteredBy: true,
+          negotiationRound: true,
+          maxNegotiationRounds: true,
+          negotiationStatus: true,
+          job: {
+            select: {
+              id: true,
+              title: true,
+              budget: true,
+              description: true,
+              customerId: true,
+              customer: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
+          vendor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              vendorProfile: {
+                select: {
+                  companyName: true,
+                  rating: true,
+                  completedJobs: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!bid) {
+        return res.status(404).json({
+          success: false,
+          message: 'Bid not found',
+        });
+      }
+
+      // Calculate savings/difference
+      const savingsAmount =
+        (bid.initialAmount || bid.amount) - (bid.currentAmount || bid.amount);
+      const savingsPercentage = (
+        (savingsAmount / (bid.initialAmount || bid.amount)) *
+        100
+      ).toFixed(2);
+
+      res.json({
+        success: true,
+        data: {
+          bid,
+          analytics: {
+            initialAmount: bid.initialAmount || bid.amount,
+            finalAmount: bid.currentAmount || bid.amount,
+            savingsAmount,
+            savingsPercentage: parseFloat(savingsPercentage),
+            totalRounds: bid.negotiationRound,
+            maxRounds: bid.maxNegotiationRounds || 3,
+            status: bid.negotiationStatus,
+          },
+          history: bid.counterOffers || [],
+        },
+      });
+    } catch (error) {
+      logger.error('Error fetching negotiation details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch negotiation details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // Get Negotiation Statistics
+  async getNegotiationStats(req: Request, res: Response) {
+    try {
+      const [
+        totalNegotiations,
+        activeNegotiations,
+        agreedNegotiations,
+        rejectedNegotiations,
+        allBids,
+      ] = await Promise.all([
+        prisma.bid.count({
+          where: { negotiationRound: { gt: 1 } },
+        }),
+        prisma.bid.count({
+          where: { negotiationStatus: 'NEGOTIATING' },
+        }),
+        prisma.bid.count({
+          where: { negotiationStatus: 'AGREED' },
+        }),
+        prisma.bid.count({
+          where: { negotiationStatus: 'REJECTED' },
+        }),
+        prisma.bid.findMany({
+          where: {
+            negotiationRound: { gt: 1 },
+            negotiationStatus: 'AGREED',
+          },
+          select: {
+            initialAmount: true,
+            currentAmount: true,
+            amount: true,
+          },
+        }),
+      ]);
+
+      // Calculate average savings
+      let totalSavings = 0;
+      allBids.forEach((bid) => {
+        const initial = bid.initialAmount || bid.amount;
+        const final = bid.currentAmount || bid.amount;
+        totalSavings += initial - final;
+      });
+
+      const averageSavings =
+        allBids.length > 0 ? totalSavings / allBids.length : 0;
+      const averageSavingsPercentage =
+        allBids.length > 0
+          ? (
+              (totalSavings /
+                allBids.reduce(
+                  (sum, b) => sum + (b.initialAmount || b.amount),
+                  0
+                )) *
+              100
+            ).toFixed(2)
+          : 0;
+
+      res.json({
+        success: true,
+        data: {
+          total: totalNegotiations,
+          active: activeNegotiations,
+          agreed: agreedNegotiations,
+          rejected: rejectedNegotiations,
+          successRate:
+            totalNegotiations > 0
+              ? ((agreedNegotiations / totalNegotiations) * 100).toFixed(2)
+              : 0,
+          averageSavings: averageSavings.toFixed(2),
+          averageSavingsPercentage,
+          totalSavings: totalSavings.toFixed(2),
+        },
+      });
+    } catch (error) {
+      logger.error('Error fetching negotiation stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch negotiation statistics',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // Get Recent Negotiation Activity
+  async getRecentNegotiations(req: Request, res: Response) {
+    try {
+      const { limit = 10 } = req.query;
+      const limitNum = parseInt(limit as string);
+
+      const recentNegotiations = await prisma.bid.findMany({
+        where: {
+          negotiationRound: { gt: 1 },
+        },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          // Negotiation fields
+          initialAmount: true,
+          currentAmount: true,
+          negotiationRound: true,
+          negotiationStatus: true,
+          lastCounteredBy: true,
+          job: {
+            select: {
+              id: true,
+              title: true,
+              customer: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+          vendor: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+        take: limitNum,
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      res.json({
+        success: true,
+        data: recentNegotiations,
+      });
+    } catch (error) {
+      logger.error('Error fetching recent negotiations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch recent negotiations',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
 }

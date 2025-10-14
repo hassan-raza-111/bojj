@@ -249,4 +249,24 @@ router.get(
 //   adminController.getAdminNotifications.bind(adminController)
 // );
 
+// ========================================
+// BID NEGOTIATION MANAGEMENT (ADMIN)
+// ========================================
+router.get(
+  '/negotiations',
+  adminController.getAllNegotiations.bind(adminController)
+);
+router.get(
+  '/negotiations/stats',
+  adminController.getNegotiationStats.bind(adminController)
+);
+router.get(
+  '/negotiations/recent',
+  adminController.getRecentNegotiations.bind(adminController)
+);
+router.get(
+  '/negotiations/:bidId',
+  adminController.getNegotiationDetails.bind(adminController)
+);
+
 export default router;

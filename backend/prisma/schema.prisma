@@ -140,19 +140,27 @@ model Job {
 }
 
 model Bid {
-  id          String    @id @default(uuid())
-  amount      Float
-  description String
-  timeline    String
-  milestones  Json?
-  status      BidStatus @default(PENDING)
-  jobId       String
-  vendorId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  notes       String?
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  vendor      User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  amount                Float
+  description           String
+  timeline              String
+  milestones            Json?
+  status                BidStatus @default(PENDING)
+  jobId                 String
+  vendorId              String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  notes                 String?
+  // Negotiation fields
+  initialAmount         Float?    // Original bid amount
+  currentAmount         Float?    // Latest negotiated amount
+  counterOffers         Json?     // Array of counter offers: [{amount, proposedBy, message, createdAt}]
+  lastCounteredBy       String?   // "VENDOR" or "CUSTOMER"
+  negotiationRound      Int       @default(1)
+  maxNegotiationRounds  Int       @default(3)
+  negotiationStatus     String?   @default("INITIAL") // INITIAL, NEGOTIATING, AGREED, REJECTED
+  job                   Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  vendor                User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("bids")
 }

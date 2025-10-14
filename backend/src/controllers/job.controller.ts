@@ -9,6 +9,11 @@ import {
   notifyJobAssigned,
   notifyJobCancelled,
   notifyPaymentReceived,
+  notifyCustomerCounterOffer,
+  notifyVendorCounterOffer,
+  notifyCounterOfferAccepted,
+  notifyCounterOfferRejected,
+  notifyMaxNegotiationReached,
 } from '../services/notificationService';
 
 // Create a new job (Customer only)
@@ -294,6 +299,13 @@ export const submitBid: RequestHandler = async (req, res, next) => {
         description: bidData.description,
         timeline: bidData.timeline,
         milestones: bidData.milestones || {},
+        // Initialize negotiation fields
+        initialAmount: bidData.amount,
+        currentAmount: bidData.amount,
+        counterOffers: [],
+        negotiationStatus: 'INITIAL',
+        negotiationRound: 1,
+        maxNegotiationRounds: 3,
       },
       include: {
         vendor: {
@@ -1318,6 +1330,504 @@ export const getJobDetails: RequestHandler = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch job details',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return;
+  }
+};
+
+// ========================================
+// BID NEGOTIATION / COUNTER-OFFER FUNCTIONS
+// ========================================
+
+// Submit Counter Offer (Customer or Vendor)
+export const submitCounterOffer: RequestHandler = async (req, res, next) => {
+  try {
+    const { bidId } = req.params;
+    const { counterAmount, message, userId, userRole } = req.body;
+
+    if (!userId || !userRole || !counterAmount) {
+      res.status(400).json({
+        success: false,
+        message: 'User ID, role, and counter amount are required',
+      });
+      return;
+    }
+
+    // Get the bid with job and vendor details
+    const bid = await prisma.bid.findUnique({
+      where: { id: bidId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            customerId: true,
+          },
+        },
+        vendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!bid) {
+      res.status(404).json({
+        success: false,
+        message: 'Bid not found',
+      });
+      return;
+    }
+
+    // Verify authorization
+    if (userRole === 'CUSTOMER' && bid.job.customerId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'You can only counter-offer on your own jobs',
+      });
+      return;
+    }
+
+    if (userRole === 'VENDOR' && bid.vendorId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'You can only counter-offer on your own bids',
+      });
+      return;
+    }
+
+    // Check if max negotiation rounds reached
+    if (bid.negotiationRound >= (bid.maxNegotiationRounds || 3)) {
+      res.status(400).json({
+        success: false,
+        message: 'Maximum negotiation rounds reached',
+      });
+      return;
+    }
+
+    // Check if user is trying to counter their own offer
+    if (bid.lastCounteredBy === userRole) {
+      res.status(400).json({
+        success: false,
+        message: 'Wait for the other party to respond',
+      });
+      return;
+    }
+
+    // Get existing counter offers
+    const existingOffers = (bid.counterOffers as any[]) || [];
+
+    // Add new counter offer to history
+    const newCounterOffer = {
+      amount: counterAmount,
+      proposedBy: userRole,
+      message: message || '',
+      createdAt: new Date().toISOString(),
+      round: bid.negotiationRound + 1,
+    };
+
+    const updatedOffers = [...existingOffers, newCounterOffer];
+
+    // Update bid with counter offer
+    const updatedBid = await prisma.bid.update({
+      where: { id: bidId },
+      data: {
+        currentAmount: counterAmount,
+        counterOffers: updatedOffers,
+        lastCounteredBy: userRole,
+        negotiationRound: bid.negotiationRound + 1,
+        negotiationStatus: 'NEGOTIATING',
+        updatedAt: new Date(),
+      },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            customerId: true,
+          },
+        },
+        vendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    // Get user names for notifications
+    const customer = await prisma.user.findUnique({
+      where: { id: bid.job.customerId },
+      select: { firstName: true, lastName: true },
+    });
+
+    const vendorName = `${bid.vendor.firstName} ${bid.vendor.lastName}`;
+    const customerName = customer
+      ? `${customer.firstName} ${customer.lastName}`
+      : 'Customer';
+
+    // Send notifications
+    if (userRole === 'CUSTOMER') {
+      // Customer countered, notify vendor
+      await notifyCustomerCounterOffer(
+        bid.vendorId,
+        customerName,
+        bid.job.title,
+        bid.currentAmount || bid.amount,
+        counterAmount,
+        bid.job.id
+      );
+    } else {
+      // Vendor countered, notify customer
+      await notifyVendorCounterOffer(
+        bid.job.customerId,
+        vendorName,
+        bid.job.title,
+        bid.currentAmount || bid.amount,
+        counterAmount,
+        bid.job.id
+      );
+    }
+
+    // Check if max rounds reached and notify both parties
+    if (updatedBid.negotiationRound >= (updatedBid.maxNegotiationRounds || 3)) {
+      await notifyMaxNegotiationReached(
+        userRole === 'CUSTOMER' ? bid.vendorId : bid.job.customerId,
+        bid.job.title,
+        bid.job.id,
+        userRole === 'CUSTOMER' ? 'VENDOR' : 'CUSTOMER'
+      );
+    }
+
+    logger.info(
+      `Counter offer submitted: Bid ${bidId} - ${userRole} offered $${counterAmount}`
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Counter offer submitted successfully',
+      data: { bid: updatedBid },
+    });
+    return;
+  } catch (error) {
+    logger.error('Error submitting counter offer:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit counter offer',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return;
+  }
+};
+
+// Accept Counter Offer
+export const acceptCounterOffer: RequestHandler = async (req, res, next) => {
+  try {
+    const { bidId } = req.params;
+    const { userId, userRole } = req.body;
+
+    if (!userId || !userRole) {
+      res.status(400).json({
+        success: false,
+        message: 'User ID and role are required',
+      });
+      return;
+    }
+
+    // Get the bid
+    const bid = await prisma.bid.findUnique({
+      where: { id: bidId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            customerId: true,
+          },
+        },
+        vendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!bid) {
+      res.status(404).json({
+        success: false,
+        message: 'Bid not found',
+      });
+      return;
+    }
+
+    // Verify authorization
+    if (userRole === 'CUSTOMER' && bid.job.customerId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    if (userRole === 'VENDOR' && bid.vendorId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    // Update bid status
+    const updatedBid = await prisma.bid.update({
+      where: { id: bidId },
+      data: {
+        status: 'ACCEPTED',
+        negotiationStatus: 'AGREED',
+        amount: bid.currentAmount || bid.amount, // Use negotiated amount
+      },
+    });
+
+    // Update job status
+    await prisma.job.update({
+      where: { id: bid.jobId },
+      data: {
+        status: 'IN_PROGRESS',
+        assignedVendorId: bid.vendorId,
+      },
+    });
+
+    // Reject other bids
+    await prisma.bid.updateMany({
+      where: {
+        jobId: bid.jobId,
+        id: { not: bidId },
+      },
+      data: { status: 'REJECTED' },
+    });
+
+    // Get names for notifications
+    const customer = await prisma.user.findUnique({
+      where: { id: bid.job.customerId },
+      select: { firstName: true, lastName: true },
+    });
+
+    const vendorName = `${bid.vendor.firstName} ${bid.vendor.lastName}`;
+    const customerName = customer
+      ? `${customer.firstName} ${customer.lastName}`
+      : 'Customer';
+
+    // Notify the other party
+    const otherPartyId =
+      userRole === 'CUSTOMER' ? bid.vendorId : bid.job.customerId;
+    const otherPartyName = userRole === 'CUSTOMER' ? vendorName : customerName;
+    const notifiedUserRole = userRole === 'CUSTOMER' ? 'VENDOR' : 'CUSTOMER';
+
+    await notifyCounterOfferAccepted(
+      otherPartyId,
+      userRole === 'CUSTOMER' ? customerName : vendorName,
+      bid.job.title,
+      bid.currentAmount || bid.amount,
+      bid.job.id,
+      notifiedUserRole
+    );
+
+    // Also send job assigned notification to vendor
+    if (userRole === 'CUSTOMER') {
+      await notifyJobAssigned(
+        bid.vendorId,
+        bid.job.title,
+        customerName,
+        bid.job.id
+      );
+    }
+
+    logger.info(`Counter offer accepted: Bid ${bidId} by ${userRole}`);
+    res.status(200).json({
+      success: true,
+      message: 'Counter offer accepted successfully',
+      data: { bid: updatedBid },
+    });
+    return;
+  } catch (error) {
+    logger.error('Error accepting counter offer:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to accept counter offer',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return;
+  }
+};
+
+// Reject Counter Offer
+export const rejectCounterOffer: RequestHandler = async (req, res, next) => {
+  try {
+    const { bidId } = req.params;
+    const { userId, userRole } = req.body;
+
+    if (!userId || !userRole) {
+      res.status(400).json({
+        success: false,
+        message: 'User ID and role are required',
+      });
+      return;
+    }
+
+    // Get the bid
+    const bid = await prisma.bid.findUnique({
+      where: { id: bidId },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            customerId: true,
+          },
+        },
+        vendor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!bid) {
+      res.status(404).json({
+        success: false,
+        message: 'Bid not found',
+      });
+      return;
+    }
+
+    // Verify authorization
+    if (userRole === 'CUSTOMER' && bid.job.customerId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    if (userRole === 'VENDOR' && bid.vendorId !== userId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    // Update bid status
+    await prisma.bid.update({
+      where: { id: bidId },
+      data: {
+        status: 'REJECTED',
+        negotiationStatus: 'REJECTED',
+      },
+    });
+
+    // Get names for notifications
+    const customer = await prisma.user.findUnique({
+      where: { id: bid.job.customerId },
+      select: { firstName: true, lastName: true },
+    });
+
+    const vendorName = `${bid.vendor.firstName} ${bid.vendor.lastName}`;
+    const customerName = customer
+      ? `${customer.firstName} ${customer.lastName}`
+      : 'Customer';
+
+    // Notify the other party
+    const otherPartyId =
+      userRole === 'CUSTOMER' ? bid.vendorId : bid.job.customerId;
+    const notifiedUserRole = userRole === 'CUSTOMER' ? 'VENDOR' : 'CUSTOMER';
+
+    await notifyCounterOfferRejected(
+      otherPartyId,
+      userRole === 'CUSTOMER' ? customerName : vendorName,
+      bid.job.title,
+      bid.currentAmount || bid.amount,
+      bid.job.id,
+      notifiedUserRole
+    );
+
+    logger.info(`Counter offer rejected: Bid ${bidId} by ${userRole}`);
+    res.status(200).json({
+      success: true,
+      message: 'Counter offer rejected successfully',
+    });
+    return;
+  } catch (error) {
+    logger.error('Error rejecting counter offer:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject counter offer',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return;
+  }
+};
+
+// Get Negotiation History for a Bid
+export const getNegotiationHistory: RequestHandler = async (req, res, next) => {
+  try {
+    const { bidId } = req.params;
+
+    const bid = await prisma.bid.findUnique({
+      where: { id: bidId },
+      select: {
+        id: true,
+        amount: true,
+        initialAmount: true,
+        currentAmount: true,
+        counterOffers: true,
+        negotiationRound: true,
+        maxNegotiationRounds: true,
+        negotiationStatus: true,
+        lastCounteredBy: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!bid) {
+      res.status(404).json({
+        success: false,
+        message: 'Bid not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        bid,
+        canNegotiate:
+          bid.negotiationRound < (bid.maxNegotiationRounds || 3) &&
+          bid.status === 'PENDING',
+      },
+    });
+    return;
+  } catch (error) {
+    logger.error('Error getting negotiation history:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get negotiation history',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
     return;

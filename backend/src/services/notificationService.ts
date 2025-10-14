@@ -560,3 +560,116 @@ export const notifyJobExpiring = async (
     emailData: { jobTitle, daysLeft },
   });
 };
+
+// ========================================
+// COUNTER-OFFER / NEGOTIATION NOTIFICATIONS
+// ========================================
+
+// Customer Counter-Offer Notification (to Vendor)
+export const notifyCustomerCounterOffer = async (
+  vendorId: string,
+  customerName: string,
+  jobTitle: string,
+  originalAmount: number,
+  counterAmount: number,
+  jobId: string
+) => {
+  return createNotification({
+    userId: vendorId,
+    type: 'BID_ACCEPTED', // Reusing existing type, could add new COUNTER_OFFER type
+    title: '💰 Counter-Offer Received',
+    message: `${customerName} countered your bid of $${originalAmount} with $${counterAmount} for "${jobTitle}"`,
+    link: `/vendor/jobs/${jobId}`,
+    priority: 'HIGH',
+    sendEmail: true,
+    emailData: { customerName, jobTitle, originalAmount, counterAmount },
+  });
+};
+
+// Vendor Counter-Offer Notification (to Customer)
+export const notifyVendorCounterOffer = async (
+  customerId: string,
+  vendorName: string,
+  jobTitle: string,
+  originalAmount: number,
+  counterAmount: number,
+  jobId: string
+) => {
+  return createNotification({
+    userId: customerId,
+    type: 'NEW_BID', // Reusing existing type
+    title: '💰 Counter-Offer Received',
+    message: `${vendorName} countered with $${counterAmount} (originally $${originalAmount}) for "${jobTitle}"`,
+    link: `/customer/jobs/${jobId}`,
+    priority: 'HIGH',
+    sendEmail: true,
+    emailData: { vendorName, jobTitle, originalAmount, counterAmount },
+  });
+};
+
+// Counter-Offer Accepted Notification
+export const notifyCounterOfferAccepted = async (
+  userId: string,
+  otherPartyName: string,
+  jobTitle: string,
+  agreedAmount: number,
+  jobId: string,
+  userRole: 'VENDOR' | 'CUSTOMER'
+) => {
+  const link =
+    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+  return createNotification({
+    userId,
+    type: 'BID_ACCEPTED',
+    title: '🎉 Offer Accepted!',
+    message: `${otherPartyName} accepted your counter-offer of $${agreedAmount} for "${jobTitle}"`,
+    link,
+    priority: 'URGENT',
+    sendEmail: true,
+    emailData: { otherPartyName, jobTitle, agreedAmount },
+  });
+};
+
+// Counter-Offer Rejected Notification
+export const notifyCounterOfferRejected = async (
+  userId: string,
+  otherPartyName: string,
+  jobTitle: string,
+  rejectedAmount: number,
+  jobId: string,
+  userRole: 'VENDOR' | 'CUSTOMER'
+) => {
+  const link =
+    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+  return createNotification({
+    userId,
+    type: 'BID_REJECTED',
+    title: '❌ Offer Rejected',
+    message: `${otherPartyName} rejected your counter-offer of $${rejectedAmount} for "${jobTitle}"`,
+    link,
+    priority: 'MEDIUM',
+    sendEmail: false,
+    emailData: { otherPartyName, jobTitle, rejectedAmount },
+  });
+};
+
+// Max Negotiation Rounds Reached
+export const notifyMaxNegotiationReached = async (
+  userId: string,
+  jobTitle: string,
+  jobId: string,
+  userRole: 'VENDOR' | 'CUSTOMER'
+) => {
+  const link =
+    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+  return createNotification({
+    userId,
+    type: 'SYSTEM_ALERT',
+    title: '⚠️ Maximum Negotiation Rounds Reached',
+    message: `Negotiation limit reached for "${jobTitle}". Please accept or reject the current offer.`,
+    link,
+    priority: 'HIGH',
+    sendEmail: true,
+    emailData: { jobTitle },
+  });
+};

@@ -20,7 +20,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.14.0",
+    "@prisma/client": "^6.17.1",
     "@types/multer": "^2.0.0",
     "@types/socket.io": "^3.0.1",
     "@types/yamljs": "^0.2.34",

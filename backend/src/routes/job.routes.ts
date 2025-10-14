@@ -14,6 +14,10 @@ import {
   getAllJobs,
   getVendorJobs,
   getJobDetails,
+  submitCounterOffer,
+  acceptCounterOffer,
+  rejectCounterOffer,
+  getNegotiationHistory,
 } from '../controllers/job.controller';
 import {
   authenticateToken,
@@ -92,6 +96,42 @@ router.post(
   authenticateToken,
   requireCustomer,
   completeJob
+);
+
+// ========================================
+// COUNTER-OFFER / NEGOTIATION ROUTES
+// ========================================
+
+// Submit counter offer (Customer or Vendor can counter)
+router.post(
+  '/bids/:bidId/counter-offer',
+  authenticateToken,
+  requireCustomerOrVendor,
+  submitCounterOffer
+);
+
+// Accept counter offer
+router.post(
+  '/bids/:bidId/accept-counter',
+  authenticateToken,
+  requireCustomerOrVendor,
+  acceptCounterOffer
+);
+
+// Reject counter offer
+router.post(
+  '/bids/:bidId/reject-counter',
+  authenticateToken,
+  requireCustomerOrVendor,
+  rejectCounterOffer
+);
+
+// Get negotiation history for a bid
+router.get(
+  '/bids/:bidId/negotiation-history',
+  authenticateToken,
+  requireCustomerOrVendor,
+  getNegotiationHistory
 );
 
 export const jobRouter = router;
