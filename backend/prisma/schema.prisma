@@ -44,6 +44,7 @@ model User {
   ticketResponses  TicketResponse[]
   vendorPayouts    VendorPayout[]   @relation("VendorPayouts")
   vendorProfile    VendorProfile?
+  notifications    Notification[]   @relation("UserNotifications")
 
   @@map("users")
 }
@@ -139,19 +140,27 @@ model Job {
 }
 
 model Bid {
-  id          String    @id @default(uuid())
-  amount      Float
-  description String
-  timeline    String
-  milestones  Json?
-  status      BidStatus @default(PENDING)
-  jobId       String
-  vendorId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  notes       String?
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  vendor      User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  amount                Float
+  description           String
+  timeline              String
+  milestones            Json?
+  status                BidStatus @default(PENDING)
+  jobId                 String
+  vendorId              String
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  notes                 String?
+  // Negotiation fields
+  initialAmount         Float?    // Original bid amount
+  currentAmount         Float?    // Latest negotiated amount
+  counterOffers         Json?     // Array of counter offers: [{amount, proposedBy, message, createdAt}]
+  lastCounteredBy       String?   // "VENDOR" or "CUSTOMER"
+  negotiationRound      Int       @default(1)
+  maxNegotiationRounds  Int       @default(3)
+  negotiationStatus     String?   @default("INITIAL") // INITIAL, NEGOTIATING, AGREED, REJECTED
+  job                   Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  vendor                User      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("bids")
 }
@@ -374,6 +383,28 @@ model VendorPayout {
   @@map("vendor_payouts")
 }
 
+model Notification {
+  id             String           @id @default(uuid())
+  userId         String
+  type           NotificationType
+  title          String
+  message        String
+  data           Json?
+  isRead         Boolean          @default(false)
+  readAt         DateTime?
+  link           String?
+  priority       NotificationPriority @default(MEDIUM)
+  emailSent      Boolean          @default(false)
+  emailSentAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
 enum Role {
   CUSTOMER
   VENDOR
@@ -495,4 +526,30 @@ enum ManualPaymentMethod {
   CASH
   VENMO
   ZELLE
+}
+
+enum NotificationType {
+  NEW_BID
+  BID_ACCEPTED
+  BID_REJECTED
+  JOB_ASSIGNED
+  JOB_COMPLETED
+  JOB_CANCELLED
+  PAYMENT_RECEIVED
+  PAYMENT_RELEASED
+  NEW_MESSAGE
+  NEW_REVIEW
+  ACCOUNT_VERIFIED
+  SUPPORT_TICKET_REPLY
+  SYSTEM_ALERT
+  PAYMENT_REMINDER
+  JOB_EXPIRING
+  MILESTONE_COMPLETED
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }

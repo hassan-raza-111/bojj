@@ -34,13 +34,13 @@ const VendorDetailPage = () => {
       }`}
     >
       {/* Vendor Header */}
-      <div className='flex flex-col sm:flex-row items-start sm:items-center gap-6'>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
         <div
           className={`w-32 h-32 sm:w-48 sm:h-48 rounded-lg ${
             theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
           }`}
         />
-        <div className='flex-1 space-y-2'>
+        <div className="flex-1 space-y-2">
           <h1
             className={`text-3xl font-bold ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -55,7 +55,7 @@ const VendorDetailPage = () => {
           >
             Anderson Home Services
           </p>
-          <div className='flex flex-wrap gap-4 mt-2'>
+          <div className="flex flex-wrap gap-4 mt-2">
             <div>
               <p
                 className={`text-sm ${
@@ -102,19 +102,19 @@ const VendorDetailPage = () => {
                     ? 'bg-emerald-600 hover:bg-emerald-700'
                     : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
-                variant='default'
+                variant="default"
               >
                 Fast
               </Badge>
             </div>
           </div>
         </div>
-        <div className='flex gap-3 mt-4 sm:mt-0'>
-          <Button className='bg-bojj-primary text-white'>
+        <div className="flex gap-3 mt-4 sm:mt-0">
+          <Button className="bg-venbid-primary text-white">
             Request a Quote
           </Button>
           <Button
-            variant='outline'
+            variant="outline"
             className={
               theme === 'dark'
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
@@ -133,7 +133,7 @@ const VendorDetailPage = () => {
           bathroom remodeling. Licensed contractor with over a decade of
           experience delivering high-quality craftsmanship.
         </p>
-        <div className='mt-3 flex flex-wrap gap-2'>
+        <div className="mt-3 flex flex-wrap gap-2">
           {[
             'Kitchen Remodeling',
             'Bathroom Renovation',
@@ -142,7 +142,7 @@ const VendorDetailPage = () => {
           ].map((tag) => (
             <Badge
               key={tag}
-              variant='outline'
+              variant="outline"
               className={
                 theme === 'dark'
                   ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
@@ -156,14 +156,14 @@ const VendorDetailPage = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue='reviews' className='w-full'>
+      <Tabs defaultValue="reviews" className="w-full">
         <TabsList
           className={`overflow-x-auto ${
             theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
           }`}
         >
           <TabsTrigger
-            value='reviews'
+            value="reviews"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -173,7 +173,7 @@ const VendorDetailPage = () => {
             Reviews
           </TabsTrigger>
           <TabsTrigger
-            value='portfolio'
+            value="portfolio"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -185,8 +185,8 @@ const VendorDetailPage = () => {
         </TabsList>
 
         {/* Reviews */}
-        <TabsContent value='reviews' className='mt-6'>
-          <div className='flex items-center gap-6 mb-6'>
+        <TabsContent value="reviews" className="mt-6">
+          <div className="flex items-center gap-6 mb-6">
             <div
               className={`text-4xl font-bold ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -195,9 +195,9 @@ const VendorDetailPage = () => {
               4.8
             </div>
             <div>
-              <div className='flex gap-1 text-yellow-500'>
+              <div className="flex gap-1 text-yellow-500">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={16} fill='currentColor' />
+                  <Star key={i} size={16} fill="currentColor" />
                 ))}
               </div>
               <p
@@ -208,7 +208,7 @@ const VendorDetailPage = () => {
                 127 reviews
               </p>
             </div>
-            <div className='ml-auto text-right'>
+            <div className="ml-auto text-right">
               <p
                 className={`text-sm ${
                   theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'
@@ -216,11 +216,11 @@ const VendorDetailPage = () => {
               >
                 Jobs Completed
               </p>
-              <p className='text-xl font-semibold text-bojj-primary'>243</p>
+              <p className="text-xl font-semibold text-venbid-primary">243</p>
             </div>
           </div>
 
-          <div className='space-y-6'>
+          <div className="space-y-6">
             {reviews.map((review, index) => (
               <div key={index}>
                 <div
@@ -230,9 +230,9 @@ const VendorDetailPage = () => {
                 >
                   {review.name}
                 </div>
-                <div className='flex items-center gap-1 text-yellow-500 text-sm mb-1'>
+                <div className="flex items-center gap-1 text-yellow-500 text-sm mb-1">
                   {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} size={14} fill='currentColor' />
+                    <Star key={i} size={14} fill="currentColor" />
                   ))}
                 </div>
                 <p
@@ -256,7 +256,7 @@ const VendorDetailPage = () => {
 
         {/* Portfolio Placeholder */}
         <TabsContent
-          value='portfolio'
+          value="portfolio"
           className={`mt-6 ${
             theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'
           }`}

@@ -184,27 +184,27 @@ const VendorJobsPage = () => {
 
   // Loading skeleton component
   const LoadingSkeleton = () => (
-    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {[1, 2, 3, 4].map((i) => (
         <Card key={i} className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
-          <CardHeader className='pb-3'>
-            <Skeleton className='h-6 w-3/4 mb-2' />
-            <Skeleton className='h-4 w-1/2' />
-            <div className='flex justify-between items-center mt-2'>
-              <Skeleton className='h-5 w-20' />
-              <Skeleton className='h-5 w-24' />
+          <CardHeader className="pb-3">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="flex justify-between items-center mt-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-24" />
             </div>
           </CardHeader>
           <CardContent>
-            <Skeleton className='h-4 w-full mb-2' />
-            <Skeleton className='h-4 w-3/4 mb-4' />
-            <div className='grid grid-cols-2 gap-4 mb-4'>
-              <Skeleton className='h-16 w-full' />
-              <Skeleton className='h-16 w-full' />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-4" />
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
             </div>
-            <div className='flex space-x-3'>
-              <Skeleton className='h-10 flex-1' />
-              <Skeleton className='h-10 flex-1' />
+            <div className="flex space-x-3">
+              <Skeleton className="h-10 flex-1" />
+              <Skeleton className="h-10 flex-1" />
             </div>
           </CardContent>
         </Card>
@@ -214,14 +214,14 @@ const VendorJobsPage = () => {
 
   // Error component
   const ErrorComponent = () => (
-    <div className='flex flex-col items-center justify-center py-12'>
-      <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
-      <h3 className='text-lg font-semibold mb-2'>Something went wrong</h3>
-      <p className='text-gray-600 dark:text-gray-400 mb-4'>
+    <div className="flex flex-col items-center justify-center py-12">
+      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+      <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
         Failed to load available jobs. Please try again.
       </p>
-      <Button onClick={refreshJobs} variant='outline'>
-        <RefreshCw className='mr-2 h-4 w-4' />
+      <Button onClick={refreshJobs} variant="outline">
+        <RefreshCw className="mr-2 h-4 w-4" />
         Retry
       </Button>
     </div>
@@ -238,7 +238,7 @@ const VendorJobsPage = () => {
       }`}
     >
       {/* Header */}
-      <div className='mb-8'>
+      <div className="mb-8">
         <h1
           className={`text-3xl font-bold mb-2 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -254,15 +254,15 @@ const VendorJobsPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className='mb-6 space-y-4'>
-        <div className='flex flex-col sm:flex-row gap-4'>
-          <div className='flex-1 relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder='Search jobs by title, description, or category...'
+              placeholder="Search jobs by title, description, or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className='pl-10'
+              className="pl-10"
             />
           </div>
 
@@ -270,11 +270,11 @@ const VendorJobsPage = () => {
             value={filters.category}
             onValueChange={(value) => handleFilterChange('category', value)}
           >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Category' />
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {availableFilters?.categories?.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -287,11 +287,11 @@ const VendorJobsPage = () => {
             value={filters.location}
             onValueChange={(value) => handleFilterChange('location', value)}
           >
-            <SelectTrigger className='w-full sm:w-48'>
-              <SelectValue placeholder='Location' />
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>All Locations</SelectItem>
+              <SelectItem value="all">All Locations</SelectItem>
               {availableFilters?.locations?.map((location) => (
                 <SelectItem key={location} value={location}>
                   {location}
@@ -302,7 +302,7 @@ const VendorJobsPage = () => {
         </div>
 
         {/* Sort Options */}
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <span
             className={`text-sm ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -310,7 +310,7 @@ const VendorJobsPage = () => {
           >
             Sort by:
           </span>
-          <div className='flex gap-2'>
+          <div className="flex gap-2">
             {[
               { key: 'createdAt', label: 'Date Posted' },
               { key: 'budget', label: 'Budget' },
@@ -321,13 +321,13 @@ const VendorJobsPage = () => {
                 variant={
                   filters.sortBy === sortOption.key ? 'default' : 'outline'
                 }
-                size='sm'
+                size="sm"
                 onClick={() => handleSortChange(sortOption.key)}
-                className='text-xs'
+                className="text-xs"
               >
                 {sortOption.label}
                 {filters.sortBy === sortOption.key && (
-                  <span className='ml-1'>
+                  <span className="ml-1">
                     {filters.sortOrder === 'asc' ? '↑' : '↓'}
                   </span>
                 )}
@@ -338,7 +338,7 @@ const VendorJobsPage = () => {
       </div>
 
       {/* Results Count and Refresh */}
-      <div className='flex justify-between items-center mb-6'>
+      <div className="flex justify-between items-center mb-6">
         <p
           className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
         >
@@ -350,8 +350,8 @@ const VendorJobsPage = () => {
         </p>
         <Button
           onClick={refreshJobs}
-          variant='outline'
-          size='sm'
+          variant="outline"
+          size="sm"
           disabled={isLoading}
         >
           <RefreshCw
@@ -366,8 +366,8 @@ const VendorJobsPage = () => {
         <Card
           className={`mb-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
         >
-          <CardContent className='p-6'>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
                 <div
                   className={`text-2xl font-bold ${
@@ -441,9 +441,9 @@ const VendorJobsPage = () => {
       {isLoading ? (
         <LoadingSkeleton />
       ) : jobs.length === 0 ? (
-        <div className='text-center py-12'>
-          <div className='mb-4'>
-            <Search className='h-12 w-12 mx-auto text-gray-400' />
+        <div className="text-center py-12">
+          <div className="mb-4">
+            <Search className="h-12 w-12 mx-auto text-gray-400" />
           </div>
           <h3
             className={`text-lg font-medium mb-2 ${
@@ -462,7 +462,7 @@ const VendorJobsPage = () => {
           </p>
         </div>
       ) : (
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {jobs.map((job) => (
             <Card
               key={job.id}
@@ -470,9 +470,9 @@ const VendorJobsPage = () => {
                 theme === 'dark' ? 'bg-gray-800' : 'bg-white'
               } hover:shadow-lg transition-shadow duration-200`}
             >
-              <CardHeader className='pb-3'>
-                <div className='flex justify-between items-start mb-3'>
-                  <div className='min-w-0 flex-1'>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="min-w-0 flex-1">
                     <CardTitle
                       className={`text-xl ${
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -480,8 +480,8 @@ const VendorJobsPage = () => {
                     >
                       {job.title}
                     </CardTitle>
-                    <div className='flex items-center gap-2 mt-1'>
-                      <MapPin className='h-4 w-4 text-gray-400' />
+                    <div className="flex items-center gap-2 mt-1">
+                      <MapPin className="h-4 w-4 text-gray-400" />
                       <span
                         className={`text-sm ${
                           theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -494,7 +494,7 @@ const VendorJobsPage = () => {
                     </div>
                   </div>
                   <Badge
-                    variant='outline'
+                    variant="outline"
                     className={`${
                       theme === 'dark'
                         ? 'bg-emerald-900/20 text-emerald-300 border-emerald-700'
@@ -505,10 +505,10 @@ const VendorJobsPage = () => {
                   </Badge>
                 </div>
 
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-4'>
-                    <div className='flex items-center gap-1'>
-                      <Star className='h-4 w-4 text-yellow-500 fill-current' />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
                       <span
                         className={`text-sm ${
                           theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -526,7 +526,7 @@ const VendorJobsPage = () => {
                     </span>
                   </div>
                   <Badge
-                    variant='outline'
+                    variant="outline"
                     className={getUrgencyColor(job.urgency)}
                   >
                     {job.urgency || 'Medium'}
@@ -543,9 +543,9 @@ const VendorJobsPage = () => {
                   {job.description}
                 </p>
 
-                <div className='grid grid-cols-2 gap-4 mb-4'>
-                  <div className='flex items-center gap-2'>
-                    <DollarSign className='h-4 w-4 text-green-500' />
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-green-500" />
                     <div>
                       <p
                         className={`text-sm ${
@@ -563,8 +563,8 @@ const VendorJobsPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className='flex items-center gap-2'>
-                    <Calendar className='h-4 w-4 text-blue-500' />
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-500" />
                     <div>
                       <p
                         className={`text-sm ${
@@ -585,7 +585,7 @@ const VendorJobsPage = () => {
                 </div>
 
                 {/* Additional Job Info */}
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p
                       className={`text-sm ${
@@ -622,19 +622,19 @@ const VendorJobsPage = () => {
                   </div>
                 </div>
 
-                <div className='flex space-x-3'>
+                <div className="flex space-x-3">
                   <Link
                     to={`/vendor/jobs/${job.id}/view`}
-                    className='flex-1 min-w-0'
+                    className="flex-1 min-w-0"
                   >
-                    <Button variant='outline' className='w-full'>
+                    <Button variant="outline" className="w-full">
                       View Details
                     </Button>
                   </Link>
 
                   <Button
                     onClick={() => openBidModal(job)}
-                    className='flex-1 bg-bojj-primary hover:bg-bojj-primary/90'
+                    className="flex-1 bg-venbid-primary hover:bg-venbid-primary/90"
                   >
                     Submit Bid
                   </Button>
@@ -647,16 +647,16 @@ const VendorJobsPage = () => {
 
       {/* Pagination */}
       {pagination && pagination.pages > 1 && (
-        <div className='flex justify-center items-center space-x-2 mt-8'>
+        <div className="flex justify-center items-center space-x-2 mt-8">
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             disabled={pagination.page <= 1}
             onClick={() => {
               // Handle page change
             }}
           >
-            <ChevronLeft className='h-4 w-4' />
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
 
@@ -669,15 +669,15 @@ const VendorJobsPage = () => {
           </span>
 
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             disabled={pagination.page >= pagination.pages}
             onClick={() => {
               // Handle page change
             }}
           >
             Next
-            <ChevronRight className='h-4 w-4' />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       )}

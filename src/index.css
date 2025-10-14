@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,14 +10,14 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
   }
-  
+
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
-  
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
@@ -30,47 +29,47 @@
 /* CSS Variables for Design Tokens */
 :root {
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  --foreground: 220 13% 13%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 220 13% 13%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 84% 4.9%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 84% 4.9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --popover-foreground: 220 13% 13%;
+  --primary: 0 100% 50%; /* Pure Red - Logo Color */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 13% 18%; /* Dark Gray */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 14% 96%; /* Light Gray */
+  --muted-foreground: 220 9% 46%;
+  --accent: 217 91% 60%; /* Blue */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 13% 91%; /* Light Gray Border */
+  --input: 220 13% 91%;
+  --ring: 0 100% 50%; /* Match Primary Red */
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+  --background: 220 13% 9%;
+  --foreground: 220 9% 98%;
+  --card: 220 13% 9%;
+  --card-foreground: 220 9% 98%;
+  --popover: 220 13% 9%;
+  --popover-foreground: 220 9% 98%;
+  --primary: 0 100% 50%; /* Pure Red - Logo Color */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 13% 18%; /* Dark Gray */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 13% 15%;
+  --muted-foreground: 220 9% 65%;
+  --accent: 217 91% 60%; /* Blue */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 13% 22%;
+  --input: 220 13% 22%;
+  --ring: 0 100% 50%; /* Match Primary Red */
 }
 
 /* Base Styles */
@@ -81,7 +80,7 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
 }
 
 /* Custom scrollbar */
@@ -120,7 +119,8 @@ body {
 
 /* Smooth transitions */
 * {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Focus styles */
@@ -129,13 +129,15 @@ body {
 }
 
 .focus-visible:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #ff0000;
   outline-offset: 2px;
 }
 
 /* Custom focus ring for form elements */
-input:focus, textarea:focus, select:focus {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
 }
 
 /* Button hover effects */
@@ -152,7 +154,9 @@ button:active {
 }
 
 /* Form input animations */
-input, textarea, select {
+input,
+textarea,
+select {
   transition: all 0.2s ease;
 }
 
@@ -189,7 +193,8 @@ input, textarea, select {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -224,7 +229,7 @@ input, textarea, select {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff0000 0%, #1f2937 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -237,7 +242,8 @@ input, textarea, select {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15),
+    0 10px 10px -5px rgba(0, 0, 0, 0.1);
 }
 
 /* Status indicators */
@@ -254,7 +260,7 @@ input, textarea, select {
   bottom: 0;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff0000 0%, #1f2937 100%);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   opacity: 0;
@@ -267,11 +273,11 @@ input, textarea, select {
 
 /* Custom button styles */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow;
 }
 
 .btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  @apply bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
 }
 
 .btn-danger {
@@ -285,7 +291,7 @@ input, textarea, select {
 
 /* Custom form styles */
 .form-input {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white;
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:text-white;
 }
 
 .form-label {
@@ -298,7 +304,7 @@ input, textarea, select {
 }
 
 .badge-open {
-  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300;
+  @apply bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300;
 }
 
 .badge-progress {
@@ -369,7 +375,7 @@ input, textarea, select {
 
 /* Custom loading styles */
 .loading-spinner {
-  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-red-600;
 }
 
 .loading-overlay {
@@ -428,7 +434,7 @@ input, textarea, select {
   .mobile-hidden {
     display: none;
   }
-  
+
   .mobile-full {
     width: 100%;
   }
@@ -447,7 +453,8 @@ input, textarea, select {
 
 .dark .from-gray-900 {
   --tw-gradient-from: #111827;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(17, 24, 39, 0));
+  --tw-gradient-stops: var(--tw-gradient-from),
+    var(--tw-gradient-to, rgba(17, 24, 39, 0));
 }
 
 .dark .to-gray-800 {
@@ -456,7 +463,7 @@ input, textarea, select {
 
 /* Custom focus ring for better accessibility */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+  @apply focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
 }
 
 /* Custom transition utilities */
@@ -467,7 +474,8 @@ input, textarea, select {
 }
 
 .transition-colors {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property: color, background-color, border-color,
+    text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }

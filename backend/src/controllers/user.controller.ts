@@ -60,9 +60,6 @@ export const createUserProfile: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -96,9 +93,6 @@ export const getUserProfile: RequestHandler = async (req, res, next) => {
         role: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -143,9 +137,6 @@ export const updateProfile: RequestHandler = async (req, res, next) => {
         role: true,
         phone: true,
         location: true,
-        rating: true,
-        totalReviews: true,
-        totalEarnings: true,
         status: true,
         updatedAt: true,
       },
@@ -228,9 +219,6 @@ export const getAllUsers: RequestHandler = async (req, res, next) => {
           lastName: true,
           role: true,
           status: true,
-          rating: true,
-          totalReviews: true,
-          totalEarnings: true,
           createdAt: true,
         },
         skip,
@@ -282,7 +270,7 @@ export const getReviews: RequestHandler = async (req, res, next) => {
     // Get reviews with pagination
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
-        where: { userId: id },
+        where: { reviewerId: id },
         select: {
           id: true,
           rating: true,
@@ -300,7 +288,7 @@ export const getReviews: RequestHandler = async (req, res, next) => {
         take: limitNum,
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.review.count({ where: { userId: id } }),
+      prisma.review.count({ where: { reviewerId: id } }),
     ]);
 
     const totalPages = Math.ceil(total / limitNum);
@@ -362,7 +350,9 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
         await Promise.all([
           prisma.bid.count({ where: { vendorId: id } }),
           prisma.bid.count({ where: { vendorId: id, status: 'ACCEPTED' } }),
-          prisma.job.count({ where: { vendorId: id, status: 'COMPLETED' } }),
+          prisma.job.count({
+            where: { assignedVendorId: id, status: 'COMPLETED' },
+          }),
           prisma.payment.aggregate({
             where: { vendorId: id, status: 'RELEASED' },
             _sum: { amount: true },
@@ -379,12 +369,12 @@ export const getUserStats: RequestHandler = async (req, res, next) => {
 
     // Common stats for all users
     const [totalReviews, avgRating, totalTickets] = await Promise.all([
-      prisma.review.count({ where: { userId: id } }),
+      prisma.review.count({ where: { reviewerId: id } }),
       prisma.review.aggregate({
-        where: { userId: id },
+        where: { reviewerId: id },
         _avg: { rating: true },
       }),
-      prisma.ticket.count({ where: { userId: id } }),
+      prisma.supportTicket.count({ where: { userId: id } }),
     ]);
 
     stats = {
@@ -441,13 +431,10 @@ export const searchUsers: RequestHandler = async (req, res, next) => {
           role: true,
           bio: true,
           location: true,
-          rating: true,
-          totalReviews: true,
-          totalEarnings: true,
         },
         skip,
         take: limitNum,
-        orderBy: { rating: 'desc' },
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.user.count({ where }),
     ]);

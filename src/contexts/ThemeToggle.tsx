@@ -1,12 +1,12 @@
-import React from "react";
-import { Moon, Sun } from "lucide-react";
+import React from 'react';
+import { Moon, Sun } from 'lucide-react';
 // import { motion } from "framer-motion";
-import { Switch } from "@/components/ui/switch";
-import { useTheme } from "@/contexts/ThemeContext";
+import { Switch } from '@/components/ui/switch';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
-  const isDark = theme === "dark";
+  const isDark = theme === 'dark';
 
   return (
     <div className="flex items-center gap-2">
@@ -14,12 +14,12 @@ const ThemeToggle = () => {
       <Switch
         checked={isDark}
         onCheckedChange={toggleTheme}
-        className="data-[state=checked]:bg-bojj-primary"
+        className="data-[state=checked]:bg-venbid-primary"
         aria-label="Toggle dark mode"
         title="Toggle dark mode"
       />
       <Moon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-      
+
       {/* Visual indicator animation */}
       {/* <motion.div
         initial={false}

@@ -85,9 +85,9 @@ export const Sidebar = ({ userType }: SidebarProps) => {
 
   return (
     <ShadcnSidebar
-      variant='sidebar'
-      collapsible='offcanvas'
-      side='left'
+      variant="sidebar"
+      collapsible="offcanvas"
+      side="left"
       style={
         {
           '--sidebar-width': '16rem',
@@ -95,12 +95,16 @@ export const Sidebar = ({ userType }: SidebarProps) => {
         } as React.CSSProperties
       }
     >
-      <SidebarHeader className='p-4 border-b'>
-        <div className='flex justify-center items-center h-10'>
-          <span className='text-2xl font-bold text-bojj-primary'>BOJJ</span>
+      <SidebarHeader className="p-4 border-b">
+        <div className="flex justify-center items-center h-10">
+          <img
+            src="/assets/logos/venbid.png"
+            alt="VenBid Logo"
+            className="h-6 w-auto"
+          />
         </div>
       </SidebarHeader>
-      <SidebarContent className='p-4'>
+      <SidebarContent className="p-4">
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem
@@ -108,7 +112,7 @@ export const Sidebar = ({ userType }: SidebarProps) => {
               onClick={() => navigate(item.path)}
               className={`flex items-center gap-3 px-3 py-2 rounded-md mb-1 ${
                 isActive(item.path)
-                  ? 'bg-bojj-primary text-white'
+                  ? 'bg-venbid-primary text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
               data-active={isActive(item.path)}
@@ -119,25 +123,25 @@ export const Sidebar = ({ userType }: SidebarProps) => {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className='p-4 border-t'>
-        <div className='flex items-center gap-3'>
-          <div className='flex items-center gap-2'>
-            <div className='w-8 h-8 bg-bojj-primary rounded-full flex items-center justify-center text-white text-sm font-medium'>
+      <SidebarFooter className="p-4 border-t">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-venbid-primary rounded-full flex items-center justify-center text-white text-sm font-medium">
               {user?.firstName?.charAt(0) || userType.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className='text-sm font-medium'>
+              <p className="text-sm font-medium">
                 {user?.firstName ||
                   (userType === 'customer' ? 'Customer' : 'Vendor')}
               </p>
-              <p className='text-xs text-gray-500'>{user?.email}</p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
           </div>
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             onClick={logout}
-            className='ml-auto'
+            className="ml-auto"
           >
             Logout
           </Button>

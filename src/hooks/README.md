@@ -1,6 +1,6 @@
 # React Query (TanStack Query) Implementation Guide
 
-This guide explains how to use React Query in your BOJJ project for efficient API state management.
+This guide explains how to use React Query in your venbid project for efficient API state management.
 
 ## Overview
 
@@ -327,7 +327,7 @@ const { data, error, isError } = useJobs();
 
 if (isError) {
   return (
-    <div className='error-container'>
+    <div className="error-container">
       <h3>Something went wrong</h3>
       <p>{error.message}</p>
       <button onClick={() => refetch()}>Try again</button>

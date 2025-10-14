@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 import {
   LayoutDashboard,
   Users,
@@ -177,17 +178,12 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl">
-                A
-              </div>
+              <img
+                src="/assets/logos/venbid.png"
+                alt="VenBid Logo"
+                className="h-7 w-auto"
+              />
               <div>
-                <h1
-                  className={`text-lg font-semibold ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  BOJJ
-                </h1>
                 <p className="text-xs text-blue-600 font-medium">
                   Admin Portal
                 </p>
@@ -384,9 +380,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="h-5 w-5" />
-              </Button>
+              <NotificationBell />
 
               {/* User dropdown (match customer style) */}
               <DropdownMenu>

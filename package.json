@@ -1,8 +1,8 @@
 {
-  "name": "bojj-webapp",
+  "name": "venbid-webapp",
   "private": true,
   "version": "1.0.0",
-  "description": "BOJJ Web Application",
+  "description": "VenBid Web Application",
   "type": "module",
   "scripts": {
     "dev": "vite",

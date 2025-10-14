@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 import {
   LayoutDashboard,
   Briefcase,
@@ -190,17 +191,12 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 text-white font-bold text-xl">
-                B
-              </div>
+              <img
+                src="/assets/logos/venbid.png"
+                alt="VenBid Logo"
+                className="h-7 w-auto"
+              />
               <div>
-                <h1
-                  className={`text-lg font-semibold ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  BOJJ
-                </h1>
                 <p
                   className={`text-xs ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
@@ -489,20 +485,7 @@ const VendorLayout = ({ children }: VendorLayoutProps) => {
               </div>
 
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`relative ${
-                  theme === 'dark'
-                    ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                  3
-                </span>
-              </Button>
+              <NotificationBell />
 
               {/* User menu */}
               <div className="flex items-center space-x-3">

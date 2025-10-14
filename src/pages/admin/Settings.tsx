@@ -51,9 +51,9 @@ import {
 
 const Settings = () => {
   const [generalSettings, setGeneralSettings] = useState({
-    siteName: 'BOJJ Platform',
+    siteName: 'venbid Platform',
     siteDescription: 'Professional job marketplace',
-    contactEmail: 'admin@bojj.com',
+    contactEmail: 'admin@venbid.com',
     contactPhone: '+1-555-0123',
     address: '123 Business St, City, State 12345',
     timezone: 'UTC-5',
@@ -110,50 +110,50 @@ const Settings = () => {
   };
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className='bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white'>
-        <h1 className='text-2xl font-bold mb-2'>System Settings</h1>
-        <p className='text-blue-100'>
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">System Settings</h1>
+        <p className="text-blue-100">
           Configure platform settings, security, and preferences
         </p>
       </div>
 
       {/* Settings Tabs */}
-      <Tabs defaultValue='general' className='space-y-4'>
-        <TabsList className='grid w-full grid-cols-5'>
-          <TabsTrigger value='general'>General</TabsTrigger>
-          <TabsTrigger value='security'>Security</TabsTrigger>
-          <TabsTrigger value='payments'>Payments</TabsTrigger>
-          <TabsTrigger value='notifications'>Notifications</TabsTrigger>
-          <TabsTrigger value='advanced'>Advanced</TabsTrigger>
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
-        <TabsContent value='general' className='space-y-6'>
+        <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Settings className='h-5 w-5' />
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
                 General Settings
               </CardTitle>
               <CardDescription>
                 Basic platform configuration and information
               </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Site Name</label>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Site Name</label>
                   <Input
                     value={generalSettings.siteName}
                     onChange={(e) =>
                       handleGeneralChange('siteName', e.target.value)
                     }
-                    placeholder='Enter site name'
+                    placeholder="Enter site name"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Site Description
                   </label>
                   <Input
@@ -161,42 +161,42 @@ const Settings = () => {
                     onChange={(e) =>
                       handleGeneralChange('siteDescription', e.target.value)
                     }
-                    placeholder='Enter site description'
+                    placeholder="Enter site description"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Contact Email</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Contact Email</label>
                   <Input
-                    type='email'
+                    type="email"
                     value={generalSettings.contactEmail}
                     onChange={(e) =>
                       handleGeneralChange('contactEmail', e.target.value)
                     }
-                    placeholder='admin@example.com'
+                    placeholder="admin@example.com"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Contact Phone</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Contact Phone</label>
                   <Input
                     value={generalSettings.contactPhone}
                     onChange={(e) =>
                       handleGeneralChange('contactPhone', e.target.value)
                     }
-                    placeholder='+1-555-0123'
+                    placeholder="+1-555-0123"
                   />
                 </div>
-                <div className='space-y-2 md:col-span-2'>
-                  <label className='text-sm font-medium'>Address</label>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">Address</label>
                   <Input
                     value={generalSettings.address}
                     onChange={(e) =>
                       handleGeneralChange('address', e.target.value)
                     }
-                    placeholder='Enter business address'
+                    placeholder="Enter business address"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Timezone</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Timezone</label>
                   <Select
                     value={generalSettings.timezone}
                     onValueChange={(value) =>
@@ -204,19 +204,19 @@ const Settings = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder='Select timezone' />
+                      <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='UTC-8'>UTC-8 (PST)</SelectItem>
-                      <SelectItem value='UTC-5'>UTC-5 (EST)</SelectItem>
-                      <SelectItem value='UTC+0'>UTC+0 (GMT)</SelectItem>
-                      <SelectItem value='UTC+1'>UTC+1 (CET)</SelectItem>
-                      <SelectItem value='UTC+5:30'>UTC+5:30 (IST)</SelectItem>
+                      <SelectItem value="UTC-8">UTC-8 (PST)</SelectItem>
+                      <SelectItem value="UTC-5">UTC-5 (EST)</SelectItem>
+                      <SelectItem value="UTC+0">UTC+0 (GMT)</SelectItem>
+                      <SelectItem value="UTC+1">UTC+1 (CET)</SelectItem>
+                      <SelectItem value="UTC+5:30">UTC+5:30 (IST)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Currency</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Currency</label>
                   <Select
                     value={generalSettings.currency}
                     onValueChange={(value) =>
@@ -224,22 +224,22 @@ const Settings = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder='Select currency' />
+                      <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='USD'>USD ($)</SelectItem>
-                      <SelectItem value='EUR'>EUR (€)</SelectItem>
-                      <SelectItem value='GBP'>GBP (£)</SelectItem>
-                      <SelectItem value='JPY'>JPY (¥)</SelectItem>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="JPY">JPY (¥)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className='flex items-center justify-between p-4 rounded-lg border'>
+              <div className="flex items-center justify-between p-4 rounded-lg border">
                 <div>
-                  <div className='font-medium'>Maintenance Mode</div>
-                  <div className='text-sm text-gray-500'>
+                  <div className="font-medium">Maintenance Mode</div>
+                  <div className="text-sm text-gray-500">
                     Enable maintenance mode to restrict access
                   </div>
                 </div>
@@ -251,10 +251,10 @@ const Settings = () => {
                 />
               </div>
 
-              <div className='flex gap-2 justify-end'>
-                <Button variant='outline'>Reset to Default</Button>
-                <Button className='flex items-center gap-2'>
-                  <Save className='h-4 w-4' />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline">Reset to Default</Button>
+                <Button className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
@@ -262,25 +262,25 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value='security' className='space-y-6'>
+        <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Shield className='h-5 w-5' />
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
                 Security Settings
               </CardTitle>
               <CardDescription>
                 Configure platform security and authentication
               </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Session Timeout (minutes)
                   </label>
                   <Input
-                    type='number'
+                    type="number"
                     value={securitySettings.sessionTimeout}
                     onChange={(e) =>
                       handleSecurityChange(
@@ -288,16 +288,16 @@ const Settings = () => {
                         parseInt(e.target.value)
                       )
                     }
-                    min='5'
-                    max='1440'
+                    min="5"
+                    max="1440"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Max Login Attempts
                   </label>
                   <Input
-                    type='number'
+                    type="number"
                     value={securitySettings.maxLoginAttempts}
                     onChange={(e) =>
                       handleSecurityChange(
@@ -305,16 +305,16 @@ const Settings = () => {
                         parseInt(e.target.value)
                       )
                     }
-                    min='3'
-                    max='10'
+                    min="3"
+                    max="10"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Password Min Length
                   </label>
                   <Input
-                    type='number'
+                    type="number"
                     value={securitySettings.passwordMinLength}
                     onChange={(e) =>
                       handleSecurityChange(
@@ -322,27 +322,27 @@ const Settings = () => {
                         parseInt(e.target.value)
                       )
                     }
-                    min='6'
-                    max='20'
+                    min="6"
+                    max="20"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>IP Whitelist</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">IP Whitelist</label>
                   <Input
                     value={securitySettings.ipWhitelist}
                     onChange={(e) =>
                       handleSecurityChange('ipWhitelist', e.target.value)
                     }
-                    placeholder='192.168.1.1, 10.0.0.1'
+                    placeholder="192.168.1.1, 10.0.0.1"
                   />
                 </div>
               </div>
 
-              <div className='space-y-4'>
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Two-Factor Authentication</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Two-Factor Authentication</div>
+                    <div className="text-sm text-gray-500">
                       Require 2FA for admin accounts
                     </div>
                   </div>
@@ -354,12 +354,12 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>
+                    <div className="font-medium">
                       Strong Password Requirement
                     </div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="text-sm text-gray-500">
                       Enforce complex password rules
                     </div>
                   </div>
@@ -371,10 +371,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>CAPTCHA Protection</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">CAPTCHA Protection</div>
+                    <div className="text-sm text-gray-500">
                       Enable CAPTCHA on login forms
                     </div>
                   </div>
@@ -386,10 +386,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>SSL Required</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">SSL Required</div>
+                    <div className="text-sm text-gray-500">
                       Force HTTPS connections
                     </div>
                   </div>
@@ -402,10 +402,10 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className='flex gap-2 justify-end'>
-                <Button variant='outline'>Reset to Default</Button>
-                <Button className='flex items-center gap-2'>
-                  <Save className='h-4 w-4' />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline">Reset to Default</Button>
+                <Button className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
@@ -413,25 +413,25 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value='payments' className='space-y-6'>
+        <TabsContent value="payments" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <CreditCard className='h-5 w-5' />
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
                 Payment Settings
               </CardTitle>
               <CardDescription>
                 Configure payment processing and fees
               </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Platform Fee (%)
                   </label>
                   <Input
-                    type='number'
+                    type="number"
                     value={paymentSettings.platformFee}
                     onChange={(e) =>
                       handlePaymentChange(
@@ -439,17 +439,17 @@ const Settings = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    min='0'
-                    max='20'
-                    step='0.1'
+                    min="0"
+                    max="20"
+                    step="0.1"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Auto Release Days
                   </label>
                   <Input
-                    type='number'
+                    type="number"
                     value={paymentSettings.autoReleaseDays}
                     onChange={(e) =>
                       handlePaymentChange(
@@ -457,14 +457,14 @@ const Settings = () => {
                         parseInt(e.target.value)
                       )
                     }
-                    min='1'
-                    max='30'
+                    min="1"
+                    max="30"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Minimum Payout</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Minimum Payout</label>
                   <Input
-                    type='number'
+                    type="number"
                     value={paymentSettings.minimumPayout}
                     onChange={(e) =>
                       handlePaymentChange(
@@ -472,32 +472,32 @@ const Settings = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    min='10'
-                    step='10'
+                    min="10"
+                    step="10"
                   />
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Supported Currencies
                   </label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder='Select currencies' />
+                      <SelectValue placeholder="Select currencies" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='USD'>USD</SelectItem>
-                      <SelectItem value='EUR'>EUR</SelectItem>
-                      <SelectItem value='GBP'>GBP</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className='space-y-4'>
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Escrow Service</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Escrow Service</div>
+                    <div className="text-sm text-gray-500">
                       Hold payments until job completion
                     </div>
                   </div>
@@ -509,10 +509,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Stripe Integration</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Stripe Integration</div>
+                    <div className="text-sm text-gray-500">
                       Enable Stripe payment processing
                     </div>
                   </div>
@@ -525,10 +525,10 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className='flex gap-2 justify-end'>
-                <Button variant='outline'>Reset to Default</Button>
-                <Button className='flex items-center gap-2'>
-                  <Save className='h-4 w-4' />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline">Reset to Default</Button>
+                <Button className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
@@ -536,23 +536,23 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value='notifications' className='space-y-6'>
+        <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <Bell className='h-5 w-5' />
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
                 Notification Settings
               </CardTitle>
               <CardDescription>
                 Configure platform notifications and alerts
               </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-6'>
-              <div className='space-y-4'>
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Email Notifications</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Email Notifications</div>
+                    <div className="text-sm text-gray-500">
                       Send notifications via email
                     </div>
                   </div>
@@ -564,10 +564,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>SMS Notifications</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">SMS Notifications</div>
+                    <div className="text-sm text-gray-500">
                       Send notifications via SMS
                     </div>
                   </div>
@@ -579,10 +579,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Push Notifications</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Push Notifications</div>
+                    <div className="text-sm text-gray-500">
                       Send push notifications to users
                     </div>
                   </div>
@@ -594,10 +594,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Admin Alerts</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Admin Alerts</div>
+                    <div className="text-sm text-gray-500">
                       Receive alerts for important events
                     </div>
                   </div>
@@ -609,10 +609,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>User Registration</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">User Registration</div>
+                    <div className="text-sm text-gray-500">
                       Notify admins of new registrations
                     </div>
                   </div>
@@ -624,10 +624,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Job Posting</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Job Posting</div>
+                    <div className="text-sm text-gray-500">
                       Notify admins of new job postings
                     </div>
                   </div>
@@ -639,10 +639,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Payment Received</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Payment Received</div>
+                    <div className="text-sm text-gray-500">
                       Notify admins of payments
                     </div>
                   </div>
@@ -654,10 +654,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className='flex items-center justify-between p-4 rounded-lg border'>
+                <div className="flex items-center justify-between p-4 rounded-lg border">
                   <div>
-                    <div className='font-medium'>Dispute Alerts</div>
-                    <div className='text-sm text-gray-500'>
+                    <div className="font-medium">Dispute Alerts</div>
+                    <div className="text-sm text-gray-500">
                       Notify admins of disputes
                     </div>
                   </div>
@@ -670,10 +670,10 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className='flex gap-2 justify-end'>
-                <Button variant='outline'>Reset to Default</Button>
-                <Button className='flex items-center gap-2'>
-                  <Save className='h-4 w-4' />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline">Reset to Default</Button>
+                <Button className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
                   Save Changes
                 </Button>
               </div>
@@ -681,40 +681,40 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value='advanced' className='space-y-6'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <TabsContent value="advanced" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Database Settings */}
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Database className='h-5 w-5' />
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
                   Database Settings
                 </CardTitle>
                 <CardDescription>
                   Database configuration and maintenance
                 </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Database Type</label>
-                  <div className='text-sm text-gray-500'>PostgreSQL</div>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Database Type</label>
+                  <div className="text-sm text-gray-500">PostgreSQL</div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Connection Status
                   </label>
-                  <div className='flex items-center gap-2'>
-                    <CheckCircle className='h-4 w-4 text-green-600' />
-                    <span className='text-sm text-green-600'>Connected</span>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-600">Connected</span>
                   </div>
                 </div>
-                <div className='flex gap-2'>
-                  <Button variant='outline' size='sm'>
-                    <RefreshCw className='h-4 w-4 mr-2' />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     Test Connection
                   </Button>
-                  <Button variant='outline' size='sm'>
-                    <Download className='h-4 w-4 mr-2' />
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
                     Backup
                   </Button>
                 </div>
@@ -724,30 +724,30 @@ const Settings = () => {
             {/* API Settings */}
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Key className='h-5 w-5' />
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="h-5 w-5" />
                   API Settings
                 </CardTitle>
                 <CardDescription>API configuration and keys</CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>API Version</label>
-                  <div className='text-sm text-gray-500'>v1.0.0</div>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">API Version</label>
+                  <div className="text-sm text-gray-500">v1.0.0</div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Rate Limiting</label>
-                  <div className='text-sm text-gray-500'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Rate Limiting</label>
+                  <div className="text-sm text-gray-500">
                     100 requests per 15 minutes
                   </div>
                 </div>
-                <div className='flex gap-2'>
-                  <Button variant='outline' size='sm'>
-                    <Key className='h-4 w-4 mr-2' />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Key className="h-4 w-4 mr-2" />
                     Generate API Key
                   </Button>
-                  <Button variant='outline' size='sm'>
-                    <Eye className='h-4 w-4 mr-2' />
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
                     View Keys
                   </Button>
                 </div>
@@ -757,34 +757,34 @@ const Settings = () => {
             {/* System Info */}
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Info className='h-5 w-5' />
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
                   System Information
                 </CardTitle>
                 <CardDescription>
                   Platform version and system details
                 </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Platform Version
                   </label>
-                  <div className='text-sm text-gray-500'>1.0.0</div>
+                  <div className="text-sm text-gray-500">1.0.0</div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Node.js Version</label>
-                  <div className='text-sm text-gray-500'>18.17.0</div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Node.js Version</label>
+                  <div className="text-sm text-gray-500">18.17.0</div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
                     Database Version
                   </label>
-                  <div className='text-sm text-gray-500'>PostgreSQL 15.0</div>
+                  <div className="text-sm text-gray-500">PostgreSQL 15.0</div>
                 </div>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Last Updated</label>
-                  <div className='text-sm text-gray-500'>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Last Updated</label>
+                  <div className="text-sm text-gray-500">
                     2024-01-25 10:30:00
                   </div>
                 </div>
@@ -794,29 +794,29 @@ const Settings = () => {
             {/* Maintenance */}
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <AlertTriangle className='h-5 w-5' />
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
                   Maintenance
                 </CardTitle>
                 <CardDescription>
                   System maintenance and updates
                 </CardDescription>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Cache Status</label>
-                  <div className='flex items-center gap-2'>
-                    <CheckCircle className='h-4 w-4 text-green-600' />
-                    <span className='text-sm text-green-600'>Active</span>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Cache Status</label>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-600">Active</span>
                   </div>
                 </div>
-                <div className='flex gap-2'>
-                  <Button variant='outline' size='sm'>
-                    <RefreshCw className='h-4 w-4 mr-2' />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     Clear Cache
                   </Button>
-                  <Button variant='outline' size='sm'>
-                    <Upload className='h-4 w-4 mr-2' />
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
                     Check Updates
                   </Button>
                 </div>

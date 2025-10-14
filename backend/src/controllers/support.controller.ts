@@ -6,6 +6,7 @@ import {
   TicketCategory,
 } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { notifySupportTicketReply } from '../services/notificationService';
 
 const prisma = new PrismaClient();
 
@@ -561,6 +562,113 @@ export const getTicketsByStatus: RequestHandler = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch tickets',
+    });
+    return;
+  }
+};
+
+// Add a response to a ticket
+export const addTicketResponse: RequestHandler = async (req, res, next) => {
+  try {
+    const { ticketId } = req.params;
+    const { message } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    if (!message) {
+      res.status(400).json({
+        success: false,
+        message: 'Response message is required',
+      });
+      return;
+    }
+
+    // Get ticket details
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+      return;
+    }
+
+    // Get current user details for responder name
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+    });
+
+    if (!currentUser) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+      return;
+    }
+
+    // Create response
+    const response = await prisma.ticketResponse.create({
+      data: {
+        ticketId,
+        userId,
+        message,
+        isAdmin: currentUser.role === 'ADMIN',
+      },
+    });
+
+    // Get responder name
+    const responderName = `${currentUser.firstName} ${currentUser.lastName}`;
+
+    // Notify ticket owner if responder is different
+    if (ticket.userId !== userId) {
+      await notifySupportTicketReply(
+        ticket.userId,
+        ticket.title,
+        ticketId,
+        responderName
+      );
+    }
+
+    logger.info(
+      `Ticket response added to ticket: ${ticketId} by user: ${userId}`
+    );
+    res.status(201).json({
+      success: true,
+      message: 'Response added successfully',
+      data: response,
+    });
+    return;
+  } catch (error) {
+    logger.error('Error adding ticket response:', error);
+    next(error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add response',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
     return;
   }
