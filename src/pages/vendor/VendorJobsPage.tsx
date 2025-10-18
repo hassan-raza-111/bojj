@@ -624,7 +624,7 @@ const VendorJobsPage = () => {
 
                 <div className="flex space-x-3">
                   <Link
-                    to={`/vendor/jobs/${job.id}/view`}
+                    to={`/vendor/jobs/${job.id}`}
                     className="flex-1 min-w-0"
                   >
                     <Button variant="outline" className="w-full">

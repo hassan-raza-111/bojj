@@ -545,7 +545,7 @@ const VendorDashboard = () => {
 
                     <div className="flex space-x-3 mt-4">
                       <Link
-                        to={`/vendor/jobs/${job.id}/view`}
+                        to={`/vendor/jobs/${job.id}`}
                         className="flex-1 min-w-0"
                       >
                         <Button variant="outline" className="w-full">
@@ -765,7 +765,7 @@ const VendorDashboard = () => {
 
                     <div className="flex space-x-3 mt-4">
                       <Link
-                        to={`/vendor/bids/${bid.id}/view`}
+                        to={`/vendor/bids/${bid.id}`}
                         className="flex-1 min-w-0"
                       >
                         <Button variant="outline" className="w-full">
@@ -875,7 +875,7 @@ const VendorDashboard = () => {
 
                     <div className="flex space-x-3 mt-4">
                       <Link
-                        to={`/vendor/jobs/${job.id}/view`}
+                        to={`/vendor/jobs/${job.id}`}
                         className="flex-1 min-w-0"
                       >
                         <Button variant="outline" className="w-full">

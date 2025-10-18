@@ -329,7 +329,7 @@ export const notifyBidAccepted = async (
     type: 'BID_ACCEPTED',
     title: 'Bid Accepted! 🎉',
     message: `${customerName} accepted your bid for "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}/view`,
+    link: `/vendor/jobs/${jobId}`,
     priority: 'URGENT',
     sendEmail: true,
     emailData: { jobTitle, customerName },
@@ -428,7 +428,7 @@ export const notifyJobAssigned = async (
     type: 'JOB_ASSIGNED',
     title: 'Job Assigned to You! 🎯',
     message: `${customerName} assigned you the job "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}/view`,
+    link: `/vendor/jobs/${jobId}`,
     priority: 'URGENT',
     sendEmail: true,
     emailData: { jobTitle, customerName },
@@ -601,7 +601,7 @@ export const notifyNewJobPosted = async (
       type: 'NEW_JOB_POSTED',
       title: 'New Job Available! 🎯',
       message: `${customerName} posted a new job: "${jobTitle}" ($${budget}) in ${location}`,
-      link: `/vendor/jobs/${jobId}/view`,
+      link: `/vendor/jobs/${jobId}`,
       priority: 'HIGH',
       sendEmail: true,
       emailData: { jobTitle, customerName, budget, location, category },
@@ -636,7 +636,7 @@ export const notifyCustomerCounterOffer = async (
     type: 'BID_ACCEPTED', // Reusing existing type, could add new COUNTER_OFFER type
     title: '💰 Counter-Offer Received',
     message: `${customerName} countered your bid of $${originalAmount} with $${counterAmount} for "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}/view`,
+    link: `/vendor/jobs/${jobId}`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { customerName, jobTitle, originalAmount, counterAmount },
@@ -675,7 +675,7 @@ export const notifyCounterOfferAccepted = async (
 ) => {
   const link =
     userRole === 'VENDOR'
-      ? `/vendor/jobs/${jobId}/view`
+      ? `/vendor/jobs/${jobId}`
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
@@ -700,7 +700,7 @@ export const notifyCounterOfferRejected = async (
 ) => {
   const link =
     userRole === 'VENDOR'
-      ? `/vendor/jobs/${jobId}/view`
+      ? `/vendor/jobs/${jobId}`
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
@@ -723,7 +723,7 @@ export const notifyMaxNegotiationReached = async (
 ) => {
   const link =
     userRole === 'VENDOR'
-      ? `/vendor/jobs/${jobId}/view`
+      ? `/vendor/jobs/${jobId}`
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,

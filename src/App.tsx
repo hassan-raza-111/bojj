@@ -240,7 +240,7 @@ const App = () => {
                             element={<SupportPage />}
                           />
                           <Route
-                            path="/jobs/:id/view"
+                            path="/jobs/:id"
                             element={<JobDetailsPage />}
                           />
                           <Route
@@ -248,7 +248,7 @@ const App = () => {
                             element={<SubmitBidPage />}
                           />
                           <Route
-                            path="/bids/:id/view"
+                            path="/bids/:id"
                             element={<JobDetailsPage />}
                           />
                         </Routes>
