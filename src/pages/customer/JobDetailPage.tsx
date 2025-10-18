@@ -233,7 +233,7 @@ const JobDetailPage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({ customerId: user?.id }),
       })
@@ -296,20 +296,20 @@ const JobDetailPage = () => {
 
   if (jobLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <Loader2 className='h-8 w-8 animate-spin' />
-        <span className='ml-2'>Loading job details...</span>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading job details...</span>
       </div>
     );
   }
 
   if (jobError || !job) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <AlertCircle className='h-12 w-12 text-red-500 mx-auto mb-4' />
-          <h2 className='text-xl font-semibold mb-2'>Job Not Found</h2>
-          <p className='text-gray-600 mb-4'>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Job Not Found</h2>
+          <p className="text-gray-600 mb-4">
             The job you're looking for doesn't exist or you don't have access to
             it.
           </p>
@@ -322,36 +322,36 @@ const JobDetailPage = () => {
   }
 
   return (
-    <div className='container mx-auto px-4 py-8'>
+    <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className='flex items-center justify-between mb-8'>
-        <div className='flex items-center space-x-4'>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-4">
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             onClick={() => navigate('/customer/jobs')}
           >
-            <ArrowLeft className='h-4 w-4 mr-2' />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Jobs
           </Button>
           <div>
-            <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               {job.title}
             </h1>
-            <p className='text-gray-600 dark:text-gray-300'>
+            <p className="text-gray-600 dark:text-gray-300">
               {job.category}
               {job.subcategory && ` • ${job.subcategory}`}
             </p>
           </div>
         </div>
 
-        <div className='flex items-center space-x-2'>
+        <div className="flex items-center space-x-2">
           {job.status === 'OPEN' && (
             <Button
-              variant='outline'
+              variant="outline"
               onClick={() => navigate(`/customer/jobs/${job.id}/edit`)}
             >
-              <Edit className='h-4 w-4 mr-2' />
+              <Edit className="h-4 w-4 mr-2" />
               Edit Job
             </Button>
           )}
@@ -361,9 +361,9 @@ const JobDetailPage = () => {
             job.assignedVendor && (
               <Button
                 onClick={() => navigate(`/customer/payment/${job.id}`)}
-                className='bg-green-600 hover:bg-green-700'
+                className="bg-green-600 hover:bg-green-700"
               >
-                <CreditCard className='h-4 w-4 mr-2' />
+                <CreditCard className="h-4 w-4 mr-2" />
                 Make Payment
               </Button>
             )}
@@ -378,35 +378,35 @@ const JobDetailPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Job Details */}
-        <div className='lg:col-span-2'>
+        <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className='grid w-full grid-cols-4'>
-              <TabsTrigger value='overview'>Overview</TabsTrigger>
-              <TabsTrigger value='bids'>Bids ({bids.length})</TabsTrigger>
-              <TabsTrigger value='analytics'>Analytics</TabsTrigger>
-              <TabsTrigger value='activity'>Activity</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="bids">Bids ({bids.length})</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
-            <TabsContent value='overview' className='space-y-6'>
+            <TabsContent value="overview" className="space-y-6">
               {/* Job Description */}
               <Card>
                 <CardHeader>
                   <CardTitle>Job Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className='text-gray-700 dark:text-gray-300 mb-4'>
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">
                     {job.description}
                   </p>
 
                   {job.additionalRequests && (
-                    <div className='mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg'>
-                      <h4 className='font-semibold mb-2'>
+                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <h4 className="font-semibold mb-2">
                         Additional Requests
                       </h4>
-                      <p className='text-gray-600 dark:text-gray-400'>
+                      <p className="text-gray-600 dark:text-gray-400">
                         {job.additionalRequests}
                       </p>
                     </div>
@@ -420,12 +420,12 @@ const JobDetailPage = () => {
                   <CardTitle>Job Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    <div className='flex items-center space-x-3'>
-                      <DollarSign className='h-5 w-5 text-gray-400' />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3">
+                      <DollarSign className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className='text-sm text-gray-500'>Budget</p>
-                        <p className='font-medium'>
+                        <p className="text-sm text-gray-500">Budget</p>
+                        <p className="font-medium">
                           {job.budget
                             ? `$${job.budget.toLocaleString()}`
                             : 'Not specified'}
@@ -433,32 +433,32 @@ const JobDetailPage = () => {
                       </div>
                     </div>
 
-                    <div className='flex items-center space-x-3'>
-                      <Clock className='h-5 w-5 text-gray-400' />
+                    <div className="flex items-center space-x-3">
+                      <Clock className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className='text-sm text-gray-500'>Timeline</p>
-                        <p className='font-medium'>
+                        <p className="text-sm text-gray-500">Timeline</p>
+                        <p className="font-medium">
                           {job.timeline || 'Not specified'}
                         </p>
                       </div>
                     </div>
 
-                    <div className='flex items-center space-x-3'>
-                      <MapPin className='h-5 w-5 text-gray-400' />
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className='text-sm text-gray-500'>Location</p>
-                        <p className='font-medium'>
+                        <p className="text-sm text-gray-500">Location</p>
+                        <p className="font-medium">
                           {job.location ||
                             `${job.street}, ${job.city}, ${job.state} ${job.zipCode}`}
                         </p>
                       </div>
                     </div>
 
-                    <div className='flex items-center space-x-3'>
-                      <Calendar className='h-5 w-5 text-gray-400' />
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-5 w-5 text-gray-400" />
                       <div>
-                        <p className='text-sm text-gray-500'>Posted</p>
-                        <p className='font-medium'>
+                        <p className="text-sm text-gray-500">Posted</p>
+                        <p className="font-medium">
                           {formatDistanceToNow(new Date(job.createdAt), {
                             addSuffix: true,
                           })}
@@ -474,36 +474,36 @@ const JobDetailPage = () => {
                 job.assignedVendor && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className='flex items-center space-x-2'>
-                        <CreditCard className='h-5 w-5' />
+                      <CardTitle className="flex items-center space-x-2">
+                        <CreditCard className="h-5 w-5" />
                         <span>Payment Information</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='space-y-4'>
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-500'>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
                             Job Budget:
                           </span>
-                          <span className='font-semibold text-lg'>
+                          <span className="font-semibold text-lg">
                             {job.budget
                               ? `$${job.budget.toLocaleString()}`
                               : 'Not specified'}
                           </span>
                         </div>
 
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-500'>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
                             Assigned Vendor:
                           </span>
-                          <span className='font-medium'>
+                          <span className="font-medium">
                             {job.assignedVendor.firstName}{' '}
                             {job.assignedVendor.lastName}
                           </span>
                         </div>
 
-                        <div className='flex items-center justify-between'>
-                          <span className='text-sm text-gray-500'>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
                             Job Status:
                           </span>
                           <Badge className={getStatusColor(job.status)}>
@@ -511,15 +511,15 @@ const JobDetailPage = () => {
                           </Badge>
                         </div>
 
-                        <div className='pt-4 border-t'>
+                        <div className="pt-4 border-t">
                           <Button
                             onClick={() =>
                               navigate(`/customer/payment/${job.id}`)
                             }
-                            className='w-full bg-green-600 hover:bg-green-700'
-                            size='lg'
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            size="lg"
                           >
-                            <CreditCard className='h-4 w-4 mr-2' />
+                            <CreditCard className="h-4 w-4 mr-2" />
                             {job.status === 'COMPLETED'
                               ? 'Complete Payment'
                               : 'Make Payment'}
@@ -537,9 +537,9 @@ const JobDetailPage = () => {
                     <CardTitle>Requirements</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='flex flex-wrap gap-2'>
+                    <div className="flex flex-wrap gap-2">
                       {job.requirements.map((req, index) => (
-                        <Badge key={index} variant='secondary'>
+                        <Badge key={index} variant="secondary">
                           {req}
                         </Badge>
                       ))}
@@ -555,9 +555,9 @@ const JobDetailPage = () => {
                     <CardTitle>Tags</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='flex flex-wrap gap-2'>
+                    <div className="flex flex-wrap gap-2">
                       {job.tags.map((tag, index) => (
-                        <Badge key={index} variant='outline'>
+                        <Badge key={index} variant="outline">
                           {tag}
                         </Badge>
                       ))}
@@ -568,46 +568,46 @@ const JobDetailPage = () => {
             </TabsContent>
 
             {/* Bids Tab */}
-            <TabsContent value='bids' className='space-y-4'>
+            <TabsContent value="bids" className="space-y-4">
               {bidsLoading ? (
-                <div className='flex items-center justify-center py-8'>
-                  <Loader2 className='h-6 w-6 animate-spin' />
-                  <span className='ml-2'>Loading bids...</span>
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span className="ml-2">Loading bids...</span>
                 </div>
               ) : bids.length === 0 ? (
                 <Card>
-                  <CardContent className='text-center py-8'>
-                    <MessageSquare className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-                    <h3 className='text-lg font-medium mb-2'>No Bids Yet</h3>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                  <CardContent className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No Bids Yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400">
                       Vendors haven't submitted any bids for this job yet.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className='space-y-4'>
+                <div className="space-y-4">
                   {bids.map((bid: Bid) => (
                     <Card key={bid.id}>
                       <CardHeader>
-                        <div className='flex justify-between items-start'>
+                        <div className="flex justify-between items-start">
                           <div>
-                            <CardTitle className='text-lg'>
+                            <CardTitle className="text-lg">
                               ${bid.amount.toLocaleString()}
                             </CardTitle>
                             <CardDescription>
                               by {bid.vendor.firstName} {bid.vendor.lastName}
                               {bid.vendor.vendorProfile?.companyName && (
-                                <span className='ml-2 text-gray-500'>
+                                <span className="ml-2 text-gray-500">
                                   • {bid.vendor.vendorProfile.companyName}
                                 </span>
                               )}
                             </CardDescription>
                           </div>
-                          <div className='flex items-center space-x-2'>
+                          <div className="flex items-center space-x-2">
                             {bid.vendor.vendorProfile?.rating && (
-                              <div className='flex items-center'>
-                                <Star className='h-4 w-4 text-yellow-500 mr-1' />
-                                <span className='text-sm'>
+                              <div className="flex items-center">
+                                <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                                <span className="text-sm">
                                   {bid.vendor.vendorProfile.rating}
                                 </span>
                               </div>
@@ -625,10 +625,10 @@ const JobDetailPage = () => {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <p className='text-gray-700 dark:text-gray-300 mb-3'>
+                        <p className="text-gray-700 dark:text-gray-300 mb-3">
                           {bid.description}
                         </p>
-                        <div className='flex items-center justify-between text-sm text-gray-600 dark:text-gray-400'>
+                        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                           <span>Timeline: {bid.timeline}</span>
                           <span>
                             Submitted{' '}
@@ -639,28 +639,28 @@ const JobDetailPage = () => {
                         </div>
                       </CardContent>
                       {job.status === 'OPEN' && bid.status === 'PENDING' && (
-                        <CardFooter className='flex space-x-2'>
+                        <CardFooter className="flex space-x-2">
                           <Button
                             onClick={() => handleAcceptBid(bid.id)}
                             disabled={acceptBidMutation.isPending}
-                            className='flex-1'
+                            className="flex-1"
                           >
                             {acceptBidMutation.isPending ? (
-                              <Loader2 className='h-4 w-4 animate-spin mr-2' />
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
                             ) : (
-                              <CheckCircle className='h-4 w-4 mr-2' />
+                              <CheckCircle className="h-4 w-4 mr-2" />
                             )}
                             Accept Bid
                           </Button>
                           <Button
-                            variant='outline'
+                            variant="outline"
                             onClick={() => handleRejectBid(bid.id)}
                             disabled={rejectBidMutation.isPending}
                           >
                             {rejectBidMutation.isPending ? (
-                              <Loader2 className='h-4 w-4 animate-spin' />
+                              <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <XCircle className='h-4 w-4' />
+                              <XCircle className="h-4 w-4" />
                             )}
                           </Button>
                         </CardFooter>
@@ -672,42 +672,42 @@ const JobDetailPage = () => {
             </TabsContent>
 
             {/* Analytics Tab */}
-            <TabsContent value='analytics' className='space-y-4'>
+            <TabsContent value="analytics" className="space-y-4">
               {analyticsLoading ? (
-                <div className='flex items-center justify-center py-8'>
-                  <Loader2 className='h-6 w-6 animate-spin' />
-                  <span className='ml-2'>Loading analytics...</span>
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span className="ml-2">Loading analytics...</span>
                 </div>
               ) : analytics ? (
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Bid Statistics */}
                   <Card>
                     <CardHeader>
                       <CardTitle>Bid Statistics</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='space-y-3'>
-                        <div className='flex justify-between'>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
                           <span>Total Bids:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             {analytics.bidStats.total}
                           </span>
                         </div>
-                        <div className='flex justify-between'>
+                        <div className="flex justify-between">
                           <span>Average Bid:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             ${analytics.bidStats.average.toLocaleString()}
                           </span>
                         </div>
-                        <div className='flex justify-between'>
+                        <div className="flex justify-between">
                           <span>Lowest Bid:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             ${analytics.bidStats.lowest.toLocaleString()}
                           </span>
                         </div>
-                        <div className='flex justify-between'>
+                        <div className="flex justify-between">
                           <span>Highest Bid:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             ${analytics.bidStats.highest.toLocaleString()}
                           </span>
                         </div>
@@ -721,16 +721,16 @@ const JobDetailPage = () => {
                       <CardTitle>Engagement</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='space-y-3'>
-                        <div className='flex justify-between'>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
                           <span>Views:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             {analytics.engagementMetrics.viewCount}
                           </span>
                         </div>
-                        <div className='flex justify-between'>
+                        <div className="flex justify-between">
                           <span>Response Time:</span>
-                          <span className='font-semibold'>
+                          <span className="font-semibold">
                             {analytics.engagementMetrics.responseTime}
                           </span>
                         </div>
@@ -740,12 +740,12 @@ const JobDetailPage = () => {
                 </div>
               ) : (
                 <Card>
-                  <CardContent className='text-center py-8'>
-                    <AlertCircle className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-                    <h3 className='text-lg font-medium mb-2'>
+                  <CardContent className="text-center py-8">
+                    <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">
                       No Analytics Available
                     </h3>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                    <p className="text-gray-600 dark:text-gray-400">
                       Analytics will be available once the job receives some
                       activity.
                     </p>
@@ -755,18 +755,18 @@ const JobDetailPage = () => {
             </TabsContent>
 
             {/* Activity Tab */}
-            <TabsContent value='activity' className='space-y-4'>
+            <TabsContent value="activity" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className='space-y-4'>
-                    <div className='flex items-center space-x-3'>
-                      <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <div>
-                        <p className='text-sm font-medium'>Job Posted</p>
-                        <p className='text-xs text-gray-500'>
+                        <p className="text-sm font-medium">Job Posted</p>
+                        <p className="text-xs text-gray-500">
                           {format(
                             new Date(job.createdAt),
                             'MMM dd, yyyy HH:mm'
@@ -776,11 +776,11 @@ const JobDetailPage = () => {
                     </div>
 
                     {job.updatedAt !== job.createdAt && (
-                      <div className='flex items-center space-x-3'>
-                        <div className='w-2 h-2 bg-yellow-500 rounded-full'></div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                         <div>
-                          <p className='text-sm font-medium'>Job Updated</p>
-                          <p className='text-xs text-gray-500'>
+                          <p className="text-sm font-medium">Job Updated</p>
+                          <p className="text-xs text-gray-500">
                             {format(
                               new Date(job.updatedAt),
                               'MMM dd, yyyy HH:mm'
@@ -791,14 +791,14 @@ const JobDetailPage = () => {
                     )}
 
                     {bids.map((bid: Bid) => (
-                      <div key={bid.id} className='flex items-center space-x-3'>
-                        <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                      <div key={bid.id} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <div>
-                          <p className='text-sm font-medium'>
+                          <p className="text-sm font-medium">
                             Bid received from {bid.vendor.firstName}{' '}
                             {bid.vendor.lastName}
                           </p>
-                          <p className='text-xs text-gray-500'>
+                          <p className="text-xs text-gray-500">
                             {format(
                               new Date(bid.createdAt),
                               'MMM dd, yyyy HH:mm'
@@ -815,40 +815,40 @@ const JobDetailPage = () => {
         </div>
 
         {/* Right Column - Sidebar */}
-        <div className='space-y-6'>
+        <div className="space-y-6">
           {/* Job Stats */}
           <Card>
             <CardHeader>
               <CardTitle>Job Statistics</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='flex items-center justify-between'>
-                <span className='text-sm text-gray-600 dark:text-gray-400'>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Views
                 </span>
-                <div className='flex items-center'>
-                  <Eye className='h-4 w-4 mr-2' />
-                  <span className='font-semibold'>{job.viewCount}</span>
+                <div className="flex items-center">
+                  <Eye className="h-4 w-4 mr-2" />
+                  <span className="font-semibold">{job.viewCount}</span>
                 </div>
               </div>
 
-              <div className='flex items-center justify-between'>
-                <span className='text-sm text-gray-600 dark:text-gray-400'>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Bids
                 </span>
-                <div className='flex items-center'>
-                  <MessageSquare className='h-4 w-4 mr-2' />
-                  <span className='font-semibold'>{job.bidCount}</span>
+                <div className="flex items-center">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  <span className="font-semibold">{job.bidCount}</span>
                 </div>
               </div>
 
               <Separator />
 
-              <div className='text-center'>
-                <p className='text-sm text-gray-600 dark:text-gray-400'>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Posted
                 </p>
-                <p className='font-semibold'>
+                <p className="font-semibold">
                   {format(new Date(job.createdAt), 'MMM dd, yyyy')}
                 </p>
               </div>
@@ -862,17 +862,17 @@ const JobDetailPage = () => {
                 <CardTitle>Assigned Vendor</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className='flex items-center space-x-3 mb-3'>
-                  <div className='w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center'>
-                    <User className='h-5 w-5 text-gray-600 dark:text-gray-400' />
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div>
-                    <p className='font-medium'>
+                    <p className="font-medium">
                       {job.assignedVendor.firstName}{' '}
                       {job.assignedVendor.lastName}
                     </p>
                     {job.assignedVendor.vendorProfile?.companyName && (
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {job.assignedVendor.vendorProfile.companyName}
                       </p>
                     )}
@@ -880,25 +880,25 @@ const JobDetailPage = () => {
                 </div>
 
                 {job.assignedVendor.vendorProfile?.rating && (
-                  <div className='flex items-center space-x-1 mb-3'>
-                    <Star className='h-4 w-4 text-yellow-500' />
-                    <span className='text-sm font-medium'>
+                  <div className="flex items-center space-x-1 mb-3">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm font-medium">
                       {job.assignedVendor.vendorProfile.rating}
                     </span>
                   </div>
                 )}
 
-                <div className='space-y-2'>
-                  <Button variant='outline' size='sm' className='w-full'>
-                    <Phone className='h-4 w-4 mr-2' />
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Phone className="h-4 w-4 mr-2" />
                     Contact Vendor
                   </Button>
                   <MessageButton
                     jobId={job.id}
                     vendorId={job.assignedVendor.id}
-                    variant='outline'
-                    size='sm'
-                    className='w-full'
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
                   />
                 </div>
               </CardContent>

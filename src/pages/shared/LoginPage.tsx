@@ -65,9 +65,18 @@ const LoginPage = () => {
         navigate('/admin');
       }
     } catch (err: any) {
+      console.error('Login error:', err);
+
+      // Clear any existing auth data on login failure
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userType');
+
       toast({
         title: 'Login failed',
-        description: err.message || 'Invalid credentials',
+        description: err.message || 'Invalid credentials. Please try again.',
         variant: 'destructive',
       });
     } finally {

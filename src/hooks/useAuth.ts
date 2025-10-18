@@ -25,19 +25,47 @@ export const useAuth = () => {
     checkAuthStatus();
   }, []);
 
-  const checkAuthStatus = () => {
+  const checkAuthStatus = async () => {
     const token = localStorage.getItem('accessToken');
     const userData = localStorage.getItem('user');
 
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
-        setUser(user);
-        setIsAuthenticated(true);
+
+        // Verify token is still valid by making a test API call
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.ME}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setUser(data.data);
+            setIsAuthenticated(true);
+            localStorage.setItem('user', JSON.stringify(data.data));
+          } else {
+            // Token is invalid, clear storage
+            logout();
+          }
+        } else {
+          // Token is invalid or expired, clear storage
+          logout();
+        }
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Error checking auth status:', error);
         logout();
       }
+    } else {
+      // No token or user data, ensure clean state
+      logout();
     }
     setIsLoading(false);
   };

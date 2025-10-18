@@ -559,7 +559,7 @@ export const exportVendors = async (params?: {
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       }
     );
@@ -1139,7 +1139,7 @@ export const exportUsers = async (params?: {
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       }
     );
@@ -1301,7 +1301,7 @@ export const exportJobs = async (params?: {
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       }
     );
@@ -1405,14 +1405,15 @@ export interface AdminNotification {
   createdAt?: Date;
 }
 
-export const getAdminDashboardStats = async (): Promise<AdminDashboardStats> => {
-  const response = await apiCall(
-    '/api/admin/dashboard/stats',
-    { method: 'GET' },
-    true
-  );
-  return response;
-};
+export const getAdminDashboardStats =
+  async (): Promise<AdminDashboardStats> => {
+    const response = await apiCall(
+      '/api/admin/dashboard/stats',
+      { method: 'GET' },
+      true
+    );
+    return response;
+  };
 
 export const getAdminNotifications = async (): Promise<{
   success: boolean;

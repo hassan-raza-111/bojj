@@ -17,6 +17,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Protected Route Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminProtectedRoute from './components/auth/AdminProtectedRoute';
+import RoleBasedRoute from './components/auth/RoleBasedRoute';
 
 // Pages
 import HomePage from './pages/shared/HomePage';
@@ -129,7 +130,7 @@ const App = () => {
                 </Route>
 
                 {/* Protected customer routes - Only authenticated CUSTOMER users can access */}
-                <Route element={<ProtectedRoute />}>
+                <Route element={<RoleBasedRoute allowedRoles={['CUSTOMER']} />}>
                   <Route
                     path="/customer/*"
                     element={
@@ -193,7 +194,7 @@ const App = () => {
                 </Route>
 
                 {/* Protected vendor routes - Only authenticated VENDOR users can access */}
-                <Route element={<ProtectedRoute />}>
+                <Route element={<RoleBasedRoute allowedRoles={['VENDOR']} />}>
                   <Route
                     path="/vendor/*"
                     element={
