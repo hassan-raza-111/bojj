@@ -60,6 +60,7 @@ import SubmitBidPage from './pages/vendor/SubmitBidPage';
 
 // Shared Features
 import MessagesPage from './pages/shared/MessagesPage';
+import NotificationsPage from './pages/shared/NotificationsPage';
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -96,6 +97,9 @@ const App = () => {
                   />
                 </Route>
 
+                {/* Notifications route - redirects based on user role */}
+                <Route path="/notifications" element={<NotificationsPage />} />
+
                 {/* Protected Admin routes - Only ADMIN users can access */}
                 <Route element={<AdminProtectedRoute />}>
                   <Route
@@ -121,6 +125,10 @@ const App = () => {
                           <Route
                             path="/profile"
                             element={<AdminProfilePage />}
+                          />
+                          <Route
+                            path="/notifications"
+                            element={<NotificationsPage />}
                           />
                         </Routes>
                       </AdminLayout>
@@ -152,6 +160,10 @@ const App = () => {
                             <Route
                               path="/messages"
                               element={<MessagesPage />}
+                            />
+                            <Route
+                              path="/notifications"
+                              element={<NotificationsPage />}
                             />
                             <Route
                               path="/support"
@@ -215,6 +227,10 @@ const App = () => {
                             element={<VendorProfileSetup />}
                           />
                           <Route path="/messages" element={<MessagesPage />} />
+                          <Route
+                            path="/notifications"
+                            element={<NotificationsPage />}
+                          />
                           <Route
                             path="/support"
                             element={<VendorSupportTickets />}

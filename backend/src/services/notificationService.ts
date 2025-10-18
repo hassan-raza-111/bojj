@@ -311,7 +311,7 @@ export const notifyNewBid = async (
     type: 'NEW_BID',
     title: 'New Bid Received',
     message: `${vendorName} submitted a bid of $${bidAmount} for "${jobTitle}"`,
-    link: `/customer/jobs/${jobId}`,
+    link: `/customer/jobs/${jobId}/details`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { jobTitle, bidAmount, vendorName },
@@ -329,7 +329,7 @@ export const notifyBidAccepted = async (
     type: 'BID_ACCEPTED',
     title: 'Bid Accepted! 🎉',
     message: `${customerName} accepted your bid for "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}`,
+    link: `/vendor/jobs/${jobId}/view`,
     priority: 'URGENT',
     sendEmail: true,
     emailData: { jobTitle, customerName },
@@ -362,7 +362,7 @@ export const notifyNewMessage = async (
     type: 'NEW_MESSAGE',
     title: 'New Message',
     message: `${senderName} sent you a message about "${jobTitle}"`,
-    link: `/chat/${chatRoomId}`,
+    link: `/messages`,
     priority: 'MEDIUM',
     sendEmail: false, // Don't spam emails for every message
   });
@@ -379,7 +379,7 @@ export const notifyJobCompleted = async (
     type: 'JOB_COMPLETED',
     title: 'Job Completed',
     message: `${vendorName} marked "${jobTitle}" as completed`,
-    link: `/customer/jobs/${jobId}`,
+    link: `/customer/jobs/${jobId}/details`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { jobTitle, vendorName },
@@ -410,7 +410,7 @@ export const notifyAccountVerified = async (userId: string) => {
     title: 'Account Verified! ✅',
     message:
       'Your account has been successfully verified. You can now access all features.',
-    link: '/dashboard',
+    link: '/',
     priority: 'HIGH',
     sendEmail: true,
   });
@@ -428,7 +428,7 @@ export const notifyJobAssigned = async (
     type: 'JOB_ASSIGNED',
     title: 'Job Assigned to You! 🎯',
     message: `${customerName} assigned you the job "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}`,
+    link: `/vendor/jobs/${jobId}/view`,
     priority: 'URGENT',
     sendEmail: true,
     emailData: { jobTitle, customerName },
@@ -488,7 +488,7 @@ export const notifySupportTicketReply = async (
     type: 'SUPPORT_TICKET_REPLY',
     title: 'New Reply on Your Ticket 💬',
     message: `${responderName} replied to your ticket: "${ticketTitle}"`,
-    link: `/support/tickets/${ticketId}`,
+    link: `/support`,
     priority: 'MEDIUM',
     sendEmail: true,
     emailData: { ticketTitle, responderName },
@@ -507,7 +507,7 @@ export const notifyPaymentReceived = async (
     type: 'PAYMENT_RECEIVED',
     title: 'Payment Received! 💰',
     message: `You received $${amount} payment via ${paymentMethod} for "${jobTitle}"`,
-    link: '/vendor/earnings',
+    link: '/vendor',
     priority: 'HIGH',
     sendEmail: true,
     emailData: { amount, jobTitle, paymentMethod },
@@ -546,7 +546,7 @@ export const notifyPaymentReminder = async (
     type: 'PAYMENT_REMINDER',
     title: 'Payment Reminder 💳',
     message: `Payment of $${amount} for "${jobTitle}" is due on ${dueDate.toLocaleDateString()}`,
-    link: `/customer/jobs/${jobId}`,
+    link: `/customer/jobs/${jobId}/details`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { jobTitle, amount, dueDate },
@@ -565,7 +565,7 @@ export const notifyJobExpiring = async (
     type: 'JOB_EXPIRING',
     title: 'Job Expiring Soon ⏰',
     message: `Your job "${jobTitle}" will expire in ${daysLeft} days`,
-    link: `/customer/jobs/${jobId}`,
+    link: `/customer/jobs/${jobId}/details`,
     priority: daysLeft <= 1 ? 'URGENT' : 'HIGH',
     sendEmail: true,
     emailData: { jobTitle, daysLeft },
@@ -601,7 +601,7 @@ export const notifyNewJobPosted = async (
       type: 'NEW_JOB_POSTED',
       title: 'New Job Available! 🎯',
       message: `${customerName} posted a new job: "${jobTitle}" ($${budget}) in ${location}`,
-      link: `/vendor/jobs/${jobId}`,
+      link: `/vendor/jobs/${jobId}/view`,
       priority: 'HIGH',
       sendEmail: true,
       emailData: { jobTitle, customerName, budget, location, category },
@@ -636,7 +636,7 @@ export const notifyCustomerCounterOffer = async (
     type: 'BID_ACCEPTED', // Reusing existing type, could add new COUNTER_OFFER type
     title: '💰 Counter-Offer Received',
     message: `${customerName} countered your bid of $${originalAmount} with $${counterAmount} for "${jobTitle}"`,
-    link: `/vendor/jobs/${jobId}`,
+    link: `/vendor/jobs/${jobId}/view`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { customerName, jobTitle, originalAmount, counterAmount },
@@ -657,7 +657,7 @@ export const notifyVendorCounterOffer = async (
     type: 'NEW_BID', // Reusing existing type
     title: '💰 Counter-Offer Received',
     message: `${vendorName} countered with $${counterAmount} (originally $${originalAmount}) for "${jobTitle}"`,
-    link: `/customer/jobs/${jobId}`,
+    link: `/customer/jobs/${jobId}/details`,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { vendorName, jobTitle, originalAmount, counterAmount },
@@ -674,7 +674,9 @@ export const notifyCounterOfferAccepted = async (
   userRole: 'VENDOR' | 'CUSTOMER'
 ) => {
   const link =
-    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+    userRole === 'VENDOR'
+      ? `/vendor/jobs/${jobId}/view`
+      : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
     type: 'BID_ACCEPTED',
@@ -697,7 +699,9 @@ export const notifyCounterOfferRejected = async (
   userRole: 'VENDOR' | 'CUSTOMER'
 ) => {
   const link =
-    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+    userRole === 'VENDOR'
+      ? `/vendor/jobs/${jobId}/view`
+      : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
     type: 'BID_REJECTED',
@@ -718,7 +722,9 @@ export const notifyMaxNegotiationReached = async (
   userRole: 'VENDOR' | 'CUSTOMER'
 ) => {
   const link =
-    userRole === 'VENDOR' ? `/vendor/jobs/${jobId}` : `/customer/jobs/${jobId}`;
+    userRole === 'VENDOR'
+      ? `/vendor/jobs/${jobId}/view`
+      : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
     type: 'SYSTEM_ALERT',

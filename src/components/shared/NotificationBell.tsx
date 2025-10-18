@@ -15,6 +15,7 @@ import {
   Notification,
 } from '@/config/notificationApi';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ export const NotificationBell = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const intervalRef = useRef<NodeJS.Timeout>();
 
   // Fetch notifications and unread count
