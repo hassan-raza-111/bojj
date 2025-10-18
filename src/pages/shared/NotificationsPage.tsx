@@ -88,6 +88,13 @@ export const NotificationsPage = () => {
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
+      console.log('📄 NotificationsPage - Notification clicked:', notification);
+      console.log(
+        '📄 NotificationsPage - Notification link:',
+        notification.link
+      );
+      console.log('📄 NotificationsPage - Current user role:', user?.role);
+
       // Mark as read
       if (!notification.isRead) {
         await markAsRead(notification.id);
@@ -101,7 +108,28 @@ export const NotificationsPage = () => {
 
       // Navigate to link if exists
       if (notification.link) {
-        navigate(notification.link);
+        // Handle old chat links - redirect to appropriate messages page
+        if (notification.link.startsWith('/chat/')) {
+          const messagesPath =
+            user?.role === 'CUSTOMER'
+              ? '/customer/messages'
+              : user?.role === 'VENDOR'
+              ? '/vendor/messages'
+              : '/messages';
+          console.log(
+            '📄 NotificationsPage - Old chat link detected, redirecting to:',
+            messagesPath
+          );
+          navigate(messagesPath);
+        } else {
+          console.log(
+            '📄 NotificationsPage - Navigating to:',
+            notification.link
+          );
+          navigate(notification.link);
+        }
+      } else {
+        console.log('📄 NotificationsPage - No link provided for notification');
       }
     } catch (error) {
       console.error('Error handling notification click:', error);

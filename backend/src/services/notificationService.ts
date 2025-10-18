@@ -354,18 +354,33 @@ export const notifyBidRejected = async (
 export const notifyNewMessage = async (
   recipientId: string,
   senderName: string,
-  jobTitle: string,
-  chatRoomId: string
+  jobTitle: string
 ) => {
-  return createNotification({
+  // Get recipient's role to determine correct messages route
+  const recipient = await prisma.user.findUnique({
+    where: { id: recipientId },
+    select: { role: true },
+  });
+
+  // Determine the correct messages path based on user role
+  const messagesPath =
+    recipient?.role === 'CUSTOMER'
+      ? '/customer/messages'
+      : recipient?.role === 'VENDOR'
+        ? '/vendor/messages'
+        : '/messages';
+
+  const notification = await createNotification({
     userId: recipientId,
     type: 'NEW_MESSAGE',
     title: 'New Message',
     message: `${senderName} sent you a message about "${jobTitle}"`,
-    link: `/messages`,
+    link: messagesPath,
     priority: 'MEDIUM',
     sendEmail: false, // Don't spam emails for every message
   });
+
+  return notification;
 };
 
 export const notifyJobCompleted = async (

@@ -427,12 +427,7 @@ export class ChatController {
         });
 
         const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
-        await notifyNewMessage(
-          recipientId,
-          senderName,
-          job?.title || 'Chat',
-          chatRoomId
-        );
+        await notifyNewMessage(recipientId, senderName, job?.title || 'Chat');
       }
 
       res.status(201).json({

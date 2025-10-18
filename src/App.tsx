@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -61,6 +66,7 @@ import SubmitBidPage from './pages/vendor/SubmitBidPage';
 // Shared Features
 import MessagesPage from './pages/shared/MessagesPage';
 import NotificationsPage from './pages/shared/NotificationsPage';
+import RoleBasedRedirect from './components/shared/RoleBasedRedirect';
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -99,6 +105,9 @@ const App = () => {
 
                 {/* Notifications route - redirects based on user role */}
                 <Route path="/notifications" element={<NotificationsPage />} />
+
+                {/* Redirect old chat routes to appropriate messages page based on user role */}
+                <Route path="/chat/:id" element={<RoleBasedRedirect />} />
 
                 {/* Protected Admin routes - Only ADMIN users can access */}
                 <Route element={<AdminProtectedRoute />}>
