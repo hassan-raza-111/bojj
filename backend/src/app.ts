@@ -16,6 +16,7 @@ import notificationRouter from './routes/notification.routes';
 // import { paymentRouter } from './routes/payment.routes';
 // import { serviceRouter } from './routes/service.routes';
 import { supportRouter } from './routes/support.routes';
+import dataRouter from './routes/data.routes';
 // import { userRouter } from './routes/user.routes';
 
 const app: Express = express();
@@ -138,6 +139,7 @@ app.use('/api/dashboard', dashboardRouter); // Customer side needs this
 app.use('/api/vendor', vendorRouter); // Vendor dashboard routes (includes public profile)
 app.use('/api/chat', chatRouter); // Chat routes
 app.use('/api/notifications', notificationRouter); // Notification routes
+app.use('/api/data', dataRouter); // Data routes (cities, service types)
 // Temporarily commented out due to TypeScript compilation issues
 // app.use('/api/users', userRouter);
 // app.use('/api/services', serviceRouter);

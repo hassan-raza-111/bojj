@@ -84,21 +84,74 @@ export const createJob: RequestHandler = async (req, res, next) => {
     // Send notifications to all vendors about the new job
     try {
       console.log('🔔 Starting notification process...');
+      console.log(`📍 Job city: ${job.city || 'Not specified'}`);
 
-      // Get all active vendors
+      // Get all active vendors in the same city with matching service types
       const vendors = await prisma.user.findMany({
         where: {
           role: 'VENDOR',
           status: 'ACTIVE',
+          city: job.city, // Filter by same city
+          vendorProfile: {
+            serviceTypes: {
+              has: job.category, // Filter by service type matching job category
+            },
+          },
         },
         select: {
           id: true,
           firstName: true,
           lastName: true,
+          city: true,
+          vendorProfile: {
+            select: {
+              serviceTypes: true,
+            },
+          },
         },
       });
 
-      console.log(`👥 Found ${vendors.length} vendors to notify`);
+      console.log(
+        `👥 Found ${vendors.length} vendors in ${job.city || 'unknown city'} to notify`
+      );
+
+      // If no vendors found in same city, get all vendors (fallback)
+      let allVendors: Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        city: string | null;
+      }> = [];
+      if (vendors.length === 0 && job.city) {
+        console.log(
+          '⚠️ No vendors found in same city, getting all vendors as fallback'
+        );
+        allVendors = await prisma.user.findMany({
+          where: {
+            role: 'VENDOR',
+            status: 'ACTIVE',
+            vendorProfile: {
+              serviceTypes: {
+                has: job.category, // Filter by service type matching job category
+              },
+            },
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            city: true,
+            vendorProfile: {
+              select: {
+                serviceTypes: true,
+              },
+            },
+          },
+        });
+        console.log(
+          `👥 Fallback: Found ${allVendors.length} total vendors to notify`
+        );
+      }
 
       // Get all active admins
       const admins = await prisma.user.findMany({
@@ -115,10 +168,13 @@ export const createJob: RequestHandler = async (req, res, next) => {
 
       console.log(`👑 Found ${admins.length} admins to notify`);
 
+      // Use city-specific vendors or fallback to all vendors
+      const vendorsToNotify = vendors.length > 0 ? vendors : allVendors;
+
       // Send notification to each vendor
-      const vendorNotificationPromises = vendors.map(async (vendor) => {
+      const vendorNotificationPromises = vendorsToNotify.map(async (vendor) => {
         console.log(
-          `📧 Sending notification to vendor: ${vendor.firstName} ${vendor.lastName}`
+          `📧 Sending notification to vendor: ${vendor.firstName} ${vendor.lastName} (${vendor.city || 'No city'}) - Services: ${(vendor as any).vendorProfile?.serviceTypes?.join(', ') || 'None'}`
         );
         try {
           const notification = await notifyNewJobPosted(
@@ -184,7 +240,7 @@ export const createJob: RequestHandler = async (req, res, next) => {
         `📊 Notification results: ${successful} successful, ${failed} failed`
       );
       logger.info(
-        `Job notifications sent to ${vendors.length} vendors and ${admins.length} admins for job: ${job.id} (${successful} successful, ${failed} failed)`
+        `Job notifications sent to ${vendorsToNotify.length} vendors and ${admins.length} admins for job: ${job.id} (${successful} successful, ${failed} failed)`
       );
     } catch (notificationError) {
       // Log the error but don't fail the job creation

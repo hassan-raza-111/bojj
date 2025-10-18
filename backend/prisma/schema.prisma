@@ -16,6 +16,7 @@ model User {
   phone            String?
   bio              String?
   location         String?
+  city             String?
   avatar           String?
   role             Role             @default(CUSTOMER)
   status           UserStatus       @default(ACTIVE)
@@ -56,6 +57,7 @@ model VendorProfile {
   businessType  String?
   experience    Int?
   skills        String[]
+  serviceTypes  String[]
   portfolio     String[]
   verified      Boolean  @default(false)
   documents     String[]
