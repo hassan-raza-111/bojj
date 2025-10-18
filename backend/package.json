@@ -12,8 +12,7 @@
     "db:reset": "npx prisma migrate reset",
     "db:seed": "ts-node prisma/seed.ts",
     "db:seed:jobs": "ts-node src/scripts/seed-jobs.ts",
-    "db:setup": "ts-node src/scripts/setup-database.ts",
-    "test:stripe": "ts-node src/scripts/test-stripe.ts"
+    "db:setup": "ts-node src/scripts/setup-database.ts"
   },
   "keywords": [],
   "author": "",
@@ -42,7 +41,6 @@
     "prisma": "^6.9.0",
     "redis": "^5.5.6",
     "socket.io": "^4.8.1",
-    "stripe": "^14.21.0",
     "yamljs": "^0.3.0",
     "zod": "^3.25.65"
   },

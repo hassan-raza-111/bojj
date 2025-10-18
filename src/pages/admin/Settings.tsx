@@ -78,7 +78,7 @@ const Settings = () => {
     escrowEnabled: true,
     autoReleaseDays: 7,
     supportedCurrencies: ['USD', 'EUR', 'GBP'],
-    stripeEnabled: true,
+    stripeEnabled: false, // Stripe integration removed
     minimumPayout: 50,
   });
 
@@ -509,19 +509,17 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-lg border">
+                {/* Stripe Integration Removed */}
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-gray-50">
                   <div>
-                    <div className="font-medium">Stripe Integration</div>
-                    <div className="text-sm text-gray-500">
-                      Enable Stripe payment processing
+                    <div className="font-medium text-gray-500">
+                      Stripe Integration
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      Stripe integration has been removed
                     </div>
                   </div>
-                  <Switch
-                    checked={paymentSettings.stripeEnabled}
-                    onCheckedChange={(checked) =>
-                      handlePaymentChange('stripeEnabled', checked)
-                    }
-                  />
+                  <Switch checked={false} disabled={true} />
                 </div>
               </div>
 
