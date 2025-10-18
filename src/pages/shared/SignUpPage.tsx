@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,10 +30,43 @@ const SignUpPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [category, setCategory] = useState('');
+  const [city, setCity] = useState('');
+  const [serviceTypes, setServiceTypes] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState('Intermediate');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cities, setCities] = useState<string[]>([]);
+  const [serviceTypesList, setServiceTypesList] = useState<string[]>([]);
+
+  // Fetch cities and service types on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch UK cities
+        const citiesResponse = await fetch(
+          `${API_CONFIG.BASE_URL}/data/uk-cities`
+        );
+        if (citiesResponse.ok) {
+          const citiesData = await citiesResponse.json();
+          setCities(citiesData.data.cities);
+        }
+
+        // Fetch service types
+        const serviceTypesResponse = await fetch(
+          `${API_CONFIG.BASE_URL}/data/service-types`
+        );
+        if (serviceTypesResponse.ok) {
+          const serviceTypesData = await serviceTypesResponse.json();
+          setServiceTypesList(serviceTypesData.data.serviceTypes);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +92,25 @@ const SignUpPage = () => {
     try {
       setLoading(true);
 
+      // Validation
+      if (!city) {
+        toast({
+          title: 'City Required',
+          description: 'Please select your city.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (userType === 'vendor' && serviceTypes.length === 0) {
+        toast({
+          title: 'Service Types Required',
+          description: 'Please select at least one service type.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Prepare user data for backend
       const userData = {
         email,
@@ -67,11 +119,18 @@ const SignUpPage = () => {
         lastName: fullName.split(' ').slice(1).join(' ') || 'User',
         role: userType.toUpperCase(),
         phone: phoneNumber,
+        city: city,
         bio:
           userType === 'vendor'
             ? `Service Category: ${category}, Experience: ${experienceLevel}`
             : undefined,
         location: '', // Can be added later
+        // Vendor-specific data
+        ...(userType === 'vendor' && {
+          businessName: businessName || undefined,
+          serviceTypes: serviceTypes,
+          experienceLevel: experienceLevel,
+        }),
       };
 
       // Backend API Registration
@@ -183,6 +242,25 @@ const SignUpPage = () => {
                 />
               </div>
 
+              {/* City Selection - Required for both customers and vendors */}
+              <div className="space-y-2">
+                <Label htmlFor="city">City *</Label>
+                <Select value={city} onValueChange={setCity} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {cities.map((cityName) => (
+                        <SelectItem key={cityName} value={cityName}>
+                          {cityName}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
@@ -233,6 +311,48 @@ const SignUpPage = () => {
                         </SelectGroup>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Service Types Selection - Required for vendors */}
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceTypes">
+                      Service Types * (Select all that apply)
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                      {serviceTypesList.map((serviceType) => (
+                        <div
+                          key={serviceType}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            id={serviceType}
+                            value={serviceType}
+                            checked={serviceTypes.includes(serviceType)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setServiceTypes([...serviceTypes, serviceType]);
+                              } else {
+                                setServiceTypes(
+                                  serviceTypes.filter(
+                                    (type) => type !== serviceType
+                                  )
+                                );
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <label htmlFor={serviceType} className="text-sm">
+                            {serviceType}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {serviceTypes.length === 0 && (
+                      <p className="text-sm text-red-500">
+                        Please select at least one service type
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-3">

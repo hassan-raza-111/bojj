@@ -35,6 +35,10 @@ export const register: RequestHandler = async (req, res, next) => {
       bio,
       phone,
       location,
+      city,
+      businessName,
+      serviceTypes,
+      experienceLevel,
     } = req.body;
 
     // Validate required fields
@@ -72,7 +76,31 @@ export const register: RequestHandler = async (req, res, next) => {
         bio: bio || null,
         phone: phone || null,
         location: location || null,
+        city: city || null,
         status: 'ACTIVE',
+        // Create vendor profile if role is VENDOR
+        ...(role === 'VENDOR' && {
+          vendorProfile: {
+            create: {
+              companyName: businessName || null,
+              serviceTypes: serviceTypes || [],
+              experience:
+                experienceLevel === 'Beginner'
+                  ? 1
+                  : experienceLevel === 'Intermediate'
+                    ? 3
+                    : 5,
+              skills: [],
+              portfolio: [],
+              verified: false,
+              documents: [],
+              rating: 0,
+              totalReviews: 0,
+              completedJobs: 0,
+              description: bio || null,
+            },
+          },
+        }),
       },
       select: {
         id: true,
@@ -83,9 +111,19 @@ export const register: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
+        city: true,
         status: true,
         createdAt: true,
         updatedAt: true,
+        vendorProfile:
+          role === 'VENDOR'
+            ? {
+                select: {
+                  serviceTypes: true,
+                  companyName: true,
+                },
+              }
+            : false,
       },
     });
 
@@ -329,6 +367,7 @@ export const updateCurrentUser: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
+        city: true,
         status: true,
         updatedAt: true,
       },
@@ -367,6 +406,7 @@ export const getProfileData: RequestHandler = async (req, res, next) => {
         bio: true,
         phone: true,
         location: true,
+        city: true,
         status: true,
         createdAt: true,
         updatedAt: true,

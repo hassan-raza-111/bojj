@@ -70,6 +70,7 @@ interface UserProfile {
   bio?: string;
   phone?: string;
   location?: string;
+  city?: string;
   status: string;
   rating?: number;
   totalReviews?: number;
@@ -143,6 +144,7 @@ const CustomerProfilePage = () => {
     bio: '',
     phone: '',
     location: '',
+    city: '',
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -246,6 +248,7 @@ const CustomerProfilePage = () => {
         bio: user.bio || '',
         phone: user.phone || '',
         location: user.location || '',
+        city: user.city || '',
       });
     }
   }, [profileData]);
@@ -458,9 +461,17 @@ const CustomerProfilePage = () => {
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {user.location || 'No location set'}
+                    {user.city || 'No city set'}
                   </span>
                 </div>
+                {user.location && (
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {user.location}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -689,7 +700,7 @@ const CustomerProfilePage = () => {
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
                   <Input
                     id="location"
@@ -701,7 +712,24 @@ const CustomerProfilePage = () => {
                       })
                     }
                     disabled={!isEditing}
-                    placeholder="City, State, Country"
+                    placeholder="Street Address, State, Country"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    value={profileForm.city}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        city: e.target.value,
+                      })
+                    }
+                    disabled={!isEditing}
+                    placeholder="Your city"
+                    required
                   />
                 </div>
 
