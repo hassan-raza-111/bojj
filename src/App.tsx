@@ -44,7 +44,6 @@ import VendorSupportTickets from './pages/vendor/SupportTickets';
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import CustomerJobsPage from './pages/customer/CustomerJobsPage';
 import JobPostingForm from './pages/customer/JobPostingForm';
-import JobDetailPage from './pages/customer/JobDetailPage';
 import JobDetailsPage from './pages/customer/JobDetailsPage';
 import BidsPage from './pages/customer/BidsPage';
 import CustomerProfilePage from './pages/customer/CustomerProfilePage';
@@ -172,7 +171,7 @@ const App = () => {
                             />
                             <Route
                               path="/jobs/:id"
-                              element={<JobDetailPage />}
+                              element={<JobDetailsPage />}
                             />
                             <Route
                               path="/jobs/:id/bids"
@@ -226,7 +225,7 @@ const App = () => {
                           />
                           <Route
                             path="/jobs/:id/view"
-                            element={<JobDetailPage />}
+                            element={<JobDetailsPage />}
                           />
                           <Route
                             path="/jobs/:id/bid"

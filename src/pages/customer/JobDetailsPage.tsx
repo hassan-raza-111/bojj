@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useJobDetails } from '@/hooks/useJobDetails';
 import { useBidActions } from '@/hooks/useBidActions';
 import { MessageButton } from '@/components/shared/MessageButton';
+import { CounterBidModal } from '@/components/customer/CounterBidModal';
 import {
   ArrowLeft,
   MapPin,
@@ -38,6 +40,19 @@ const JobDetailsPage = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
 
+  // Counter Bid Modal State
+  const [counterBidModal, setCounterBidModal] = useState<{
+    isOpen: boolean;
+    bidId: string;
+    currentAmount: number;
+    vendorName: string;
+  }>({
+    isOpen: false,
+    bidId: '',
+    currentAmount: 0,
+    vendorName: '',
+  });
+
   // Debug URL and params
   console.log('🔍 Current URL:', window.location.href);
   console.log('🔍 Pathname:', window.location.pathname);
@@ -57,6 +72,40 @@ const JobDetailsPage = () => {
     jobId,
     user?.id
   );
+
+  // Counter Bid Functions
+  const handleCounterBid = (
+    bidId: string,
+    currentAmount: number,
+    vendorName: string
+  ) => {
+    setCounterBidModal({
+      isOpen: true,
+      bidId,
+      currentAmount,
+      vendorName,
+    });
+  };
+
+  const handleCounterBidSubmit = async (
+    bidId: string,
+    counterAmount: number,
+    message: string
+  ) => {
+    try {
+      // TODO: Implement actual counter bid API call
+      console.log('Counter Bid:', { bidId, counterAmount, message });
+
+      // For now, just show success message
+      toast.success('Counter Bid Sent', {
+        description: 'Your counter offer has been sent to the vendor.',
+      });
+    } catch (error) {
+      toast.error('Error', {
+        description: 'Failed to send counter bid. Please try again.',
+      });
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -104,18 +153,18 @@ const JobDetailsPage = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='max-w-6xl mx-auto'>
-          <div className='mb-6'>
-            <Skeleton className='h-8 w-48 mb-2' />
-            <Skeleton className='h-4 w-32' />
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-32" />
           </div>
-          <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-            <div className='lg:col-span-2'>
-              <Skeleton className='h-64 w-full mb-4' />
-              <Skeleton className='h-32 w-full' />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Skeleton className="h-64 w-full mb-4" />
+              <Skeleton className="h-32 w-full" />
             </div>
             <div>
-              <Skeleton className='h-48 w-full' />
+              <Skeleton className="h-48 w-full" />
             </div>
           </div>
         </div>
@@ -130,24 +179,24 @@ const JobDetailsPage = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='max-w-6xl mx-auto'>
-          <div className='flex flex-col items-center justify-center py-12'>
-            <AlertCircle className='h-12 w-12 text-red-500 mb-4' />
-            <h3 className='text-lg font-semibold mb-2'>Job not found</h3>
-            <p className='text-gray-600 dark:text-gray-400 mb-4'>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Job not found</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               {error?.message ||
                 "The job you're looking for doesn't exist or has been removed."}
             </p>
-            <div className='flex gap-3'>
+            <div className="flex gap-3">
               <Button
                 onClick={() => navigate('/customer/jobs')}
-                variant='outline'
+                variant="outline"
               >
-                <ArrowLeft className='mr-2 h-4 w-4' />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Jobs
               </Button>
-              <Button onClick={() => refetch()} variant='outline'>
-                <RefreshCw className='mr-2 h-4 w-4' />
+              <Button onClick={() => refetch()} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Retry
               </Button>
             </div>
@@ -163,19 +212,19 @@ const JobDetailsPage = () => {
         theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
       }`}
     >
-      <div className='max-w-6xl mx-auto'>
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className='mb-6'>
+        <div className="mb-6">
           <Button
             onClick={() => navigate('/customer/jobs')}
-            variant='ghost'
-            className='mb-4'
+            variant="ghost"
+            className="mb-4"
           >
-            <ArrowLeft className='mr-2 h-4 w-4' />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Jobs
           </Button>
 
-          <div className='flex justify-between items-start'>
+          <div className="flex justify-between items-start">
             <div>
               <h1
                 className={`text-3xl font-bold mb-2 ${
@@ -184,8 +233,8 @@ const JobDetailsPage = () => {
               >
                 {job.title}
               </h1>
-              <div className='flex items-center gap-4'>
-                <Badge variant='outline' className={getStatusBadge(job.status)}>
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className={getStatusBadge(job.status)}>
                   {job.status.replace('_', ' ')}
                 </Badge>
                 <span
@@ -198,27 +247,27 @@ const JobDetailsPage = () => {
               </div>
             </div>
 
-            <Button onClick={() => refetch()} variant='outline' size='sm'>
-              <RefreshCw className='mr-2 h-4 w-4' />
+            <Button onClick={() => refetch()} variant="outline" size="sm">
+              <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
           </div>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className='lg:col-span-2'>
-            <Tabs defaultValue='details' className='w-full'>
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="details" className="w-full">
               <TabsList
                 className={`${
                   theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
                 }`}
               >
-                <TabsTrigger value='details'>Job Details</TabsTrigger>
-                <TabsTrigger value='bids'>Bids ({job.bids.length})</TabsTrigger>
+                <TabsTrigger value="details">Job Details</TabsTrigger>
+                <TabsTrigger value="bids">Bids ({job.bids.length})</TabsTrigger>
               </TabsList>
 
-              <TabsContent value='details' className='mt-4'>
+              <TabsContent value="details" className="mt-4">
                 <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
                   <CardHeader>
                     <CardTitle
@@ -238,9 +287,9 @@ const JobDetailsPage = () => {
                       {job.description}
                     </p>
 
-                    <div className='grid grid-cols-2 gap-4'>
-                      <div className='flex items-center gap-2'>
-                        <DollarSign className='h-4 w-4 text-green-500' />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-green-500" />
                         <div>
                           <p
                             className={`text-sm ${
@@ -261,8 +310,8 @@ const JobDetailsPage = () => {
                         </div>
                       </div>
 
-                      <div className='flex items-center gap-2'>
-                        <MapPin className='h-4 w-4 text-blue-500' />
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-blue-500" />
                         <div>
                           <p
                             className={`text-sm ${
@@ -283,8 +332,8 @@ const JobDetailsPage = () => {
                         </div>
                       </div>
 
-                      <div className='flex items-center gap-2'>
-                        <Calendar className='h-4 w-4 text-purple-500' />
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-purple-500" />
                         <div>
                           <p
                             className={`text-sm ${
@@ -305,8 +354,8 @@ const JobDetailsPage = () => {
                         </div>
                       </div>
 
-                      <div className='flex items-center gap-2'>
-                        <Clock className='h-4 w-4 text-orange-500' />
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-orange-500" />
                         <div>
                           <p
                             className={`text-sm ${
@@ -331,14 +380,14 @@ const JobDetailsPage = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value='bids' className='mt-4'>
+              <TabsContent value="bids" className="mt-4">
                 {job.bids.length === 0 ? (
                   <Card
                     className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}
                   >
-                    <CardContent className='text-center py-12'>
-                      <div className='mb-4'>
-                        <User className='h-12 w-12 mx-auto text-gray-400' />
+                    <CardContent className="text-center py-12">
+                      <div className="mb-4">
+                        <User className="h-12 w-12 mx-auto text-gray-400" />
                       </div>
                       <h3
                         className={`text-lg font-medium mb-2 ${
@@ -358,7 +407,7 @@ const JobDetailsPage = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className='space-y-4'>
+                  <div className="space-y-4">
                     {job.bids.map((bid) => (
                       <Card
                         key={bid.id}
@@ -366,11 +415,11 @@ const JobDetailsPage = () => {
                           theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                         }
                       >
-                        <CardHeader className='pb-3'>
-                          <div className='flex justify-between items-start'>
-                            <div className='flex items-center gap-3'>
-                              <div className='flex items-center gap-2'>
-                                <User className='h-5 w-5 text-blue-500' />
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                <User className="h-5 w-5 text-blue-500" />
                                 <span
                                   className={`font-medium ${
                                     theme === 'dark'
@@ -382,13 +431,13 @@ const JobDetailsPage = () => {
                                 </span>
                               </div>
                               <Badge
-                                variant='outline'
+                                variant="outline"
                                 className={getBidStatusBadge(bid.status)}
                               >
                                 {bid.status}
                               </Badge>
                             </div>
-                            <div className='text-right'>
+                            <div className="text-right">
                               <p
                                 className={`text-2xl font-bold ${
                                   theme === 'dark'
@@ -412,9 +461,9 @@ const JobDetailsPage = () => {
                         </CardHeader>
 
                         <CardContent>
-                          <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-4'>
-                            <div className='flex items-center gap-2'>
-                              <Star className='h-4 w-4 text-yellow-500' />
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                              <Star className="h-4 w-4 text-yellow-500" />
                               <div>
                                 <p
                                   className={`text-sm ${
@@ -440,8 +489,8 @@ const JobDetailsPage = () => {
                               </div>
                             </div>
 
-                            <div className='flex items-center gap-2'>
-                              <CheckCircle className='h-4 w-4 text-green-500' />
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
                               <div>
                                 <p
                                   className={`text-sm ${
@@ -464,8 +513,8 @@ const JobDetailsPage = () => {
                               </div>
                             </div>
 
-                            <div className='flex items-center gap-2'>
-                              <User className='h-4 w-4 text-purple-500' />
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-purple-500" />
                               <div>
                                 <p
                                   className={`text-sm ${
@@ -489,8 +538,8 @@ const JobDetailsPage = () => {
                               </div>
                             </div>
 
-                            <div className='flex items-center gap-2'>
-                              <Clock className='h-4 w-4 text-blue-500' />
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-blue-500" />
                               <div>
                                 <p
                                   className={`text-sm ${
@@ -514,7 +563,7 @@ const JobDetailsPage = () => {
                             </div>
                           </div>
 
-                          <div className='mb-4'>
+                          <div className="mb-4">
                             <p
                               className={`text-sm ${
                                 theme === 'dark'
@@ -536,7 +585,7 @@ const JobDetailsPage = () => {
                           </div>
 
                           {bid.vendor.vendorProfile?.skills && (
-                            <div className='mb-4'>
+                            <div className="mb-4">
                               <p
                                 className={`text-sm ${
                                   theme === 'dark'
@@ -546,13 +595,13 @@ const JobDetailsPage = () => {
                               >
                                 Skills:
                               </p>
-                              <div className='flex flex-wrap gap-2'>
+                              <div className="flex flex-wrap gap-2">
                                 {bid.vendor.vendorProfile.skills.map(
                                   (skill, index) => (
                                     <Badge
                                       key={index}
-                                      variant='secondary'
-                                      className='text-xs'
+                                      variant="secondary"
+                                      className="text-xs"
                                     >
                                       {skill}
                                     </Badge>
@@ -562,54 +611,90 @@ const JobDetailsPage = () => {
                             </div>
                           )}
 
-                          <div className='flex gap-3'>
+                          <div className="space-y-4">
+                            {/* Action Buttons */}
+                            <div className="flex flex-wrap gap-3">
+                              {bid.status === 'PENDING' && (
+                                <>
+                                  <Button
+                                    onClick={() => acceptBid(bid.id)}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                    disabled={isAccepting || isRejecting}
+                                  >
+                                    {isAccepting ? (
+                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isAccepting
+                                      ? 'Accepting...'
+                                      : 'Accept Bid'}
+                                  </Button>
+                                  <Button
+                                    onClick={() => rejectBid(bid.id)}
+                                    variant="outline"
+                                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                                    disabled={isAccepting || isRejecting}
+                                  >
+                                    {isRejecting ? (
+                                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isRejecting
+                                      ? 'Rejecting...'
+                                      : 'Reject Bid'}
+                                  </Button>
+                                </>
+                              )}
+
+                              <Button
+                                onClick={() =>
+                                  navigate(`/vendor/public/${bid.vendor.id}`)
+                                }
+                                variant="outline"
+                                className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                              >
+                                <User className="mr-2 h-4 w-4" />
+                                View Profile
+                              </Button>
+
+                              <MessageButton
+                                jobId={job.id}
+                                vendorId={bid.vendor.id}
+                                variant="outline"
+                                className="flex-1"
+                              />
+                            </div>
+
+                            {/* Counter Bid Section */}
                             {bid.status === 'PENDING' && (
-                              <>
+                              <div className="border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <DollarSign className="h-5 w-5 text-blue-600" />
+                                  <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                                    Want to negotiate the price?
+                                  </h4>
+                                </div>
+                                <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                                  Make a counter offer to negotiate the bid
+                                  amount with this vendor.
+                                </p>
                                 <Button
-                                  onClick={() => acceptBid(bid.id)}
-                                  className='flex-1 bg-green-600 hover:bg-green-700'
-                                  disabled={isAccepting || isRejecting}
+                                  onClick={() =>
+                                    handleCounterBid(
+                                      bid.id,
+                                      bid.amount,
+                                      `${bid.vendor.firstName} ${bid.vendor.lastName}`
+                                    )
+                                  }
+                                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                                 >
-                                  {isAccepting ? (
-                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                  ) : (
-                                    <CheckCircle className='mr-2 h-4 w-4' />
-                                  )}
-                                  {isAccepting ? 'Accepting...' : 'Accept Bid'}
+                                  <DollarSign className="mr-2 h-4 w-4" />
+                                  Make Counter Offer
                                 </Button>
-                                <Button
-                                  onClick={() => rejectBid(bid.id)}
-                                  variant='outline'
-                                  className='flex-1'
-                                  disabled={isAccepting || isRejecting}
-                                >
-                                  {isRejecting ? (
-                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                  ) : (
-                                    <XCircle className='mr-2 h-4 w-4' />
-                                  )}
-                                  {isRejecting ? 'Rejecting...' : 'Reject Bid'}
-                                </Button>
-                              </>
+                              </div>
                             )}
-
-                            <Button
-                              onClick={() =>
-                                navigate(`/vendor/public/${bid.vendor.id}`)
-                              }
-                              variant='outline'
-                              className='flex-1 border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20'
-                            >
-                              <User className='mr-2 h-4 w-4' />
-                              View Profile
-                            </Button>
-
-                            <MessageButton
-                              jobId={job.id}
-                              vendorId={bid.vendor.id}
-                              variant='outline'
-                              className='flex-1'
-                            />
                           </div>
                         </CardContent>
                       </Card>
@@ -621,7 +706,7 @@ const JobDetailsPage = () => {
           </div>
 
           {/* Sidebar */}
-          <div className='space-y-6'>
+          <div className="space-y-6">
             {/* Job Summary */}
             <Card className={theme === 'dark' ? 'bg-gray-800' : 'bg-white'}>
               <CardHeader>
@@ -631,8 +716,8 @@ const JobDetailsPage = () => {
                   Job Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='flex justify-between'>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
                   <span
                     className={`${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -649,7 +734,7 @@ const JobDetailsPage = () => {
                   </span>
                 </div>
 
-                <div className='flex justify-between'>
+                <div className="flex justify-between">
                   <span
                     className={`${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -671,7 +756,7 @@ const JobDetailsPage = () => {
                   </span>
                 </div>
 
-                <div className='flex justify-between'>
+                <div className="flex justify-between">
                   <span
                     className={`${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -692,7 +777,7 @@ const JobDetailsPage = () => {
                   </span>
                 </div>
 
-                <div className='flex justify-between'>
+                <div className="flex justify-between">
                   <span
                     className={`${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -724,10 +809,10 @@ const JobDetailsPage = () => {
                   Job Guidelines
                 </CardTitle>
               </CardHeader>
-              <CardContent className='space-y-4'>
-                <div className='space-y-3'>
-                  <div className='flex items-start gap-3'>
-                    <CheckCircle className='h-5 w-5 text-green-500 mt-0.5 flex-shrink-0' />
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p
                         className={`font-medium ${
@@ -747,8 +832,8 @@ const JobDetailsPage = () => {
                     </div>
                   </div>
 
-                  <div className='flex items-start gap-3'>
-                    <MessageSquare className='h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0' />
+                  <div className="flex items-start gap-3">
+                    <MessageSquare className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p
                         className={`font-medium ${
@@ -768,8 +853,8 @@ const JobDetailsPage = () => {
                     </div>
                   </div>
 
-                  <div className='flex items-start gap-3'>
-                    <Clock className='h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0' />
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p
                         className={`font-medium ${
@@ -789,8 +874,8 @@ const JobDetailsPage = () => {
                     </div>
                   </div>
 
-                  <div className='flex items-start gap-3'>
-                    <Star className='h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0' />
+                  <div className="flex items-start gap-3">
+                    <Star className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p
                         className={`font-medium ${
@@ -830,6 +915,18 @@ const JobDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Counter Bid Modal */}
+      <CounterBidModal
+        isOpen={counterBidModal.isOpen}
+        onClose={() =>
+          setCounterBidModal((prev) => ({ ...prev, isOpen: false }))
+        }
+        bidId={counterBidModal.bidId}
+        currentAmount={counterBidModal.currentAmount}
+        vendorName={counterBidModal.vendorName}
+        onCounterBid={handleCounterBidSubmit}
+      />
     </div>
   );
 };

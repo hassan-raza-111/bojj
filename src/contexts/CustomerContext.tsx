@@ -144,6 +144,11 @@ interface CustomerContextType {
   fetchJobBids: (jobId: string) => Promise<Bid[]>;
   acceptBid: (jobId: string, bidId: string) => Promise<boolean>;
   rejectBid: (jobId: string, bidId: string) => Promise<boolean>;
+  counterBid: (
+    bidId: string,
+    counterAmount: number,
+    message: string
+  ) => Promise<any>;
   fetchJobAnalytics: (jobId: string) => Promise<JobAnalytics | null>;
 
   // Utilities
@@ -502,6 +507,43 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
     }
   };
 
+  // Counter bid function
+  const counterBid = async (
+    bidId: string,
+    counterAmount: number,
+    message: string
+  ) => {
+    try {
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/jobs/${bidId}/counter-offer`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            counterAmount,
+            message,
+            userId: user?.id,
+            userRole: 'CUSTOMER',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit counter bid');
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Error submitting counter bid:', error);
+      throw error;
+    }
+  };
+
   // Auto-fetch dashboard when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user?.role === 'CUSTOMER' && user?.id) {
@@ -530,6 +572,7 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
     fetchJobBids,
     acceptBid,
     rejectBid,
+    counterBid,
     fetchJobAnalytics,
 
     // Utilities

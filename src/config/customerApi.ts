@@ -173,6 +173,23 @@ export const customerAPI = {
       true
     );
   },
+
+  // Counter Bid
+  counterBid: async (bidId: string, counterAmount: number, message: string) => {
+    return apiCall(
+      `${API_CONFIG.BASE_URL}/jobs/${bidId}/counter-offer`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          counterAmount,
+          message,
+          userId: localStorage.getItem('userId'),
+          userRole: 'CUSTOMER',
+        }),
+      },
+      true
+    );
+  },
 };
 
 export default customerAPI;
