@@ -545,6 +545,7 @@ enum NotificationType {
   PAYMENT_REMINDER
   JOB_EXPIRING
   MILESTONE_COMPLETED
+  NEW_JOB_POSTED
 }
 
 enum NotificationPriority {

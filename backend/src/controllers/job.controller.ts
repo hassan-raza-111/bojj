@@ -14,6 +14,7 @@ import {
   notifyCounterOfferAccepted,
   notifyCounterOfferRejected,
   notifyMaxNegotiationReached,
+  notifyNewJobPosted,
 } from '../services/notificationService';
 
 // Create a new job (Customer only)
@@ -79,6 +80,117 @@ export const createJob: RequestHandler = async (req, res, next) => {
         },
       },
     });
+
+    // Send notifications to all vendors about the new job
+    try {
+      console.log('🔔 Starting notification process...');
+
+      // Get all active vendors
+      const vendors = await prisma.user.findMany({
+        where: {
+          role: 'VENDOR',
+          status: 'ACTIVE',
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      console.log(`👥 Found ${vendors.length} vendors to notify`);
+
+      // Get all active admins
+      const admins = await prisma.user.findMany({
+        where: {
+          role: 'ADMIN',
+          status: 'ACTIVE',
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      console.log(`👑 Found ${admins.length} admins to notify`);
+
+      // Send notification to each vendor
+      const vendorNotificationPromises = vendors.map(async (vendor) => {
+        console.log(
+          `📧 Sending notification to vendor: ${vendor.firstName} ${vendor.lastName}`
+        );
+        try {
+          const notification = await notifyNewJobPosted(
+            vendor.id,
+            job.title,
+            `${job.customer.firstName} ${job.customer.lastName}`,
+            job.budget || 0, // Handle null budget
+            job.location || 'Location not specified', // Handle null location
+            job.category,
+            job.id
+          );
+          console.log(
+            `✅ Notification sent to ${vendor.firstName}: ${notification.id}`
+          );
+          return notification;
+        } catch (error) {
+          console.error(
+            `❌ Failed to send notification to ${vendor.firstName}:`,
+            error
+          );
+          throw error;
+        }
+      });
+
+      // Send notification to each admin
+      const adminNotificationPromises = admins.map(async (admin) => {
+        console.log(
+          `📧 Sending notification to admin: ${admin.firstName} ${admin.lastName}`
+        );
+        try {
+          const notification = await notifyNewJobPosted(
+            admin.id,
+            job.title,
+            `${job.customer.firstName} ${job.customer.lastName}`,
+            job.budget || 0, // Handle null budget
+            job.location || 'Location not specified', // Handle null location
+            job.category,
+            job.id
+          );
+          console.log(
+            `✅ Notification sent to admin ${admin.firstName}: ${notification.id}`
+          );
+          return notification;
+        } catch (error) {
+          console.error(
+            `❌ Failed to send notification to admin ${admin.firstName}:`,
+            error
+          );
+          throw error;
+        }
+      });
+
+      // Send all notifications in parallel (vendors + admins)
+      const allNotificationPromises = [
+        ...vendorNotificationPromises,
+        ...adminNotificationPromises,
+      ];
+      const results = await Promise.allSettled(allNotificationPromises);
+      const successful = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.filter((r) => r.status === 'rejected').length;
+
+      console.log(
+        `📊 Notification results: ${successful} successful, ${failed} failed`
+      );
+      logger.info(
+        `Job notifications sent to ${vendors.length} vendors and ${admins.length} admins for job: ${job.id} (${successful} successful, ${failed} failed)`
+      );
+    } catch (notificationError) {
+      // Log the error but don't fail the job creation
+      console.error('❌ Error in notification process:', notificationError);
+      logger.error('Error sending job notifications:', notificationError);
+    }
 
     logger.info(`Job created: ${job.id} by customer: ${customerId}`);
     res.status(201).json({

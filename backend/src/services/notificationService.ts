@@ -150,6 +150,17 @@ const sendNotificationEmail = async (
         template = emailTemplates.accountVerified(data.recipientName);
         break;
 
+      case 'NEW_JOB_POSTED':
+        template = emailTemplates.newJobPosted(
+          data.recipientName,
+          data.jobTitle,
+          data.customerName,
+          data.budget,
+          data.location,
+          data.category
+        );
+        break;
+
       default:
         logger.warn(`No email template for notification type: ${type}`);
         return;
@@ -559,6 +570,52 @@ export const notifyJobExpiring = async (
     sendEmail: true,
     emailData: { jobTitle, daysLeft },
   });
+};
+
+// ========================================
+// JOB POSTING NOTIFICATIONS
+// ========================================
+
+// New Job Posted Notification (to all vendors)
+export const notifyNewJobPosted = async (
+  vendorId: string,
+  jobTitle: string,
+  customerName: string,
+  budget: number,
+  location: string,
+  category: string,
+  jobId: string
+) => {
+  console.log(`🔔 Creating notification for vendor ${vendorId}:`, {
+    jobTitle,
+    customerName,
+    budget,
+    location,
+    category,
+    jobId,
+  });
+
+  try {
+    const notification = await createNotification({
+      userId: vendorId,
+      type: 'NEW_JOB_POSTED',
+      title: 'New Job Available! 🎯',
+      message: `${customerName} posted a new job: "${jobTitle}" ($${budget}) in ${location}`,
+      link: `/vendor/jobs/${jobId}`,
+      priority: 'HIGH',
+      sendEmail: true,
+      emailData: { jobTitle, customerName, budget, location, category },
+    });
+
+    console.log(`✅ Notification created successfully: ${notification.id}`);
+    return notification;
+  } catch (error) {
+    console.error(
+      `❌ Failed to create notification for vendor ${vendorId}:`,
+      error
+    );
+    throw error;
+  }
 };
 
 // ========================================

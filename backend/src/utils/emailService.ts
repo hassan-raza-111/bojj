@@ -305,6 +305,71 @@ export const emailTemplates = {
       </html>
     `,
   }),
+
+  newJobPosted: (
+    recipientName: string,
+    jobTitle: string,
+    customerName: string,
+    budget: number,
+    location: string,
+    category: string
+  ) => ({
+    subject: `🎯 New Job Available: "${jobTitle}" - $${budget}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #FF0000; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .job-card { background: #fff; padding: 20px; border-left: 4px solid #FF0000; margin: 15px 0; border-radius: 5px; }
+          .budget { font-size: 24px; font-weight: bold; color: #FF0000; }
+          .category { background: #FF0000; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; display: inline-block; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎯 New Job Available!</h1>
+            <p>Don't miss this opportunity</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p>A new job has been posted that might interest you!</p>
+            
+            <div class="job-card">
+              <h3>${jobTitle}</h3>
+              <p><strong>Posted by:</strong> ${customerName}</p>
+              <p><strong>Budget:</strong> <span class="budget">$${budget}</span></p>
+              <p><strong>Location:</strong> ${location}</p>
+              <p><strong>Category:</strong> <span class="category">${category}</span></p>
+            </div>
+            
+            <p><strong>Why bid on this job?</strong></p>
+            <ul>
+              <li>Great earning potential</li>
+              <li>Build your reputation</li>
+              <li>Expand your client base</li>
+              <li>Work on interesting projects</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/vendor/jobs" class="button">View & Bid Now</a>
+            
+            <p><strong>Pro tip:</strong> Early bids often get more attention from customers!</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
 };
 
 // Send email function
