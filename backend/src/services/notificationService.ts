@@ -161,6 +161,48 @@ const sendNotificationEmail = async (
         );
         break;
 
+      case 'COUNTER_OFFER_RECEIVED':
+        template = emailTemplates.counterOfferReceived(
+          data.recipientName,
+          data.jobTitle,
+          data.originalAmount,
+          data.counterAmount,
+          data.counterPartyName
+        );
+        break;
+
+      case 'COUNTER_OFFER_ACCEPTED':
+        template = emailTemplates.counterOfferAccepted(
+          data.recipientName,
+          data.jobTitle,
+          data.agreedAmount,
+          data.otherPartyName
+        );
+        break;
+
+      case 'NEGOTIATION_LIMIT_REACHED':
+        template = emailTemplates.negotiationLimitReached(
+          data.recipientName,
+          data.jobTitle
+        );
+        break;
+
+      case 'JOB_DISPUTED':
+        template = emailTemplates.jobDisputed(
+          data.recipientName,
+          data.jobTitle,
+          data.disputeReason
+        );
+        break;
+
+      case 'ACCOUNT_SUSPENDED':
+        template = emailTemplates.accountSuspended(
+          data.recipientName,
+          data.reason,
+          data.suspensionDuration
+        );
+        break;
+
       default:
         logger.warn(`No email template for notification type: ${type}`);
         return;
@@ -648,7 +690,7 @@ export const notifyCustomerCounterOffer = async (
 ) => {
   return createNotification({
     userId: vendorId,
-    type: 'BID_ACCEPTED', // Reusing existing type, could add new COUNTER_OFFER type
+    type: 'COUNTER_OFFER_RECEIVED',
     title: '💰 Counter-Offer Received',
     message: `${customerName} countered your bid of $${originalAmount} with $${counterAmount} for "${jobTitle}"`,
     link: `/vendor/jobs/${jobId}`,
@@ -669,7 +711,7 @@ export const notifyVendorCounterOffer = async (
 ) => {
   return createNotification({
     userId: customerId,
-    type: 'NEW_BID', // Reusing existing type
+    type: 'COUNTER_OFFER_RECEIVED',
     title: '💰 Counter-Offer Received',
     message: `${vendorName} countered with $${counterAmount} (originally $${originalAmount}) for "${jobTitle}"`,
     link: `/customer/jobs/${jobId}/details`,
@@ -694,8 +736,8 @@ export const notifyCounterOfferAccepted = async (
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
-    type: 'BID_ACCEPTED',
-    title: '🎉 Offer Accepted!',
+    type: 'COUNTER_OFFER_ACCEPTED',
+    title: '🎉 Counter-Offer Accepted!',
     message: `${otherPartyName} accepted your counter-offer of $${agreedAmount} for "${jobTitle}"`,
     link,
     priority: 'URGENT',
@@ -719,8 +761,8 @@ export const notifyCounterOfferRejected = async (
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
-    type: 'BID_REJECTED',
-    title: '❌ Offer Rejected',
+    type: 'COUNTER_OFFER_REJECTED',
+    title: '❌ Counter-Offer Rejected',
     message: `${otherPartyName} rejected your counter-offer of $${rejectedAmount} for "${jobTitle}"`,
     link,
     priority: 'MEDIUM',
@@ -742,12 +784,168 @@ export const notifyMaxNegotiationReached = async (
       : `/customer/jobs/${jobId}/details`;
   return createNotification({
     userId,
-    type: 'SYSTEM_ALERT',
+    type: 'NEGOTIATION_LIMIT_REACHED',
     title: '⚠️ Maximum Negotiation Rounds Reached',
     message: `Negotiation limit reached for "${jobTitle}". Please accept or reject the current offer.`,
     link,
     priority: 'HIGH',
     sendEmail: true,
     emailData: { jobTitle },
+  });
+};
+
+// ========================================
+// ADDITIONAL MISSING NOTIFICATION FEATURES
+// ========================================
+
+// Bid Withdrawal Notification
+export const notifyBidWithdrawn = async (
+  customerId: string,
+  vendorName: string,
+  jobTitle: string,
+  bidAmount: number,
+  jobId: string
+) => {
+  return createNotification({
+    userId: customerId,
+    type: 'BID_WITHDRAWN',
+    title: '📤 Bid Withdrawn',
+    message: `${vendorName} withdrew their bid of $${bidAmount} for "${jobTitle}"`,
+    link: `/customer/jobs/${jobId}/details`,
+    priority: 'MEDIUM',
+    sendEmail: false,
+    emailData: { vendorName, jobTitle, bidAmount },
+  });
+};
+
+// Job Dispute Notification
+export const notifyJobDisputed = async (
+  userId: string,
+  jobTitle: string,
+  disputeReason: string,
+  jobId: string,
+  userRole: 'VENDOR' | 'CUSTOMER'
+) => {
+  const link =
+    userRole === 'VENDOR'
+      ? `/vendor/jobs/${jobId}`
+      : `/customer/jobs/${jobId}/details`;
+  return createNotification({
+    userId,
+    type: 'JOB_DISPUTED',
+    title: '⚠️ Job Disputed',
+    message: `A dispute has been raised for "${jobTitle}". Reason: ${disputeReason}`,
+    link,
+    priority: 'URGENT',
+    sendEmail: true,
+    emailData: { jobTitle, disputeReason },
+  });
+};
+
+// Payment Dispute Notification
+export const notifyPaymentDisputed = async (
+  userId: string,
+  amount: number,
+  jobTitle: string,
+  disputeReason: string,
+  userRole: 'VENDOR' | 'CUSTOMER'
+) => {
+  const link =
+    userRole === 'VENDOR' ? '/vendor/earnings' : '/customer/payments';
+  return createNotification({
+    userId,
+    type: 'PAYMENT_DISPUTED',
+    title: '💳 Payment Disputed',
+    message: `Payment of $${amount} for "${jobTitle}" has been disputed. Reason: ${disputeReason}`,
+    link,
+    priority: 'URGENT',
+    sendEmail: true,
+    emailData: { amount, jobTitle, disputeReason },
+  });
+};
+
+// Account Suspension Notification
+export const notifyAccountSuspended = async (
+  userId: string,
+  reason: string,
+  suspensionDuration?: string
+) => {
+  return createNotification({
+    userId,
+    type: 'ACCOUNT_SUSPENDED',
+    title: '🚫 Account Suspended',
+    message: `Your account has been suspended. Reason: ${reason}${
+      suspensionDuration ? ` Duration: ${suspensionDuration}` : ''
+    }`,
+    link: '/support',
+    priority: 'URGENT',
+    sendEmail: true,
+    emailData: { reason, suspensionDuration },
+  });
+};
+
+// Profile Verification Notifications
+export const notifyProfileVerified = async (userId: string) => {
+  return createNotification({
+    userId,
+    type: 'PROFILE_VERIFIED',
+    title: '✅ Profile Verified!',
+    message: 'Your profile has been successfully verified by our team.',
+    link: '/profile',
+    priority: 'HIGH',
+    sendEmail: true,
+  });
+};
+
+export const notifyProfileRejected = async (userId: string, reason: string) => {
+  return createNotification({
+    userId,
+    type: 'PROFILE_REJECTED',
+    title: '❌ Profile Verification Failed',
+    message: `Your profile verification was rejected. Reason: ${reason}`,
+    link: '/profile',
+    priority: 'HIGH',
+    sendEmail: true,
+    emailData: { reason },
+  });
+};
+
+// Job Deadline Reminder
+export const notifyJobDeadlineReminder = async (
+  customerId: string,
+  jobTitle: string,
+  deadlineDate: Date,
+  jobId: string
+) => {
+  const daysLeft = Math.ceil(
+    (deadlineDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+  );
+  return createNotification({
+    userId: customerId,
+    type: 'JOB_DEADLINE_REMINDER',
+    title: '⏰ Job Deadline Approaching',
+    message: `Your job "${jobTitle}" deadline is in ${daysLeft} days (${deadlineDate.toLocaleDateString()})`,
+    link: `/customer/jobs/${jobId}/details`,
+    priority: daysLeft <= 1 ? 'URGENT' : 'HIGH',
+    sendEmail: true,
+    emailData: { jobTitle, deadlineDate, daysLeft },
+  });
+};
+
+// Bulk Job Posted Notification
+export const notifyBulkJobsPosted = async (
+  vendorId: string,
+  jobCount: number,
+  categories: string[]
+) => {
+  return createNotification({
+    userId: vendorId,
+    type: 'BULK_JOB_POSTED',
+    title: '🎯 Multiple New Jobs Available!',
+    message: `${jobCount} new jobs have been posted in your areas of interest: ${categories.join(', ')}`,
+    link: '/vendor/jobs',
+    priority: 'HIGH',
+    sendEmail: true,
+    emailData: { jobCount, categories },
   });
 };

@@ -370,6 +370,295 @@ export const emailTemplates = {
       </html>
     `,
   }),
+
+  // Counter-Offer Email Templates
+  counterOfferReceived: (
+    recipientName: string,
+    jobTitle: string,
+    originalAmount: number,
+    counterAmount: number,
+    counterPartyName: string
+  ) => ({
+    subject: `💰 Counter-Offer Received for "${jobTitle}"`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #10B981; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .offer-card { background: #fff; padding: 20px; border-left: 4px solid #10B981; margin: 15px 0; border-radius: 5px; }
+          .amount { font-size: 24px; font-weight: bold; color: #10B981; }
+          .original { text-decoration: line-through; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💰 Counter-Offer Received!</h1>
+            <p>Someone wants to negotiate</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p><strong>${counterPartyName}</strong> has made a counter-offer for your job!</p>
+            
+            <div class="offer-card">
+              <h3>${jobTitle}</h3>
+              <p><strong>Original Amount:</strong> <span class="original">$${originalAmount}</span></p>
+              <p><strong>Counter-Offer:</strong> <span class="amount">$${counterAmount}</span></p>
+              <p><strong>Difference:</strong> $${counterAmount - originalAmount}</p>
+            </div>
+            
+            <p><strong>What's next?</strong></p>
+            <ul>
+              <li>Review the counter-offer carefully</li>
+              <li>Consider if the new amount works for you</li>
+              <li>Accept, reject, or make another counter-offer</li>
+              <li>Remember: negotiation is part of the process!</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/vendor/jobs" class="button">Review Counter-Offer</a>
+            
+            <p><strong>Pro tip:</strong> Quick responses show professionalism and help close deals faster!</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
+
+  counterOfferAccepted: (
+    recipientName: string,
+    jobTitle: string,
+    agreedAmount: number,
+    otherPartyName: string
+  ) => ({
+    subject: `🎉 Counter-Offer Accepted for "${jobTitle}"`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #8B5CF6; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .success-card { background: #fff; padding: 20px; border-left: 4px solid #8B5CF6; margin: 15px 0; border-radius: 5px; }
+          .amount { font-size: 24px; font-weight: bold; color: #8B5CF6; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Counter-Offer Accepted!</h1>
+            <p>Deal closed successfully</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p><strong>Great news!</strong> Your counter-offer has been accepted!</p>
+            
+            <div class="success-card">
+              <h3>${jobTitle}</h3>
+              <p><strong>Agreed Amount:</strong> <span class="amount">$${agreedAmount}</span></p>
+              <p><strong>Accepted by:</strong> ${otherPartyName}</p>
+            </div>
+            
+            <p><strong>Next Steps:</strong></p>
+            <ul>
+              <li>Start working on the project</li>
+              <li>Communicate regularly with the client</li>
+              <li>Update progress in the dashboard</li>
+              <li>Deliver quality work on time</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/vendor/dashboard" class="button">Go to Dashboard</a>
+            
+            <p>Congratulations on closing the deal! 🎉</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
+
+  negotiationLimitReached: (recipientName: string, jobTitle: string) => ({
+    subject: `⚠️ Negotiation Limit Reached for "${jobTitle}"`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #F59E0B; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .warning-card { background: #fff; padding: 20px; border-left: 4px solid #F59E0B; margin: 15px 0; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⚠️ Negotiation Limit Reached</h1>
+            <p>Time to make a decision</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p>The maximum number of negotiation rounds has been reached for this job.</p>
+            
+            <div class="warning-card">
+              <h3>${jobTitle}</h3>
+              <p><strong>Status:</strong> Negotiation limit reached</p>
+              <p><strong>Action Required:</strong> Accept or reject the current offer</p>
+            </div>
+            
+            <p><strong>What you need to do:</strong></p>
+            <ul>
+              <li>Review the current offer carefully</li>
+              <li>Make your final decision</li>
+              <li>Accept or reject the offer</li>
+              <li>No more counter-offers are allowed</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/vendor/jobs" class="button">Review & Decide</a>
+            
+            <p><strong>Important:</strong> Please respond promptly to avoid any delays.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
+
+  jobDisputed: (
+    recipientName: string,
+    jobTitle: string,
+    disputeReason: string
+  ) => ({
+    subject: `⚠️ Job Disputed: "${jobTitle}"`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #EF4444; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .dispute-card { background: #fff; padding: 20px; border-left: 4px solid #EF4444; margin: 15px 0; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⚠️ Job Disputed</h1>
+            <p>Action required</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p>A dispute has been raised for one of your jobs.</p>
+            
+            <div class="dispute-card">
+              <h3>${jobTitle}</h3>
+              <p><strong>Dispute Reason:</strong> ${disputeReason}</p>
+              <p><strong>Status:</strong> Under review</p>
+            </div>
+            
+            <p><strong>What happens next?</strong></p>
+            <ul>
+              <li>Our support team will review the dispute</li>
+              <li>You may be contacted for additional information</li>
+              <li>We'll work to resolve this fairly</li>
+              <li>Keep all communication professional</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/support" class="button">View Dispute Details</a>
+            
+            <p><strong>Important:</strong> Please respond to any requests from our support team promptly.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
+
+  accountSuspended: (
+    recipientName: string,
+    reason: string,
+    suspensionDuration?: string
+  ) => ({
+    subject: `🚫 Account Suspended - Action Required`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #6B7280; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          .suspension-card { background: #fff; padding: 20px; border-left: 4px solid #6B7280; margin: 15px 0; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🚫 Account Suspended</h1>
+            <p>Important notice</p>
+          </div>
+          <div class="content">
+            <p>Hi <strong>${recipientName}</strong>,</p>
+            <p>Your account has been temporarily suspended.</p>
+            
+            <div class="suspension-card">
+              <p><strong>Reason:</strong> ${reason}</p>
+              ${suspensionDuration ? `<p><strong>Duration:</strong> ${suspensionDuration}</p>` : ''}
+              <p><strong>Status:</strong> Under review</p>
+            </div>
+            
+            <p><strong>What this means:</strong></p>
+            <ul>
+              <li>You cannot access your account temporarily</li>
+              <li>All active jobs are on hold</li>
+              <li>We're reviewing the situation</li>
+              <li>You'll be notified of any updates</li>
+            </ul>
+            
+            <a href="${process.env.FRONTEND_URL}/support" class="button">Contact Support</a>
+            
+            <p><strong>Need help?</strong> Contact our support team if you have questions about this suspension.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} VenBid. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }),
 };
 
 // Send email function
