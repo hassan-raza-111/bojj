@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useVendorBids } from '@/hooks/useVendorBids';
-import { VendorBid } from '@/config/vendorApi';
+import { VendorBid, vendorApi } from '@/config/vendorApi';
+import { useAuth } from '@/hooks/useAuth';
 import BidEditModal from '@/components/vendor/BidEditModal';
 import BidDetailsModal from '@/components/vendor/BidDetailsModal';
 import {
@@ -33,6 +34,7 @@ import { toast } from 'sonner';
 
 const VendorBidsPage = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBid, setSelectedBid] = useState<VendorBid | null>(null);
@@ -93,15 +95,15 @@ const VendorBidsPage = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'ACCEPTED':
-        return <CheckCircle className='h-4 w-4 text-green-500' />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'REJECTED':
-        return <XCircle className='h-4 w-4 text-red-500' />;
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'WITHDRAWN':
-        return <XCircle className='h-4 w-4 text-gray-500' />;
+        return <XCircle className="h-4 w-4 text-gray-500" />;
       case 'PENDING':
-        return <AlertCircle className='h-4 w-4 text-yellow-500' />;
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
       default:
-        return <Clock className='h-4 w-4 text-gray-500' />;
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -170,6 +172,40 @@ const VendorBidsPage = () => {
     }
   };
 
+  // Handle accepting counter offer
+  const handleAcceptCounter = async (bidId: string, counterAmount: number) => {
+    try {
+      await vendorApi.acceptCounterOffer(bidId, user?.id);
+      toast.success('Counter offer accepted successfully!');
+      refetch(); // Refresh data
+    } catch (error) {
+      console.error('Error accepting counter offer:', error);
+      toast.error('Error', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to accept counter offer',
+      });
+    }
+  };
+
+  // Handle declining counter offer
+  const handleDeclineCounter = async (bidId: string) => {
+    try {
+      await vendorApi.declineCounterOffer(bidId, user?.id);
+      toast.success('Counter offer declined');
+      refetch(); // Refresh data
+    } catch (error) {
+      console.error('Error declining counter offer:', error);
+      toast.error('Error', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to decline counter offer',
+      });
+    }
+  };
+
   const handleRefresh = () => {
     refetch();
     refreshBids();
@@ -197,9 +233,9 @@ const VendorBidsPage = () => {
           theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}
       >
-        <div className='text-center py-12'>
-          <div className='mb-4'>
-            <AlertCircle className='h-12 w-12 mx-auto text-red-400' />
+        <div className="text-center py-12">
+          <div className="mb-4">
+            <AlertCircle className="h-12 w-12 mx-auto text-red-400" />
           </div>
           <h3
             className={`text-lg font-medium mb-2 ${
@@ -215,8 +251,8 @@ const VendorBidsPage = () => {
           >
             {error.message || 'Failed to load your bids. Please try again.'}
           </p>
-          <Button onClick={handleRefresh} className='mt-4'>
-            <RefreshCw className='mr-2 h-4 w-4' />
+          <Button onClick={handleRefresh} className="mt-4">
+            <RefreshCw className="mr-2 h-4 w-4" />
             Retry
           </Button>
         </div>
@@ -231,8 +267,8 @@ const VendorBidsPage = () => {
       }`}
     >
       {/* Header */}
-      <div className='mb-8'>
-        <div className='flex justify-between items-start mb-4'>
+      <div className="mb-8">
+        <div className="flex justify-between items-start mb-4">
           <div>
             <h1
               className={`text-3xl font-bold mb-2 ${
@@ -250,9 +286,9 @@ const VendorBidsPage = () => {
             </p>
           </div>
 
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             <Button
-              variant='outline'
+              variant="outline"
               onClick={handleRefresh}
               disabled={isLoading}
             >
@@ -265,11 +301,11 @@ const VendorBidsPage = () => {
         </div>
 
         {/* Search and Filter */}
-        <div className='flex flex-col sm:flex-row gap-4'>
-          <div className='relative flex-1'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder='Search jobs by title or description...'
+              placeholder="Search jobs by title or description..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className={`pl-10 ${
@@ -283,9 +319,9 @@ const VendorBidsPage = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-8'>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
+          <CardContent className="p-4 text-center">
             <p
               className={`text-2xl font-bold ${
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -304,7 +340,7 @@ const VendorBidsPage = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
+          <CardContent className="p-4 text-center">
             <p className={`text-2xl font-bold text-green-600`}>
               {stats.accepted}
             </p>
@@ -319,7 +355,7 @@ const VendorBidsPage = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
+          <CardContent className="p-4 text-center">
             <p className={`text-2xl font-bold text-yellow-600`}>
               {stats.pending}
             </p>
@@ -334,7 +370,7 @@ const VendorBidsPage = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
+          <CardContent className="p-4 text-center">
             <p className={`text-2xl font-bold text-red-600`}>
               {stats.rejected}
             </p>
@@ -349,7 +385,7 @@ const VendorBidsPage = () => {
         </Card>
 
         <Card className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
-          <CardContent className='p-4 text-center'>
+          <CardContent className="p-4 text-center">
             <p className={`text-2xl font-bold text-gray-600`}>
               {stats.withdrawn}
             </p>
@@ -365,12 +401,12 @@ const VendorBidsPage = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue='all' onValueChange={handleTabChange} className='mb-6'>
+      <Tabs defaultValue="all" onValueChange={handleTabChange} className="mb-6">
         <TabsList
           className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}
         >
           <TabsTrigger
-            value='all'
+            value="all"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -380,7 +416,7 @@ const VendorBidsPage = () => {
             All Bids ({stats.total})
           </TabsTrigger>
           <TabsTrigger
-            value='pending'
+            value="pending"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -390,7 +426,7 @@ const VendorBidsPage = () => {
             Pending ({stats.pending})
           </TabsTrigger>
           <TabsTrigger
-            value='accepted'
+            value="accepted"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -400,7 +436,7 @@ const VendorBidsPage = () => {
             Accepted ({stats.accepted})
           </TabsTrigger>
           <TabsTrigger
-            value='rejected'
+            value="rejected"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -410,7 +446,7 @@ const VendorBidsPage = () => {
             Rejected ({stats.rejected})
           </TabsTrigger>
           <TabsTrigger
-            value='withdrawn'
+            value="withdrawn"
             className={`${
               theme === 'dark'
                 ? 'data-[state=active]:bg-gray-700'
@@ -421,11 +457,11 @@ const VendorBidsPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className='mt-6'>
+        <TabsContent value={activeTab} className="mt-6">
           {isLoading ? (
-            <div className='text-center py-12'>
-              <div className='mb-4'>
-                <RefreshCw className='h-12 w-12 mx-auto text-gray-400 animate-spin' />
+            <div className="text-center py-12">
+              <div className="mb-4">
+                <RefreshCw className="h-12 w-12 mx-auto text-gray-400 animate-spin" />
               </div>
               <p
                 className={`${
@@ -437,7 +473,7 @@ const VendorBidsPage = () => {
             </div>
           ) : (
             <>
-              <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {bids.map((bid) => (
                   <Card
                     key={bid.id}
@@ -445,9 +481,9 @@ const VendorBidsPage = () => {
                       theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                     } hover:shadow-lg transition-shadow duration-200`}
                   >
-                    <CardHeader className='pb-3'>
-                      <div className='flex justify-between items-start mb-3'>
-                        <div className='min-w-0 flex-1'>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="min-w-0 flex-1">
                           <CardTitle
                             className={`text-xl ${
                               theme === 'dark' ? 'text-white' : 'text-gray-900'
@@ -455,7 +491,7 @@ const VendorBidsPage = () => {
                           >
                             {bid.job.title}
                           </CardTitle>
-                          <div className='flex items-center gap-2 mt-1'>
+                          <div className="flex items-center gap-2 mt-1">
                             <span
                               className={`text-sm ${
                                 theme === 'dark'
@@ -471,19 +507,19 @@ const VendorBidsPage = () => {
                             </span>
                           </div>
                         </div>
-                        <div className='flex items-center gap-2'>
+                        <div className="flex items-center gap-2">
                           <Badge
-                            variant='outline'
+                            variant="outline"
                             className={getStatusColor(bid.status)}
                           >
                             {getStatusIcon(bid.status)}
-                            <span className='ml-1'>{bid.status}</span>
+                            <span className="ml-1">{bid.status}</span>
                           </Badge>
                         </div>
                       </div>
 
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center gap-4'>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
                           <span
                             className={`text-sm ${
                               theme === 'dark'
@@ -498,9 +534,9 @@ const VendorBidsPage = () => {
                     </CardHeader>
 
                     <CardContent>
-                      <div className='grid grid-cols-2 gap-4 mb-4'>
-                        <div className='flex items-center gap-2'>
-                          <DollarSign className='h-4 w-4 text-green-500' />
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-green-500" />
                           <div>
                             <p
                               className={`text-sm ${
@@ -522,8 +558,8 @@ const VendorBidsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className='flex items-center gap-2'>
-                          <Clock className='h-4 w-4 text-blue-500' />
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-blue-500" />
                           <div>
                             <p
                               className={`text-sm ${
@@ -547,7 +583,7 @@ const VendorBidsPage = () => {
                         </div>
                       </div>
 
-                      <div className='mb-4'>
+                      <div className="mb-4">
                         <p
                           className={`text-sm ${
                             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -573,8 +609,96 @@ const VendorBidsPage = () => {
                         {bid.description}
                       </p>
 
+                      {/* Counter Bid Information */}
+                      {bid.counterOffers &&
+                        bid.counterOffers.length > 0 &&
+                        bid.status !== 'ACCEPTED' && (
+                          <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <DollarSign className="h-4 w-4 text-blue-600" />
+                              <h4
+                                className={`font-semibold ${
+                                  theme === 'dark'
+                                    ? 'text-blue-300'
+                                    : 'text-blue-900'
+                                }`}
+                              >
+                                Counter Offers
+                              </h4>
+                            </div>
+                            <div className="space-y-2">
+                              {bid.counterOffers.map(
+                                (offer: any, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="p-3 bg-white dark:bg-gray-800 rounded border"
+                                  >
+                                    <div className="flex justify-between items-start mb-2">
+                                      <span
+                                        className={`font-medium ${
+                                          theme === 'dark'
+                                            ? 'text-white'
+                                            : 'text-gray-900'
+                                        }`}
+                                      >
+                                        ${offer.amount.toLocaleString()}
+                                      </span>
+                                      <span
+                                        className={`text-xs ${
+                                          theme === 'dark'
+                                            ? 'text-gray-400'
+                                            : 'text-gray-500'
+                                        }`}
+                                      >
+                                        {new Date(
+                                          offer.createdAt
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    {offer.message && (
+                                      <p
+                                        className={`text-sm ${
+                                          theme === 'dark'
+                                            ? 'text-gray-300'
+                                            : 'text-gray-600'
+                                        }`}
+                                      >
+                                        "{offer.message}"
+                                      </p>
+                                    )}
+                                    <div className="mt-2 flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                        onClick={() =>
+                                          handleAcceptCounter(
+                                            bid.id,
+                                            offer.amount
+                                          )
+                                        }
+                                      >
+                                        Accept Counter
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-red-200 text-red-600 hover:bg-red-50"
+                                        onClick={() =>
+                                          handleDeclineCounter(bid.id)
+                                        }
+                                      >
+                                        Decline
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                       {bid.notes && (
-                        <div className='mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md'>
+                        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                           <p
                             className={`text-sm ${
                               theme === 'dark'
@@ -587,7 +711,7 @@ const VendorBidsPage = () => {
                         </div>
                       )}
 
-                      <div className='flex items-center justify-between'>
+                      <div className="flex items-center justify-between">
                         <span
                           className={`text-xs ${
                             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -596,42 +720,42 @@ const VendorBidsPage = () => {
                           Last updated: {formatDate(bid.updatedAt)}
                         </span>
 
-                        <div className='flex space-x-2'>
+                        <div className="flex space-x-2">
                           <Button
-                            variant='outline'
-                            size='sm'
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleViewBid(bid)}
                           >
-                            <Eye className='mr-1 h-3 w-3' />
+                            <Eye className="mr-1 h-3 w-3" />
                             View
                           </Button>
 
                           {bid.status === 'PENDING' && (
                             <>
                               <Button
-                                variant='outline'
-                                size='sm'
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handleEditBid(bid)}
                               >
-                                <Edit className='mr-1 h-3 w-3' />
+                                <Edit className="mr-1 h-3 w-3" />
                                 Edit
                               </Button>
                               <Button
-                                variant='outline'
-                                size='sm'
-                                className='text-red-600 hover:text-red-700'
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
                                 onClick={() => handleWithdrawBid(bid)}
                                 disabled={withdrawBidLoading}
                               >
-                                <Trash2 className='mr-1 h-3 w-3' />
+                                <Trash2 className="mr-1 h-3 w-3" />
                                 Withdraw
                               </Button>
                             </>
                           )}
 
                           {bid.status === 'ACCEPTED' && (
-                            <Button size='sm'>
-                              <MessageSquare className='mr-1 h-3 w-3' />
+                            <Button size="sm">
+                              <MessageSquare className="mr-1 h-3 w-3" />
                               Message
                             </Button>
                           )}
@@ -644,9 +768,9 @@ const VendorBidsPage = () => {
 
               {/* Pagination */}
               {pagination && pagination.pages > 1 && (
-                <div className='flex justify-center items-center gap-2 mt-8'>
+                <div className="flex justify-center items-center gap-2 mt-8">
                   <Button
-                    variant='outline'
+                    variant="outline"
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                   >
@@ -662,7 +786,7 @@ const VendorBidsPage = () => {
                   </span>
 
                   <Button
-                    variant='outline'
+                    variant="outline"
                     onClick={() =>
                       setCurrentPage(
                         Math.min(pagination.pages, currentPage + 1)
@@ -677,9 +801,9 @@ const VendorBidsPage = () => {
 
               {/* No Results */}
               {bids.length === 0 && !isLoading && (
-                <div className='text-center py-12'>
-                  <div className='mb-4'>
-                    <Clock className='h-12 w-12 mx-auto text-gray-400' />
+                <div className="text-center py-12">
+                  <div className="mb-4">
+                    <Clock className="h-12 w-12 mx-auto text-gray-400" />
                   </div>
                   <h3
                     className={`text-lg font-medium mb-2 ${

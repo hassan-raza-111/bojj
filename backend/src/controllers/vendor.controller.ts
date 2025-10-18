@@ -379,7 +379,24 @@ export class VendorController {
             in: ['PENDING', 'ACCEPTED'],
           },
         },
-        include: {
+        select: {
+          id: true,
+          amount: true,
+          description: true,
+          timeline: true,
+          status: true,
+          notes: true,
+          milestones: true,
+          createdAt: true,
+          updatedAt: true,
+          // Negotiation fields
+          initialAmount: true,
+          currentAmount: true,
+          counterOffers: true,
+          lastCounteredBy: true,
+          negotiationRound: true,
+          maxNegotiationRounds: true,
+          negotiationStatus: true,
           job: {
             select: {
               id: true,
@@ -402,6 +419,18 @@ export class VendorController {
         skip,
         take: Number(limit),
       });
+
+      console.log(
+        '🔍 Vendor bids fetched:',
+        bids.map((bid) => ({
+          id: bid.id,
+          amount: bid.amount,
+          currentAmount: bid.currentAmount,
+          counterOffers: bid.counterOffers,
+          lastCounteredBy: bid.lastCounteredBy,
+          negotiationStatus: bid.negotiationStatus,
+        }))
+      );
 
       const total = await prisma.bid.count({
         where: {
@@ -470,7 +499,24 @@ export class VendorController {
 
       const bids = await prisma.bid.findMany({
         where: whereClause,
-        include: {
+        select: {
+          id: true,
+          amount: true,
+          description: true,
+          timeline: true,
+          status: true,
+          notes: true,
+          milestones: true,
+          createdAt: true,
+          updatedAt: true,
+          // Negotiation fields
+          initialAmount: true,
+          currentAmount: true,
+          counterOffers: true,
+          lastCounteredBy: true,
+          negotiationRound: true,
+          maxNegotiationRounds: true,
+          negotiationStatus: true,
           job: {
             select: {
               id: true,

@@ -151,6 +151,44 @@ const VendorDashboard = () => {
     setIsBidModalOpen(true);
   };
 
+  // Handle accepting counter offer
+  const handleAcceptCounter = async (bidId: string, counterAmount: number) => {
+    try {
+      console.log('🔍 Accepting counter offer for bid:', bidId);
+      await vendorApi.acceptCounterOffer(bidId, user?.id);
+      console.log('✅ Counter offer accepted, refreshing data...');
+      toast.success('Counter offer accepted successfully!');
+      refreshAll(); // Refresh dashboard data
+    } catch (error) {
+      console.error('Error accepting counter offer:', error);
+      toast.error('Error', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to accept counter offer',
+      });
+    }
+  };
+
+  // Handle declining counter offer
+  const handleDeclineCounter = async (bidId: string) => {
+    try {
+      console.log('🔍 Declining counter offer for bid:', bidId);
+      await vendorApi.declineCounterOffer(bidId, user?.id);
+      console.log('✅ Counter offer declined, refreshing data...');
+      toast.success('Counter offer declined');
+      refreshAll(); // Refresh dashboard data
+    } catch (error) {
+      console.error('Error declining counter offer:', error);
+      toast.error('Error', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to decline counter offer',
+      });
+    }
+  };
+
   // Check if profile is complete
   const isProfileComplete = () => {
     const vendorProfile = (user as any)?.vendorProfile;
@@ -507,7 +545,7 @@ const VendorDashboard = () => {
 
                     <div className="flex space-x-3 mt-4">
                       <Link
-                        to={`/vendor/jobs/${job.id}/details`}
+                        to={`/vendor/jobs/${job.id}/view`}
                         className="flex-1 min-w-0"
                       >
                         <Button variant="outline" className="w-full">
@@ -616,6 +654,114 @@ const VendorDashboard = () => {
                     >
                       {bid.description}
                     </p>
+
+                    {/* Counter Bid Information */}
+                    {console.log('🔍 Bid data for counter offers:', {
+                      bidId: bid.id,
+                      counterOffers: bid.counterOffers,
+                      lastCounteredBy: bid.lastCounteredBy,
+                      negotiationStatus: bid.negotiationStatus,
+                      status: bid.status,
+                      amount: bid.amount,
+                      currentAmount: bid.currentAmount,
+                    })}
+                    {bid.counterOffers &&
+                      bid.counterOffers.length > 0 &&
+                      bid.status !== 'ACCEPTED' && (
+                        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <DollarSign className="h-4 w-4 text-blue-600" />
+                            <h4
+                              className={`font-semibold text-sm ${
+                                theme === 'dark'
+                                  ? 'text-blue-300'
+                                  : 'text-blue-900'
+                              }`}
+                            >
+                              Counter Offers ({bid.counterOffers.length})
+                            </h4>
+                          </div>
+                          <div className="space-y-2">
+                            {bid.counterOffers
+                              .slice(0, 2)
+                              .map((offer: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="p-2 bg-white dark:bg-gray-800 rounded border"
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <span
+                                      className={`font-medium text-sm ${
+                                        theme === 'dark'
+                                          ? 'text-white'
+                                          : 'text-gray-900'
+                                      }`}
+                                    >
+                                      ${offer.amount.toLocaleString()}
+                                    </span>
+                                    <span
+                                      className={`text-xs ${
+                                        theme === 'dark'
+                                          ? 'text-gray-400'
+                                          : 'text-gray-500'
+                                      }`}
+                                    >
+                                      {new Date(
+                                        offer.createdAt
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  {offer.message && (
+                                    <p
+                                      className={`text-xs mt-1 ${
+                                        theme === 'dark'
+                                          ? 'text-gray-300'
+                                          : 'text-gray-600'
+                                      }`}
+                                    >
+                                      "{offer.message}"
+                                    </p>
+                                  )}
+                                  <div className="mt-2 flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
+                                      onClick={() =>
+                                        handleAcceptCounter(
+                                          bid.id,
+                                          offer.amount
+                                        )
+                                      }
+                                    >
+                                      Accept
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-red-200 text-red-600 hover:bg-red-50 text-xs px-2 py-1"
+                                      onClick={() =>
+                                        handleDeclineCounter(bid.id)
+                                      }
+                                    >
+                                      Decline
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            {bid.counterOffers.length > 2 && (
+                              <p
+                                className={`text-xs ${
+                                  theme === 'dark'
+                                    ? 'text-gray-400'
+                                    : 'text-gray-500'
+                                }`}
+                              >
+                                +{bid.counterOffers.length - 2} more offers
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                     <div className="flex space-x-3 mt-4">
                       <Link
@@ -729,7 +875,7 @@ const VendorDashboard = () => {
 
                     <div className="flex space-x-3 mt-4">
                       <Link
-                        to={`/vendor/jobs/${job.id}/details`}
+                        to={`/vendor/jobs/${job.id}/view`}
                         className="flex-1 min-w-0"
                       >
                         <Button variant="outline" className="w-full">

@@ -175,15 +175,29 @@ export const customerAPI = {
   },
 
   // Counter Bid
-  counterBid: async (bidId: string, counterAmount: number, message: string) => {
+  counterBid: async (
+    bidId: string,
+    counterAmount: number,
+    message: string,
+    userId?: string
+  ) => {
+    const currentUserId = userId || localStorage.getItem('userId');
+    console.log('🔍 customerAPI.counterBid called:', {
+      bidId,
+      counterAmount,
+      message,
+      userId: currentUserId,
+      url: `/api/jobs/bids/${bidId}/counter-offer`,
+    });
+
     return apiCall(
-      `${API_CONFIG.BASE_URL}/jobs/${bidId}/counter-offer`,
+      `/api/jobs/bids/${bidId}/counter-offer`,
       {
         method: 'POST',
         body: JSON.stringify({
           counterAmount,
           message,
-          userId: localStorage.getItem('userId'),
+          userId: currentUserId,
           userRole: 'CUSTOMER',
         }),
       },

@@ -43,7 +43,15 @@ export const CounterBidModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('🔍 Counter Bid Modal Submit:', {
+      bidId,
+      counterAmount,
+      message,
+      currentAmount,
+    });
+
     if (!counterAmount || parseFloat(counterAmount) <= 0) {
+      console.log('❌ Invalid amount:', counterAmount);
       toast({
         title: 'Invalid Amount',
         description: 'Please enter a valid counter amount.',
@@ -54,7 +62,9 @@ export const CounterBidModal = ({
 
     setIsSubmitting(true);
     try {
+      console.log('🚀 Calling onCounterBid function...');
       await onCounterBid(bidId, parseFloat(counterAmount), message);
+      console.log('✅ Counter bid submitted successfully');
       toast({
         title: 'Counter Bid Sent',
         description: 'Your counter offer has been sent to the vendor.',
@@ -63,6 +73,7 @@ export const CounterBidModal = ({
       setCounterAmount('');
       setMessage('');
     } catch (error) {
+      console.error('❌ Counter bid error:', error);
       toast({
         title: 'Error',
         description: 'Failed to send counter bid. Please try again.',

@@ -17,6 +17,7 @@ import { useJobDetails } from '@/hooks/useJobDetails';
 import { useBidActions } from '@/hooks/useBidActions';
 import { MessageButton } from '@/components/shared/MessageButton';
 import { CounterBidModal } from '@/components/customer/CounterBidModal';
+import { customerAPI } from '@/config/customerApi';
 import {
   ArrowLeft,
   MapPin,
@@ -93,16 +94,38 @@ const JobDetailsPage = () => {
     message: string
   ) => {
     try {
-      // TODO: Implement actual counter bid API call
-      console.log('Counter Bid:', { bidId, counterAmount, message });
+      console.log('🔍 JobDetailsPage - Submitting counter bid:', {
+        bidId,
+        counterAmount,
+        message,
+        userId: user?.id,
+      });
 
-      // For now, just show success message
+      // Use the customer API service
+      console.log('🚀 Calling customerAPI.counterBid...');
+      const result = await customerAPI.counterBid(
+        bidId,
+        counterAmount,
+        message,
+        user?.id
+      );
+      console.log('✅ Counter Bid API Result:', result);
+
+      // Show success message
       toast.success('Counter Bid Sent', {
         description: 'Your counter offer has been sent to the vendor.',
       });
+
+      // Close modal and refresh data
+      setCounterBidModal((prev) => ({ ...prev, isOpen: false }));
+      refetch(); // Refresh job data to show updated bid status
     } catch (error) {
+      console.error('Counter Bid Error:', error);
       toast.error('Error', {
-        description: 'Failed to send counter bid. Please try again.',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to send counter bid. Please try again.',
       });
     }
   };

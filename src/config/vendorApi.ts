@@ -55,6 +55,20 @@ export interface ActiveBid {
   milestones?: any;
   createdAt: string;
   updatedAt: string;
+  // Negotiation fields
+  initialAmount?: number;
+  currentAmount?: number;
+  counterOffers?: Array<{
+    amount: number;
+    proposedBy: string;
+    message: string;
+    createdAt: string;
+    round: number;
+  }>;
+  lastCounteredBy?: string;
+  negotiationRound?: number;
+  maxNegotiationRounds?: number;
+  negotiationStatus?: string;
   job: {
     id: string;
     title: string;
@@ -78,6 +92,20 @@ export interface VendorBid {
   milestones?: any;
   createdAt: string;
   updatedAt: string;
+  // Negotiation fields
+  initialAmount?: number;
+  currentAmount?: number;
+  counterOffers?: Array<{
+    amount: number;
+    proposedBy: string;
+    message: string;
+    createdAt: string;
+    round: number;
+  }>;
+  lastCounteredBy?: string;
+  negotiationRound?: number;
+  maxNegotiationRounds?: number;
+  negotiationStatus?: string;
   job: {
     id: string;
     title: string;
@@ -386,6 +414,49 @@ export const vendorApi = {
       {
         method: 'POST',
         body: formData,
+      },
+      true
+    );
+  },
+
+  // Counter Offer Actions
+  acceptCounterOffer: async (bidId: string, userId?: string) => {
+    const currentUserId = userId || localStorage.getItem('userId');
+    console.log('🔍 vendorApi.acceptCounterOffer called:', {
+      bidId,
+      userId: currentUserId,
+      url: `/api/jobs/bids/${bidId}/accept-counter`,
+    });
+
+    return apiCall(
+      `/api/jobs/bids/${bidId}/accept-counter`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: currentUserId,
+          userRole: 'VENDOR',
+        }),
+      },
+      true
+    );
+  },
+
+  declineCounterOffer: async (bidId: string, userId?: string) => {
+    const currentUserId = userId || localStorage.getItem('userId');
+    console.log('🔍 vendorApi.declineCounterOffer called:', {
+      bidId,
+      userId: currentUserId,
+      url: `/api/jobs/bids/${bidId}/reject-counter`,
+    });
+
+    return apiCall(
+      `/api/jobs/bids/${bidId}/reject-counter`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: currentUserId,
+          userRole: 'VENDOR',
+        }),
       },
       true
     );

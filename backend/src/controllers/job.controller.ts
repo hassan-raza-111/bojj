@@ -1514,7 +1514,20 @@ export const submitCounterOffer: RequestHandler = async (req, res, next) => {
     const { bidId } = req.params;
     const { counterAmount, message, userId, userRole } = req.body;
 
+    console.log('🔍 Counter Offer Request:', {
+      bidId,
+      counterAmount,
+      message,
+      userId,
+      userRole,
+    });
+
     if (!userId || !userRole || !counterAmount) {
+      console.log('❌ Missing required fields:', {
+        userId,
+        userRole,
+        counterAmount,
+      });
       res.status(400).json({
         success: false,
         message: 'User ID, role, and counter amount are required',
@@ -1601,6 +1614,14 @@ export const submitCounterOffer: RequestHandler = async (req, res, next) => {
     const updatedOffers = [...existingOffers, newCounterOffer];
 
     // Update bid with counter offer
+    console.log('🔄 Updating bid with counter offer:', {
+      bidId,
+      currentAmount: counterAmount,
+      counterOffers: updatedOffers,
+      lastCounteredBy: userRole,
+      negotiationRound: bid.negotiationRound + 1,
+    });
+
     const updatedBid = await prisma.bid.update({
       where: { id: bidId },
       data: {
@@ -1628,6 +1649,8 @@ export const submitCounterOffer: RequestHandler = async (req, res, next) => {
         },
       },
     });
+
+    console.log('✅ Bid updated successfully:', updatedBid);
 
     // Get user names for notifications
     const customer = await prisma.user.findUnique({
@@ -1754,13 +1777,16 @@ export const acceptCounterOffer: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Update bid status
+    // Update bid status and clear counter offers
     const updatedBid = await prisma.bid.update({
       where: { id: bidId },
       data: {
         status: 'ACCEPTED',
         negotiationStatus: 'AGREED',
         amount: bid.currentAmount || bid.amount, // Use negotiated amount
+        counterOffers: [],
+        lastCounteredBy: null,
+        negotiationRound: 0,
       },
     });
 
@@ -1781,6 +1807,67 @@ export const acceptCounterOffer: RequestHandler = async (req, res, next) => {
       },
       data: { status: 'REJECTED' },
     });
+
+    // Check if chat room already exists, if not create one
+    let chatRoom = await prisma.chatRoom.findFirst({
+      where: {
+        jobId: bid.jobId,
+        customerId: bid.job.customerId,
+        vendorId: bid.vendorId,
+      },
+    });
+
+    if (!chatRoom) {
+      try {
+        chatRoom = await prisma.chatRoom.create({
+          data: {
+            jobId: bid.jobId,
+            customerId: bid.job.customerId,
+            vendorId: bid.vendorId,
+            status: 'ACTIVE',
+          },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+            vendor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+            job: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        });
+
+        // Send system message to chat room
+        await prisma.chatMessage.create({
+          data: {
+            chatRoomId: chatRoom.id,
+            senderId:
+              userRole === 'CUSTOMER' ? bid.job.customerId : bid.vendorId,
+            content:
+              'Counter offer accepted! Chat room created. You can now communicate with each other.',
+            messageType: 'SYSTEM',
+          },
+        });
+      } catch (error) {
+        console.log('Chat room already exists or creation failed:', error);
+        // Continue without failing the whole process
+      }
+    }
 
     // Get names for notifications
     const customer = await prisma.user.findUnique({
@@ -1897,12 +1984,16 @@ export const rejectCounterOffer: RequestHandler = async (req, res, next) => {
       return;
     }
 
-    // Update bid status
+    // Update bid status and clear counter offers
     await prisma.bid.update({
       where: { id: bidId },
       data: {
         status: 'REJECTED',
         negotiationStatus: 'REJECTED',
+        counterOffers: [],
+        lastCounteredBy: null,
+        negotiationRound: 0,
+        currentAmount: bid.initialAmount || bid.amount,
       },
     });
 

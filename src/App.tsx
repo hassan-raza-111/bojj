@@ -233,7 +233,7 @@ const App = () => {
                           />
                           <Route
                             path="/bids/:id/view"
-                            element={<VendorJobDetailPage />}
+                            element={<JobDetailsPage />}
                           />
                         </Routes>
                       </VendorLayout>

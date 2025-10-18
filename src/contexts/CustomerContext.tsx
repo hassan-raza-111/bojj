@@ -515,7 +515,7 @@ export const CustomerProvider: React.FC<CustomerProviderProps> = ({
   ) => {
     try {
       const response = await fetch(
-        `${API_CONFIG.BASE_URL}/jobs/${bidId}/counter-offer`,
+        `${API_CONFIG.BASE_URL}/jobs/bids/${bidId}/counter-offer`,
         {
           method: 'POST',
           headers: {

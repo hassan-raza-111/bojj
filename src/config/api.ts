@@ -67,7 +67,8 @@ export const API_CONFIG = {
       DELETE: (id: string) => `/api/support/tickets/${id}`,
       ADMIN_TICKETS: '/api/support/admin/tickets',
       ADMIN_STATS: '/api/support/admin/tickets/stats',
-      ADMIN_TICKETS_BY_STATUS: (status: string) => `/api/support/admin/tickets/status/${status}`,
+      ADMIN_TICKETS_BY_STATUS: (status: string) =>
+        `/api/support/admin/tickets/status/${status}`,
       ASSIGN_TICKET: (id: string) => `/api/support/admin/tickets/${id}/assign`,
       CATEGORIES: '/api/support/categories',
       PRIORITIES: '/api/support/priorities',
@@ -129,6 +130,8 @@ export const apiCall = async (
   console.log('🚀 Method:', options.method || 'GET');
   console.log('🚀 Headers:', headers);
   console.log('🚀 Include Auth:', includeAuth);
+  console.log('🚀 Token:', localStorage.getItem('accessToken'));
+  console.log('🚀 User ID:', localStorage.getItem('userId'));
   console.log('🚀 Options:', options);
 
   try {
