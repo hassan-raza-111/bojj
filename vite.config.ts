@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
     host: '::',
     port: 8080,
     allowedHosts: ['venbid.com', 'www.venbid.com'],
+    hmr: {
+      overlay: false, // Disable error overlay to prevent URI malformed issues
+    },
   },
   plugins: [react(), mode === 'development' && componentTagger()].filter(
     Boolean
@@ -17,5 +20,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  define: {
+    global: 'globalThis',
   },
 }));
