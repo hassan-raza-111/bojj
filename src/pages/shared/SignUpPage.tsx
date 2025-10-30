@@ -45,7 +45,7 @@ const SignUpPage = () => {
       try {
         // Fetch UK cities
         const citiesResponse = await fetch(
-          `${API_CONFIG.BASE_URL}/data/uk-cities`
+          `${API_CONFIG.BASE_URL}/api/data/uk-cities`
         );
         if (citiesResponse.ok) {
           const citiesData = await citiesResponse.json();
@@ -54,7 +54,7 @@ const SignUpPage = () => {
 
         // Fetch service types
         const serviceTypesResponse = await fetch(
-          `${API_CONFIG.BASE_URL}/data/service-types`
+          `${API_CONFIG.BASE_URL}/api/data/service-types`
         );
         if (serviceTypesResponse.ok) {
           const serviceTypesData = await serviceTypesResponse.json();
