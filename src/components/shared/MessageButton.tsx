@@ -33,60 +33,42 @@ export const MessageButton: React.FC<MessageButtonProps> = ({
       return;
     }
 
-    console.log('MessageButton clicked:', { jobId, vendorId, user: user.id });
+    console.log('MessageButton clicked:', { jobId, vendorId, user: user.id, role: user.role });
     setIsLoading(true);
     try {
-      // Try to create a chat room (this will fail if one already exists)
-      await createChatRoom(jobId, vendorId);
+      // For vendors, we need to find existing chat room (vendor can't create chat rooms)
+      // For customers, we can try to create a chat room
+      if (user.role === 'CUSTOMER') {
+        // Try to create a chat room (this will fail if one already exists)
+        try {
+          await createChatRoom(jobId, vendorId);
+        } catch (createError) {
+          // Chat room might already exist, that's okay
+          console.log('Chat room might already exist:', createError);
+        }
+      }
 
       // Reload chat rooms to get the latest data
       await loadChatRooms();
 
-      // Find the chat room for this job and vendor
-      const chatRoom = chatRooms.find(
-        (room) =>
-          room.jobId === jobId &&
-          ((user.role === 'CUSTOMER' && room.vendorId === vendorId) ||
-            (user.role === 'VENDOR' && room.customerId === vendorId))
-      );
+      // Wait a bit for state to update, then find the chat room
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      if (chatRoom) {
-        // Set this as the current chat room
-        setCurrentChatRoom(chatRoom);
-      }
-
-      toast.success('Chat room opened!');
-
-      // Navigate to messages page
+      // Get fresh chat rooms from context after reload
+      // For both customer and vendor, navigate with jobId
+      // For customer: vendorId is the other party
+      // For vendor: vendorId is actually customerId (they're messaging the customer)
       const messagesPath =
         user.role === 'CUSTOMER' ? '/customer/messages' : '/vendor/messages';
-      navigate(messagesPath);
+      
+      // Navigate with query params so MessagesPage can find the chat room
+      // For vendors, vendorId param contains the customerId
+      navigate(`${messagesPath}?jobId=${jobId}&vendorId=${vendorId}`);
+      
+      toast.success('Opening chat...');
     } catch (error) {
-      console.log(
-        'Chat room creation failed (probably already exists):',
-        error
-      );
-      // If chat room already exists, just reload chat rooms and find it
-      await loadChatRooms();
-
-      // Find the existing chat room
-      const chatRoom = chatRooms.find(
-        (room) =>
-          room.jobId === jobId &&
-          ((user.role === 'CUSTOMER' && room.vendorId === vendorId) ||
-            (user.role === 'VENDOR' && room.customerId === vendorId))
-      );
-
-      if (chatRoom) {
-        setCurrentChatRoom(chatRoom);
-      }
-
-      toast.success('Chat room opened!');
-
-      // Navigate to messages page
-      const messagesPath =
-        user.role === 'CUSTOMER' ? '/customer/messages' : '/vendor/messages';
-      navigate(messagesPath);
+      console.error('Error opening chat:', error);
+      toast.error('Failed to open chat. Please try again.');
     } finally {
       setIsLoading(false);
     }

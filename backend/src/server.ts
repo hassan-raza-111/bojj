@@ -28,6 +28,18 @@ io.on('connection', (socket) => {
 
     console.log(`User ${userId} connected to socket`);
 
+    // Handle joining chat room
+    socket.on('join_room', ({ chatRoomId }: { chatRoomId: string }) => {
+      socket.join(`room_${chatRoomId}`);
+      console.log(`User ${userId} joined chat room: ${chatRoomId}`);
+    });
+
+    // Handle leaving chat room
+    socket.on('leave_room', ({ chatRoomId }: { chatRoomId: string }) => {
+      socket.leave(`room_${chatRoomId}`);
+      console.log(`User ${userId} left chat room: ${chatRoomId}`);
+    });
+
     socket.on('disconnect', () => {
       console.log(`User ${userId} disconnected from socket`);
     });

@@ -16,6 +16,7 @@ import { VendorBid, vendorApi } from '@/config/vendorApi';
 import { useAuth } from '@/hooks/useAuth';
 import BidEditModal from '@/components/vendor/BidEditModal';
 import BidDetailsModal from '@/components/vendor/BidDetailsModal';
+import { MessageButton } from '@/components/shared/MessageButton';
 import {
   DollarSign,
   MessageSquare,
@@ -753,11 +754,13 @@ const VendorBidsPage = () => {
                             </>
                           )}
 
-                          {bid.status === 'ACCEPTED' && (
-                            <Button size="sm">
-                              <MessageSquare className="mr-1 h-3 w-3" />
-                              Message
-                            </Button>
+                          {bid.status === 'ACCEPTED' && user && (
+                            <MessageButton
+                              jobId={bid.job.id}
+                              vendorId={bid.job.customer.id}
+                              variant="outline"
+                              size="sm"
+                            />
                           )}
                         </div>
                       </div>

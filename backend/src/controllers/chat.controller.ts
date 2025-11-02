@@ -414,7 +414,14 @@ export class ChatController {
           ? chatRoom.vendorId
           : chatRoom.customerId;
 
+      // Emit to recipient's personal room
       io.to(`user_${recipientId}`).emit('new_message', {
+        message,
+        chatRoomId,
+      });
+
+      // Also emit to chat room (for users who joined the room)
+      io.to(`room_${chatRoomId}`).emit('new_message', {
         message,
         chatRoomId,
       });
