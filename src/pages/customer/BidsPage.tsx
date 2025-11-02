@@ -169,12 +169,14 @@ const BidsPage = () => {
                         </Button>
                       </>
                     )}
-                    <MessageButton
-                      jobId={id || ''}
-                      vendorId={bid.vendor.id}
-                      variant="outline"
-                      size="sm"
-                    />
+                    {bid.status === 'ACCEPTED' && (
+                      <MessageButton
+                        jobId={id || ''}
+                        vendorId={bid.vendor.id}
+                        variant="outline"
+                        size="sm"
+                      />
+                    )}
                   </div>
                 </div>
               ))}

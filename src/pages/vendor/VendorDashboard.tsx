@@ -773,19 +773,21 @@ const VendorDashboard = () => {
                         </Button>
                       </Link>
 
-                      <Link
-                        to={`/vendor/messages?jobId=${
-                          bid.job.id
-                        }&client=${encodeURIComponent(
-                          `${bid.job.customer.firstName} ${bid.job.customer.lastName}`
-                        )}`}
-                        className="flex-1 min-w-0"
-                      >
-                        <Button className="w-full">
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          Message Client
-                        </Button>
-                      </Link>
+                      {bid.status === 'ACCEPTED' && (
+                        <Link
+                          to={`/vendor/messages?jobId=${
+                            bid.job.id
+                          }&client=${encodeURIComponent(
+                            `${bid.job.customer.firstName} ${bid.job.customer.lastName}`
+                          )}`}
+                          className="flex-1 min-w-0"
+                        >
+                          <Button className="w-full">
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Message Client
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

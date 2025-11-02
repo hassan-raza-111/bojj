@@ -682,12 +682,14 @@ const JobDetailsPage = () => {
                                 View Profile
                               </Button>
 
-                              <MessageButton
-                                jobId={job.id}
-                                vendorId={bid.vendor.id}
-                                variant="outline"
-                                className="flex-1"
-                              />
+                              {bid.status === 'ACCEPTED' && (
+                                <MessageButton
+                                  jobId={job.id}
+                                  vendorId={bid.vendor.id}
+                                  variant="outline"
+                                  className="flex-1"
+                                />
+                              )}
                             </div>
 
                             {/* Counter Bid Section */}
