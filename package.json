@@ -1,8 +1,8 @@
 {
-  "name": "venbid-webapp",
+  "name": "venbid",
   "private": true,
   "version": "1.0.0",
-  "description": "VenBid Web Application",
+  "description": "VenBid - Your Trusted Bidding Platform",
   "type": "module",
   "scripts": {
     "dev": "vite",

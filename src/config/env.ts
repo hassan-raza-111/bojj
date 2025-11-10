@@ -7,7 +7,7 @@ export const ENV_CONFIG = {
   FRONTEND_URL: import.meta.env.VITE_FRONTEND_URL || 'http://localhost:8080',
 
   // App Configuration
-  APP_NAME: import.meta.env.VITE_APP_NAME || 'VenBid WebApp',
+  APP_NAME: import.meta.env.VITE_APP_NAME || 'VenBid',
   APP_VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
 
   // Development Mode

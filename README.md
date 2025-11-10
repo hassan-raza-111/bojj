@@ -1,6 +1,6 @@
-# VenBid WebApp
+# VenBid
 
-Welcome to the **VenBid WebApp**! This project is a modern, responsive web application designed to provide a seamless user experience. Whether you're a developer, a user, or a contributor, this README will guide you through setting up and using the project.
+Welcome to **VenBid**! This project is a modern, responsive web application designed to provide a seamless user experience. Whether you're a developer, a user, or a contributor, this README will guide you through setting up and using the project.
 
 ---
 
@@ -52,11 +52,11 @@ Before you begin, ensure you have the following installed:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/venbid-webapp.git
+   git clone https://github.com/your-username/venbid.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd venbid-webapp
+   cd venbid
    ```
 3. Install dependencies:
    ```bash
@@ -119,4 +119,4 @@ For questions or feedback, feel free to reach out:
 
 ---
 
-Thank you for using **VenBid WebApp**! We hope it meets your needs and provides a great experience.
+Thank you for using **VenBid**! We hope it meets your needs and provides a great experience.
